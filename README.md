@@ -2,7 +2,7 @@
 
 A mobile shopping companion that answers: **“What will this cost me in my home currency, and how much could I save?”**
 
-Status: Expo + TypeScript scaffold implemented with a Savly welcome screen. Calculator, reference-data integration, and billing are not implemented yet.
+Status: Expo + TypeScript scaffold implemented with a Savly welcome screen. The on-device calculation engine and illustrative refund-rule selector are implemented and tested. The reference-data client and cache are implemented and tested separately. Calculator UI integration and billing are not implemented yet.
 
 ## Start here
 
@@ -42,15 +42,36 @@ Checks:
 
 ```bash
 npm run typecheck
+npm test
 npm run check:dependencies
 NODE_ENV=production npm run export:mobile
 ```
 
-The export command bundles Android and iOS JavaScript into ignored `dist/`; it does not produce installable store binaries. No automated calculator tests exist yet; those belong to the next foundation tasks.
+The export command bundles Android and iOS JavaScript into ignored `dist/`; it does not produce installable store binaries. `npm test` runs the calculation, refund-selection, and reference-data tests without Expo, a device, or a backend. `npm run typecheck` checks both app code and tests.
 
 `App.tsx` sets up safe areas and the status bar; `src/app/WelcomeScreen.tsx` contains the initial screen and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
 
 Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo dependency compatibility, and production bundling for Android and iOS passed. No simulator or physical-device tests were run. npm audit reported 10 moderate advisories in the Expo tooling dependency tree (including transitive `uuid`/`xcode`); its suggested full fix downgrades Expo to SDK 46, so it was not applied. Revisit compatible upstream fixes before release.
+
+## Calculation engine
+
+`src/domain/calculator.ts` calculates VAT, card fees, before/after refund costs, and savings using decimal.js. `src/domain/refunds.ts` selects illustrative rules by country, currency, explicit residency, category, and price band. Both are pure on-device modules with no UI or network dependencies.
+
+Pass normalized decimal strings (`"120"`, `"1.10"`, fee `"0.03"` for 3%) and explicit currency minor units. UI input normalization belongs to the future form layer. Domain inputs allow up to 18 digits on each side of the decimal point. Results contain formatted decimal strings and retained FX/refund provenance. Invalid input returns a field error; unavailable FX returns no totals. An unknown refund returns the without-refund cost, with refund-dependent totals and savings left null. Real mode rejects sample FX and disables sample refund rules.
+
+Verified: 29 tests cover AC1–AC6 calculations/validation, AC7 provenance retention, AC8 unknown/zero refunds and same-currency conversion, AC11 rounding, the AC12 numeric example, and refund-rule boundaries/ambiguity. App and test TypeScript checks passed. UI labels and device execution remain unverified; cache verification is described below.
+
+## Reference-data client and cache
+
+`src/data/reference-store.ts` shares one refresh cycle across consumers, validates both fxService responses, and saves one immutable snapshot for exactly four hours. `get()` reuses fresh data; `retry()` bypasses failure backoff. Failed refreshes retain the previous snapshot with `status: "stale"` and a “Rates out of date” label. Keep `snapshot.mode` visible as well so stale sample data remains identifiable. A successful fetch does not change the source's own `asOf` timestamp.
+
+Country membership comes directly from the snapshot. `selectedCountry()` returns null when a selection is no longer supported, allowing the future screen to request a new selection while retaining old history. Refresh subscriptions provide new snapshots without modifying previously returned results.
+
+`src/data/transport.ts` supplies asynchronous sample responses and an HTTP adapter for `/v1/rates` and `/v1/countries`. The HTTP adapter accepts a base URL and optional token callback, has a request timeout, and never falls back to sample data. No production URL or authentication flow is configured.
+
+`src/data/mobile-reference-store.ts` supplies a shared sample-mode store backed by [AsyncStorage](https://react-native-async-storage.github.io/2.0/Usage/) and a foreground/background adapter. Mount `activateReferenceData()` once from the future calculator root and return its cleanup from the effect. The welcome screen does not activate this service yet. Active sessions refresh at expiry and retry after 1, 5, then 15 minutes; background sessions do not poll. Authentication failures await an explicit retry after credentials are available.
+
+Verified with `npm test`: 52 tests total, including 23 data-layer tests for exact TTL boundaries, request counts, concurrent refreshes, reconstructed stores using persisted storage, dynamic countries, offline recovery, malformed/partial responses, rollback, retries, timeouts, and immutable history data. TypeScript and Expo dependency compatibility also pass. Storage, clocks, HTTP responses, and lifecycle events use test doubles; native disk persistence, actual AppState events, and a deployed fxService connection have not been device-tested. FX orientation and UI state integration remain the next task.
 
 ## Premium access
 

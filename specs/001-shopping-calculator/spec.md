@@ -1,6 +1,6 @@
 # 001 — Shopping calculator
 
-Status: draft specification. This describes a product to build, not existing functionality.
+Status: calculation engine and illustrative refund-rule selection implemented and unit-tested. Reference-data client/cache and storage adapters are also implemented and unit-tested. Calculator UI wiring, history persistence, and device verification remain planned.
 
 ## User story
 
@@ -25,6 +25,8 @@ Load supported countries, FX rates, and VAT metadata from the sibling fxService 
 | Net refund rate q | Prototype-fixture fraction of the VAT-inclusive price, after modeled provider fees |
 | Expected refund R | Automatically P × q in shopping currency; advanced amount override allowed |
 | Home comparison price H | Optional, positive, in home currency, including applicable purchase taxes |
+
+The domain engine accepts normalized decimal strings with at most 18 digits before and after the decimal point; UI locale/whitespace normalization is handled before calling it. Monetary results are decimal strings. Savings amounts and percentages are signed; a negative value has the `more` outcome, and the UI formats its absolute magnitude in “Costs … more” copy.
 
 Percentages in formulas are decimal fractions: 20% becomes 0.20. Reject malformed, negative, non-finite, and out-of-range values rather than silently correcting them. Respect currency precision; JPY has no fractional minor units. Same-currency comparisons use r = 1.
 

@@ -12,12 +12,12 @@
 ## Milestone 1
 
 - [x] Scaffold Expo + TypeScript with compatible dependencies (SDK 57; typecheck, dependency compatibility, and Android/iOS production exports passed 2026-09-29).
-- [ ] Implement all decimal calculations and refund-rule selection client-side.
-- [ ] Verify dynamic countries, exact TTL boundary, offline cache, and request counts.
-- [ ] Implement reference-data API client, persistent four-hour cache, and asynchronous mock transport using api-contract.md.
+- [x] Implement all decimal calculations and refund-rule selection client-side (pure domain modules; 29 tests pass).
+- [x] Verify dynamic countries, exact TTL boundary, offline cache, and request counts (23 data-layer tests with fake clocks, storage, and HTTP).
+- [x] Implement reference-data API client, persistent four-hour cache, and asynchronous mock transport using api-contract.md (native storage/lifecycle adapters provided; calculator screen wiring and device validation remain).
 - [ ] Cover automatic rates, source labels and bank-fee defaults, overrides, and API states in AC12–AC18.
-- [ ] Test calculation criteria AC1–AC8 and AC11 where applicable.
-- [ ] Document calculation test commands in README (scaffold setup and verification commands are documented).
+- [x] Test calculation criteria AC1–AC8 and AC11 where applicable (domain behavior verified; AC7 rendered labels and other UI states remain in Milestone 2).
+- [x] Document calculation test commands and domain input/output conventions in README.
 
 ## Milestone 2
 

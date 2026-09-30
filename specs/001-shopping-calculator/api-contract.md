@@ -1,6 +1,6 @@
 # fxService integration and four-hour cache
 
-Status: app integration specified, not implemented. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
+Status: reference-data validation, HTTP/mock transports, persistent cache, and native storage/lifecycle adapters implemented. Calculator UI wiring, FX orientation, and production authentication remain pending. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
 
 - [Backend setup and local API](../../../fxService/README.md)
 - [Canonical API contract](../../../fxService/specs/requirements/03-api-contract.md)
@@ -47,3 +47,7 @@ Real backend mode shows “Refund estimate unavailable” until a validated manu
 ## Verification cases
 
 Use a fake clock and per-endpoint request counters: first use makes two requests, 3:59:59 reuses the cache, and exactly 4:00:00 starts one shared refresh cycle with two requests. Verify restart persistence, no requests on price/country edits while fresh, partial refresh failure, malformed responses, null VAT, missing/reversed pairs, added/removed countries, offline first launch, expired offline cache, retry backoff, clock rollback, and recovery. Handle 401 as an authentication failure without repeatedly retrying the same invalid credentials; retain stale validated data with its label. Cover 500/network failures and prevent saved history from changing. Assert no item inputs or totals cross the data API boundary.
+
+## Implementation verification
+
+The data layer has 23 automated tests in `tests/reference-data.test.ts`, using fake time, storage, lifecycle scheduling, and HTTP responses. These verify country membership, exact four-hour expiry, restart cache reuse, shared refresh, offline states, validation, partial failures, immutable snapshots, retry backoff, clock rollback, and request boundaries. Native persistence and actual foreground/background behavior still require device testing. The welcome screen does not start reference-data loading; the calculator integration will activate the shared store and subscribe to updates.
