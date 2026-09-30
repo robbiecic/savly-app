@@ -71,7 +71,7 @@ test('Small screen layout and demo landing page', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await comparison(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.getByText('A little clarity', { exact: false }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await page.getByRole('button', { name: 'Shopping country: France · EUR', exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
   await page.screenshot({ path: 'test-results/savly-compare-320.png' });
   await page.getByText('Your comparison', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
   await page.screenshot({ path: 'test-results/savly-result-320.png' });
@@ -108,9 +108,13 @@ test('Stale cached data stays labeled and Retry recovers after storage becomes a
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('button', { name: 'Country of residence: Choose country', exact: true }).click();
+  await page.getByRole('button', { name: 'France', exact: true }).click();
   await expect(page.getByText('Refund estimate unavailable.', { exact: false })).toBeVisible();
-  await page.getByRole('button', { name: 'Home currency: USD', exact: true }).click();
-  await page.getByRole('button', { name: 'JPY', exact: true }).click();
+  await page.getByRole('button', { name: /Edit settings/ }).click();
+  await page.getByRole('button', { name: 'Country of residence: France', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('Japan');
+  await page.getByRole('button', { name: 'Japan', exact: true }).click();
   await expect(page.getByText('Conversion unavailable.', { exact: true }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Share comparison', exact: true })).toHaveCount(0);
 });
@@ -156,4 +160,24 @@ test('Welcome screen matches the entry flow and Sign in remains inactive', async
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Get started', exact: true })).toHaveCount(0);
+});
+
+test('Home country selects currency automatically and migrates saved currency choices', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('savly:preferences:1')) localStorage.setItem('savly:preferences:1', JSON.stringify({
+      version: 1, country: 'FR', residence: 'US', homeCurrency: 'GBP', feePercent: '0'
+    }));
+  });
+  await openCompare(page);
+  await expect(page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Home currency:/ })).toHaveCount(0);
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('150');
+  await page.getByRole('button', { name: /Edit settings/ }).click();
+  await page.getByRole('button', { name: 'Country of residence: United States', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('France');
+  await page.getByRole('button', { name: 'France', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Home price (EUR, optional)', exact: true })).toHaveValue('');
+  await page.reload();
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Home price (EUR, optional)', exact: true })).toBeVisible();
 });

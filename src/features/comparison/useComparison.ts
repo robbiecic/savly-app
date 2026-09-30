@@ -6,14 +6,16 @@ import { activateReferenceData, referenceStore } from '../../data/mobile-referen
 import type { ReferenceState } from '../../data/reference-store';
 import { PreferenceStore, initialPreferences } from '../../storage/preferences';
 import { D } from '../../domain/decimal';
-import { availableCurrencies, compare, editForm, newForm, normalizeDecimal, resetOverrides, type ComparisonForm } from './model';
+import { withHomeCurrency, compare, editForm, newForm, normalizeDecimal, resetOverrides, type ComparisonForm } from './model';
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
   const localeInfo = getLocales()[0];
   const locale = localeInfo?.languageTag ?? 'en-US';
-  const [form, setForm] = useState(newForm);
+  const [storedForm, setForm] = useState(newForm);
   const [reference, setReference] = useState<ReferenceState | null>(null);
+  const form = useMemo(() => withHomeCurrency(storedForm, reference?.snapshot ?? null), [storedForm, reference?.snapshot]);
+  useEffect(() => { if (form !== storedForm) setForm(form); }, [form, storedForm]);
   const [ready, setReady] = useState(false);
   const [startupError, setStartupError] = useState(false);
   const [startupAttempt, setStartupAttempt] = useState(0);
@@ -26,8 +28,7 @@ export function useComparison() {
     const deactivate = activateReferenceData();
     void Promise.all([preferenceStore.load(), referenceStore.get()]).then(([saved, state]) => {
       if (!mounted) return;
-      const currencies = state.snapshot ? availableCurrencies(state.snapshot) : ['USD'];
-      const preferences = saved ?? initialPreferences(localeInfo?.currencyCode ?? null, currencies);
+      const preferences = saved ?? initialPreferences();
       if (!saved && state.snapshot && !state.snapshot.countries.some((row) => row.country === preferences.country)) {
         preferences.country = state.snapshot.countries[0]?.country ?? '';
       }
@@ -56,12 +57,12 @@ export function useComparison() {
     return () => clearTimeout(timer);
   }, [form]);
   const pending = settledForm !== form;
-  const view = useMemo(() => compare(settledForm, ready ? reference : null, locale), [settledForm, reference, ready, locale]);
+  const view = useMemo(() => compare(withHomeCurrency(settledForm, reference?.snapshot ?? null), ready ? reference : null, locale), [settledForm, reference, ready, locale]);
   return {
     form, reference, ready, view, pending, storageError, retrying, locale, startupError,
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
-    edit: (field: keyof ComparisonForm, value: string) => setForm((old) => editForm(old, field, value)),
-    reset: () => setForm(resetOverrides),
+    edit: (field: keyof ComparisonForm, value: string) => setForm(withHomeCurrency(editForm(form, field, value), reference?.snapshot ?? null)),
+    reset: () => setForm(resetOverrides(form)),
     retry: async () => { setRetrying(true); try { setReference(await referenceStore.retry()); } finally { setRetrying(false); } },
   };
 }

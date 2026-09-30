@@ -3,7 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Share, S
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
 import { useComparison } from '../features/comparison/useComparison';
-import { availableCurrencies, fxLabel, savingsLabel, type DisplayedComparison } from '../features/comparison/model';
+import { fxLabel, savingsLabel, type DisplayedComparison } from '../features/comparison/model';
 import { countryFlag, countryName, residenceOptions } from '../features/comparison/countries';
 import { openShare, shareMessage } from '../features/comparison/sharing';
 import { appShareLink } from '../config/sharing';
@@ -64,36 +64,35 @@ export function CompareScreen() {
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
   const residences = useMemo(() => residenceOptions(state.locale), [state.locale]);
   const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}`, flag: countryFlag(row.country) })) ?? [];
-  const currencies = snapshot ? availableCurrencies(snapshot).map((value) => ({ value, label: value })) : [];
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
-  const showSettings = (settings ?? !form.residence) || !!error('country') || !!error('homeCurrency');
+  const showSettings = (settings ?? !form.residence) || !!error('homeCurrency');
   return <SafeAreaView style={styles.screen}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.heading}><Text style={styles.brand}>Savly</Text><Text style={styles.badge}>SAMPLE PROTOTYPE</Text></View>
-        <View style={{ gap: 8 }}><Text accessibilityRole="header" style={styles.headline}>A little clarity{ '\n' }before you buy.</Text><Text style={ui.muted}>Shop globally. Compare what you could pay at home.</Text></View>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
+          <View style={styles.shoppingPicker}>
+            <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
+          </View>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
             <Text style={ui.muted}>Enter the full price, including any local purchase tax.</Text>
-            <Action label={`${countryName(form.country || 'FR', state.locale)} → ${form.homeCurrency} · ${showSettings ? 'Hide' : 'Edit'} settings`} secondary expanded={showSettings} onPress={() => setSettings(!showSettings)} />
+            <Action label={`${form.homeCurrency || 'Home country'} · ${showSettings ? 'Hide' : 'Edit'} settings`} secondary expanded={showSettings} onPress={() => setSettings(!showSettings)} />
             {(showSettings) && <View style={{ gap: 16 }}>
-              <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} />
-              <Select label="Home currency" value={form.homeCurrency} options={currencies} onChange={(v) => state.edit('homeCurrency', v)} error={error('homeCurrency')} />
-              <Select label="Country of residence" value={form.residence} options={residences} onChange={(v) => state.edit('residence', v)} />
-              <Text style={ui.muted}>Residency is separate from currency. Refund eligibility is not verified.</Text>
+              <Select label="Country of residence" value={form.residence} options={residences} onChange={(v) => state.edit('residence', v)} error={error('homeCurrency')} />
+              <Text style={ui.muted}>Home currency follows your country of residence. Refund eligibility is not verified.</Text>
             </View>}
-            <Field label={`Home price (${form.homeCurrency}, optional)`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
+            <Field label={`Home price (${form.homeCurrency || 'home currency'}, optional)`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Field label="Item name (optional)" value={form.itemName} onChange={(v) => state.edit('itemName', v)} placeholder="What caught your eye?" />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
             {(assumptions || error('fxOverride') || error('refundOverride') || error('feePercent')) && <View style={{ gap: 16 }}>
               <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
               <Field label="Additional bank fee (%)" value={form.feePercent} onChange={(v) => state.edit('feePercent', v)} numeric error={error('feePercent') ?? error('bankFee')} />
-              {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric placeholder="Automatic rate" error={error('fxOverride')} />}
+              {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric placeholder="Automatic rate" error={error('fxOverride')} />}
               <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   brand: { fontSize: 32, fontWeight: '800', color: colors.ink },
   badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
-  headline: { fontSize: 34, fontWeight: '700', color: colors.ink, lineHeight: 41 },
+  shoppingPicker: { alignSelf: 'center', width: '100%', maxWidth: 360 },
   total: { color: colors.ink, fontSize: 32, fontWeight: '700', paddingTop: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   summary: { padding: 20, borderRadius: 16, backgroundColor: '#F0F2F7', gap: 8 },

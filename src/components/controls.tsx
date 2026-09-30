@@ -37,7 +37,7 @@ function OptionLabel({ label, flag, selected = false }: { label: string; flag?: 
     <Text style={[ui.text, { flexShrink: 1 }]}>{label}{selected ? ' ✓' : ''}</Text>
   </View>;
 }
-export function Select({ label, value, options, onChange, error }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string }) {
+export function Select({ label, value, options, onChange, error, compact = false }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const selectedOption = options.find((option) => option.value === value);
@@ -45,7 +45,7 @@ export function Select({ label, value, options, onChange, error }: { label: stri
   return <View style={{ gap: 8 }}>
     <Text style={ui.label}>{label}</Text>
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${chosen}`} accessibilityState={{ expanded: open }}
-      style={[ui.input, { flexDirection: 'row', justifyContent: 'space-between', gap: 12 }]} onPress={() => { setSearch(''); setOpen(true); }}>
+      style={[ui.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }, compact && { borderRadius: 28, paddingVertical: 10, paddingHorizontal: 18 }]} onPress={() => { setSearch(''); setOpen(true); }}>
       <OptionLabel label={chosen} flag={selectedOption?.flag} /><Text style={ui.text}>⌄</Text>
     </Pressable>
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}

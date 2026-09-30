@@ -10,7 +10,7 @@ export class PreferenceStore {
       const raw = await this.storage.getItem(this.key);
       if (!raw) return null;
       const p = JSON.parse(raw);
-      if (p.version !== 1 || !/^[A-Z]{2}$/.test(p.country) || !/^[A-Z]{3}$/.test(p.homeCurrency) ||
+      if (p.version !== 1 || !/^[A-Z]{2}$/.test(p.country) || !(p.homeCurrency === '' || /^[A-Z]{3}$/.test(p.homeCurrency)) ||
           !(p.residence === '' || /^[A-Z]{2}$/.test(p.residence)) || typeof p.feePercent !== 'string' ||
           !/^\d{1,3}(?:\.\d{1,4})?$/.test(p.feePercent) || Number(p.feePercent) > 100) return null;
       return { country: p.country, homeCurrency: p.homeCurrency, residence: p.residence, feePercent: p.feePercent };
@@ -23,6 +23,6 @@ export class PreferenceStore {
     return this.writes;
   }
 }
-export function initialPreferences(suggestedCurrency: string | null, currencies: readonly string[]): Preferences {
-  return { ...DEFAULT_PREFERENCES, homeCurrency: suggestedCurrency && currencies.includes(suggestedCurrency) ? suggestedCurrency : currencies.includes('USD') ? 'USD' : currencies[0] ?? 'USD' };
+export function initialPreferences(): Preferences {
+  return { ...DEFAULT_PREFERENCES, homeCurrency: '' };
 }

@@ -21,6 +21,10 @@
 
 ## Milestone 2
 
+- [x] Move shopping-country selection to a rounded top dropdown before price entry, outside home settings.
+
+- [x] Derive home currency from country of residence; remove currency selection, reconcile saved settings, and clear home amounts on currency changes.
+
 - [x] Add flags beside country names in shopping and residence pickers, preserving search and accessible names.
 
 - [x] Add the design-board-inspired welcome screen; Get started opens Compare and Sign in is disabled.

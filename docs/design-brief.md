@@ -24,7 +24,7 @@ Validate contrast during implementation. Support enlarged text and both Android 
 
 ## Screen interpretation
 
-1. **Compare:** Savly branding, remembered shopping/home settings, prominent price entry, optional item name and home price, automatic recalculation, and a secondary “Edit assumptions” action.
+1. **Compare:** Savly branding, a centered rounded shopping-country dropdown above the price form (flag, name, and currency), remembered home settings, prominent price entry, optional item name and home price, automatic recalculation, and a secondary “Edit assumptions” action.
 2. **Result:** a simple summary showing “Without VAT refund,” “Estimated VAT refund,” and “With VAT refund,” followed by a green savings panel when a home price supports a favorable comparison. Align purchase cost, card fee, and expected refund in a clear breakdown. Keep bank-fee defaults and rate provenance in the expandable details, with a visible “Sample estimate” label for mocked results. Unfavorable results need clear wording without celebratory styling.
 3. **History / Saved, later milestone:** compact item cards with name, currency, price, savings if available, and snapshot date. Product thumbnails can come later; manual entry works without images.
 

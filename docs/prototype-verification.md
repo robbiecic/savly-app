@@ -4,25 +4,25 @@ The calculator foundation and interactive sample prototype are implemented. Comp
 
 ## Demonstrate it
 
-Run `npm start` on a configured Android/iOS environment, or `npm run web` for a browser preview without an Android SDK. Tap **Get started** on the welcome screen; **Sign in** is disabled. On first use, select **United States** as the country of residence explicitly. With shopping country **France**, home currency **USD**, price **120**, and home price **150**, the result should show:
+Run `npm start` on a configured Android/iOS environment, or `npm run web` for a browser preview without an Android SDK. Tap **Get started** on the welcome screen; **Sign in** is disabled. On first use, select **United States** as the country of residence explicitly. Home currency becomes **USD** automatically. With shopping country **France**, price **120**, and home price **150**, the result should show:
 
 - Without VAT refund: **USD 132.00**.
 - Estimated refund: **USD 16.50**.
 - With VAT refund: **USD 115.50**.
 - Potential savings: **USD 34.50 (23.0%)**.
 
-Use **Edit assumptions** to enter a 3% bank fee; the net cost becomes USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, home currency, residency, or shopping price clears comparison overrides. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
+Use **Edit assumptions** to enter a 3% bank fee; the net cost becomes USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, residency, or shopping price clears comparison overrides. Changing the automatically derived home currency also clears the home price. Saved legacy currency choices are reconciled on startup; missing country/currency metadata blocks totals with an explanation. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
 
 Sample country/currency options include France/EUR, US/USD, Japan/JPY, UK/GBP, and Australia/AUD. Membership still comes from the reference snapshot, so an existing fresh cache gains new fixture countries at its next refresh. The one illustrative automatic refund rule covers general goods in France for US residents. Other combinations display refund unavailable unless a manual amount is supplied. Residency choices remain independent of shopping-country support.
 
 ## Checks actually run
 
 - `npm run typecheck`: app and test TypeScript passed.
-- `npm test`: 68 domain/data/integration tests passed.
+- `npm test`: 69 domain/data/integration tests passed.
 - `npm run check:dependencies`: Expo dependency versions passed.
 - `NODE_ENV=production npm run export:mobile`: Android and iOS JavaScript bundles passed.
 - `NODE_ENV=production npm run export:web`: browser production bundle passed.
-- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: nine Chromium browser tests passed against the production web export.
+- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: ten Chromium browser tests passed against the production web export.
 
 The browser tests verify welcome-to-Compare navigation, disabled Sign in, and the automatic numerical example, fee edits, refund validation, settings after reload, override reset, missing/equal/unfavorable comparisons, stale-cache recovery, missing FX, unavailable refunds, sharing payload/cancellation with a simulated browser share API, and a 320-pixel layout without horizontal overflow. API/cache failures also have fake-clock and transport tests. Stale browser recovery uses a simulated storage-write failure; it is not a deployed-backend outage test.
 

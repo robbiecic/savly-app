@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { automaticFx, compare, editForm, fxLabel, newForm, resetOverrides, type ComparisonForm } from '../src/features/comparison/model';
+import { withHomeCurrency, automaticFx, compare, editForm, fxLabel, newForm, resetOverrides, type ComparisonForm } from '../src/features/comparison/model';
 import { openShare, shareLink, shareMessage } from '../src/features/comparison/sharing';
 import { ReferenceStore } from '../src/data/reference-store';
 import { createMockTransport, SAMPLE_RESPONSES } from '../src/data/transport';
@@ -59,8 +59,8 @@ test('AC14 loading, unavailable, missing pair, invalid, empty and unknown refund
 test('AC15 locale normalizes decimal separator without inferring residency from currency', () => {
   assert.equal(ready({ price: '120,00', feePercent: '3,0' }, reference, 'fr-FR').result.withRefund, '119.46');
   assert.equal(compare({ ...form, price: '1,200' }, reference, 'en-US').status, 'invalid');
-  assert.equal(initialPreferences('EUR', ['USD', 'EUR']).homeCurrency, 'EUR');
-  assert.equal(initialPreferences('EUR', ['USD', 'EUR']).residence, '');
+  assert.equal(initialPreferences().homeCurrency, '');
+  assert.equal(initialPreferences().residence, '');
 });
 test('AC15 settings persist separately from item inputs and comparison overrides', async () => {
   let stored = '';
@@ -114,4 +114,22 @@ test('SH4 share cancel and failure leave result unchanged; retries are possible'
 test('Share URL accepts only generic HTTPS app links without private parameters', () => {
   for (const url of ['http://example.com/app', 'https://example.com/app?price=120', 'https://secret@example.com/app', 'https://example.com/app#history', 'https://example.com/history/123']) assert.throws(() => shareLink(url));
   assert.equal(shareLink('https://example.org/app').demo, false);
+});
+
+test('Home currency follows reference country data and clears amounts when units change', () => {
+  const old = { ...form, fxOverride: '2', refundOverride: '10' };
+  const euro = withHomeCurrency(editForm(old, 'residence', 'FR'), snapshot);
+  assert.equal(euro.homeCurrency, 'EUR');
+  assert.equal(euro.homePrice, '');
+  assert.equal(euro.fxOverride, '');
+  assert.equal(euro.refundOverride, '');
+  assert.equal(compare({ ...euro, refundOverride: '0' }, reference).status, 'ready');
+  const result = ready({ ...euro, refundOverride: '0' }).result;
+  assert.equal(result.withoutRefund, '120.00');
+  assert.equal(result.homeCurrency, 'EUR');
+  assert.equal(withHomeCurrency(old, snapshot), old);
+  assert.equal(withHomeCurrency({ ...old, residence: '' }, snapshot).homeCurrency, '');
+  assert.equal(withHomeCurrency({ ...old, residence: 'CA' }, snapshot).homeCurrency, '');
+  assert.equal(withHomeCurrency(old, { ...snapshot, countries: snapshot.countries.filter(c => c.country !== 'US') }).homeCurrency, '');
+  assert.equal(withHomeCurrency({ ...old, homeCurrency: 'GBP' }, snapshot).homeCurrency, 'USD');
 });
