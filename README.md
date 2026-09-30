@@ -75,6 +75,8 @@ Verified with `npm test`: 52 tests total, including 23 data-layer tests for exac
 
 ## Try the prototype
 
+The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** is disabled for now.
+
 See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Select your country of residence explicitly; it is never inferred from currency. The France/US-resident example is illustrative. Other residency/country combinations may have no automatic refund estimate.
 
 The comparison screen recalculates after 180 ms, retains settings, and labels sample, manual, and stale estimates. **Share savings** / **Share comparison** uses the native share sheet with the displayed result snapshot. It never fetches fresh rates or claims delivery. Sharing defaults to a labeled demo link; see `.env.example` for `EXPO_PUBLIC_SAVLY_APP_LINK`. A local demo landing page lives in `public/app/index.html`; no site or store listing is published.
@@ -87,7 +89,7 @@ NODE_ENV=production npm run export:web
 npm run test:ui
 ```
 
-The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 68 domain/data/integration tests, eight browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
+The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 68 domain/data/integration tests, nine browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
 
 ## Premium access
 

@@ -30,16 +30,23 @@ export function Field({ label, value, onChange, error, numeric = false, prominen
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
   </View>;
 }
-export interface Option { value: string; label: string }
+export interface Option { value: string; label: string; flag?: string }
+function OptionLabel({ label, flag, selected = false }: { label: string; flag?: string; selected?: boolean }) {
+  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 }}>
+    {!!flag && <Text accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ fontSize: 24 }}>{flag}</Text>}
+    <Text style={[ui.text, { flexShrink: 1 }]}>{label}{selected ? ' ✓' : ''}</Text>
+  </View>;
+}
 export function Select({ label, value, options, onChange, error }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const chosen = options.find((option) => option.value === value)?.label ?? (value || 'Choose country');
+  const selectedOption = options.find((option) => option.value === value);
+  const chosen = selectedOption?.label ?? (value || 'Choose country');
   return <View style={{ gap: 8 }}>
     <Text style={ui.label}>{label}</Text>
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${chosen}`} accessibilityState={{ expanded: open }}
       style={[ui.input, { flexDirection: 'row', justifyContent: 'space-between', gap: 12 }]} onPress={() => { setSearch(''); setOpen(true); }}>
-      <Text style={[ui.text, { flexShrink: 1 }]}>{chosen}</Text><Text style={ui.text}>⌄</Text>
+      <OptionLabel label={chosen} flag={selectedOption?.flag} /><Text style={ui.text}>⌄</Text>
     </Pressable>
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
     <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
@@ -49,9 +56,9 @@ export function Select({ label, value, options, onChange, error }: { label: stri
           <Field label={`Search ${label.toLowerCase()}`} value={search} onChange={setSearch} />
           <ScrollView keyboardShouldPersistTaps="handled">
             {options.filter((option) => `${option.label} ${option.value}`.toLowerCase().includes(search.toLowerCase())).map((option) =>
-              <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: option.value === value }}
+              <Pressable key={option.value} accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: option.value === value }}
                 onPress={() => { onChange(option.value); setOpen(false); }} style={{ paddingVertical: 16, minHeight: 48, borderBottomWidth: 1, borderColor: colors.border }}>
-                <Text style={ui.text}>{option.label}{option.value === value ? ' ✓' : ''}</Text>
+                <OptionLabel label={option.label} flag={option.flag} selected={option.value === value} />
               </Pressable>)}
           </ScrollView>
           <Action label="Close selection" secondary onPress={() => setOpen(false)} />

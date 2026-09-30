@@ -28,7 +28,7 @@ Validate contrast during implementation. Support enlarged text and both Android 
 2. **Result:** a simple summary showing “Without VAT refund,” “Estimated VAT refund,” and “With VAT refund,” followed by a green savings panel when a home price supports a favorable comparison. Align purchase cost, card fee, and expected refund in a clear breakdown. Keep bank-fee defaults and rate provenance in the expandable details, with a visible “Sample estimate” label for mocked results. Unfavorable results need clear wording without celebratory styling.
 3. **History / Saved, later milestone:** compact item cards with name, currency, price, savings if available, and snapshot date. Product thumbnails can come later; manual entry works without images.
 
-A photo-led welcome screen is an optional polish step after the core flow. Use appropriately licensed standalone imagery if implemented. Do not use the entire board as a screen background or extract its product photographs as production assets.
+A photo-led welcome screen opens on each app launch. Match the board’s white italic wordmark and airplane motif, dark lower gradient, and rounded white **Get started** button. Get started opens Compare; **Sign in** is present but disabled at the owner’s request. Use the standalone generated travel image documented in [welcome image notes](welcome-image.md). Do not use the entire board as a screen background or extract its product photographs as production assets.
 
 ## Scope and calculation alignment
 
@@ -43,8 +43,8 @@ Avoid the board's “exactly how much” promise and unsupported “100+ countri
 - Compare and Result follow the board's navy, white, cool gray, and green direction.
 - Primary prices and actions are easy to identify on a small phone.
 - The breakdown remains readable with enlarged text.
-- Currency codes disambiguate symbols; flags alone do not identify currencies.
-- No controls imply unimplemented features.
+- Shopping and residence pickers show decorative country flags beside names in selected fields and list rows. Use native flag emoji; appearance follows the platform. Currency codes disambiguate symbols; flags alone do not identify currencies.
+- Unimplemented actions remain hidden except the explicitly requested disabled Sign in on the welcome screen.
 - Results match the calculator spec, including negative savings and missing home-price states.
 
 ## Premium and account screens

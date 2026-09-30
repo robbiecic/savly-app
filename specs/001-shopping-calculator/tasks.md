@@ -21,6 +21,10 @@
 
 ## Milestone 2
 
+- [x] Add flags beside country names in shopping and residence pickers, preserving search and accessible names.
+
+- [x] Add the design-board-inspired welcome screen; Get started opens Compare and Sign in is disabled.
+
 - [x] Build shared visual styles and accessible controls.
 - [x] Fix startup without Intl.DisplayNames using bundled English country names; verify missing-constructor regression in unit and browser tests.
 - [x] Support missing NumberFormat.formatToParts during settings hydration/input parsing; handle unexpected asynchronous initialization failures with Retry.

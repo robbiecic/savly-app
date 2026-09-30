@@ -1,7 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 
-async function comparison(page: Page) {
+async function openCompare(page: Page) {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+}
+
+async function comparison(page: Page) {
+  await openCompare(page);
   await page.getByRole('button', { name: 'Country of residence: Choose country', exact: true }).click();
   await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('United States');
   await page.getByRole('button', { name: 'United States', exact: true }).click();
@@ -24,6 +29,7 @@ test('AC12–15: automatic result, fee changes, overrides, validation and restar
   await page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true }).click();
   await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
   await page.reload();
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
@@ -89,7 +95,7 @@ test('Stale cached data stays labeled and Retry recovers after storage becomes a
       return original.call(this, key, value);
     };
   });
-  await page.goto('/');
+  await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toBeVisible();
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
@@ -100,7 +106,7 @@ test('Stale cached data stays labeled and Retry recovers after storage becomes a
 });
 
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
-  await page.goto('/');
+  await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await expect(page.getByText('Refund estimate unavailable.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: 'Home currency: USD', exact: true }).click();
@@ -134,9 +140,20 @@ test('Unexpected async settings errors are handled and can be retried', async ({
       throw new Error('Simulated settings initialization failure');
     };
   });
-  await page.goto('/');
+  await openCompare(page);
   await expect(page.getByText('Your settings couldn’t load. Please try again.', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Retry loading settings', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('Welcome screen matches the entry flow and Sign in remains inactive', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Shop the world. Discover what you could save.' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeDisabled();
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/savly-welcome-390.png' });
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Get started', exact: true })).toHaveCount(0);
 });

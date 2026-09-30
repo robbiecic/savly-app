@@ -19,8 +19,14 @@ export function countryName(code: string, locale: string): string {
   return nameOf(code, regionNames(locale));
 }
 
+export function countryFlag(code: string): string {
+  const region = code.toUpperCase();
+  if (!Object.hasOwn(fallbackNames, region)) return '';
+  return String.fromCodePoint(...Array.from(region, (letter) => 0x1F1E6 + letter.charCodeAt(0) - 65));
+}
+
 export function residenceOptions(locale: string) {
   const names = regionNames(locale);
-  return Object.keys(fallbackNames).map((value) => ({ value, label: nameOf(value, names) }))
+  return Object.keys(fallbackNames).map((value) => ({ value, label: nameOf(value, names), flag: countryFlag(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 }

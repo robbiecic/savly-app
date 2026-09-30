@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
 import { useComparison } from '../features/comparison/useComparison';
 import { availableCurrencies, fxLabel, savingsLabel, type DisplayedComparison } from '../features/comparison/model';
-import { countryName, residenceOptions } from '../features/comparison/countries';
+import { countryFlag, countryName, residenceOptions } from '../features/comparison/countries';
 import { openShare, shareMessage } from '../features/comparison/sharing';
 import { appShareLink } from '../config/sharing';
 import { colors } from '../theme/colors';
@@ -63,7 +63,7 @@ export function CompareScreen() {
   const snapshot = reference?.snapshot;
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
   const residences = useMemo(() => residenceOptions(state.locale), [state.locale]);
-  const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}` })) ?? [];
+  const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}`, flag: countryFlag(row.country) })) ?? [];
   const currencies = snapshot ? availableCurrencies(snapshot).map((value) => ({ value, label: value })) : [];
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
   const showSettings = (settings ?? !form.residence) || !!error('country') || !!error('homeCurrency');
