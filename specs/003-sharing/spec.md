@@ -1,6 +1,6 @@
 # 003 — Share savings (MVP)
 
-Status: required for MVP; specified, not implemented.
+Status: prototype formatter, native share action, configurable demo link, and local demo landing page implemented. Model/browser checks pass; received WhatsApp messages and native device routing remain unverified.
 
 ## User story
 
@@ -61,8 +61,10 @@ Domain and store listing URLs are not yet supplied. Keep these configurable. In 
 
 ## Tasks
 
-- [ ] Add result share action and client-side text formatter.
-- [ ] Verify message variants against calculator fixtures and native share behavior.
-- [ ] Build a branded fallback landing page and configurable app/store links.
+- [x] Add result share action and client-side text formatter.
+- [x] Verify message variants and cancellation/failure handling with model tests and a simulated browser share API.
+- [ ] Verify actual native share sheets and received WhatsApp text on Android and iOS.
+- [x] Build a local branded demo landing page and configurable HTTPS app link (EXPO_PUBLIC_SAVLY_APP_LINK).
+- [ ] Publish the fallback page and configure actual store listing URLs.
 - [ ] Configure association files and native link handling once domain/app identifiers exist.
 - [ ] Verify SH1–SH6, including received WhatsApp messages and installed/uninstalled routing.

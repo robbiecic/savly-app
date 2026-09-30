@@ -47,10 +47,18 @@ export function createHttpTransport(options: {
 }
 
 export const SAMPLE_RESPONSES = {
-  '/v1/rates': { rates: [{ pair: 'EURUSD', rate: 1.1, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' }] },
+  '/v1/rates': { rates: [
+    { pair: 'EURUSD', rate: 1.1, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
+    { pair: 'USDJPY', rate: 150, pipSize: 0.01, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
+    { pair: 'AUDUSD', rate: 0.65, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
+    { pair: 'EURGBP', rate: 0.85, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
+  ] },
   '/v1/countries': { countries: [
     { country: 'FR', currency: 'EUR', vatRate: 0.2 },
     { country: 'US', currency: 'USD', vatRate: null },
+    { country: 'JP', currency: 'JPY', vatRate: 0.1 },
+    { country: 'GB', currency: 'GBP', vatRate: 0.2 },
+    { country: 'AU', currency: 'AUD', vatRate: 0.1 },
   ] },
 };
 

@@ -14,20 +14,24 @@
 - [x] Scaffold Expo + TypeScript with compatible dependencies (SDK 57; typecheck, dependency compatibility, and Android/iOS production exports passed 2026-09-29).
 - [x] Implement all decimal calculations and refund-rule selection client-side (pure domain modules; 29 tests pass).
 - [x] Verify dynamic countries, exact TTL boundary, offline cache, and request counts (23 data-layer tests with fake clocks, storage, and HTTP).
-- [x] Implement reference-data API client, persistent four-hour cache, and asynchronous mock transport using api-contract.md (native storage/lifecycle adapters provided; calculator screen wiring and device validation remain).
-- [ ] Cover automatic rates, source labels and bank-fee defaults, overrides, and API states in AC12–AC18.
+- [x] Implement reference-data API client, persistent four-hour cache, and asynchronous mock transport using api-contract.md (native storage/lifecycle adapters connected to the calculator; device validation remains).
+- [x] Cover automatic rates, source labels and bank-fee defaults, overrides, and API states in AC12–AC18 (model integration and browser checks; native device verification remains).
 - [x] Test calculation criteria AC1–AC8 and AC11 where applicable (domain behavior verified; AC7 rendered labels and other UI states remain in Milestone 2).
 - [x] Document calculation test commands and domain input/output conventions in README.
 
 ## Milestone 2
 
-- [ ] Build shared visual styles and accessible controls.
-- [ ] Build price-first Compare and Result screens with automatic recalculation.
-- [ ] Implement native Share savings/comparison with local summary formatting (spec 003).
-- [ ] Verify sharing variants, cancellation, and no extra data requests.
-- [ ] Remember home/trip settings and present costs with and without refunds.
-- [ ] Verify all calculator states and rate/estimate labels.
-- [ ] Demonstrate prototype and record Android/iOS verification gaps.
+- [x] Build shared visual styles and accessible controls.
+- [x] Fix startup without Intl.DisplayNames using bundled English country names; verify missing-constructor regression in unit and browser tests.
+- [x] Support missing NumberFormat.formatToParts during settings hydration/input parsing; handle unexpected asynchronous initialization failures with Retry.
+- [x] Build price-first Compare and Result screens with automatic recalculation.
+- [x] Implement native Share savings/comparison with local summary formatting (spec 003).
+- [x] Verify sharing variants, cancellation, and no extra data requests.
+- [x] Remember home/trip settings and present costs with and without refunds.
+- [x] Verify all calculator states and rate/estimate labels.
+- [x] Demonstrate prototype and record Android/iOS verification gaps.
+
+Verification scope: model tests and Chromium browser checks passed. Native sharing, WhatsApp receipt, accessibility on devices, and Android/iOS lifecycle/storage checks remain unverified; see [prototype verification](../../docs/prototype-verification.md).
 
 ## Milestone 3 — History and mocked premium/account flows
 

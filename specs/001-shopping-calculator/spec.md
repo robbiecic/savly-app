@@ -1,6 +1,6 @@
 # 001 — Shopping calculator
 
-Status: calculation engine and illustrative refund-rule selection implemented and unit-tested. Reference-data client/cache and storage adapters are also implemented and unit-tested. Calculator UI wiring, history persistence, and device verification remain planned.
+Status: calculation engine and illustrative refund-rule selection implemented and unit-tested. Reference-data client/cache and storage adapters are also implemented and unit-tested. Calculator UI wiring, remembered settings, overrides, and sharing are implemented and browser-tested. History persistence and native device verification remain planned.
 
 ## User story
 
@@ -11,6 +11,8 @@ As a traveler, I want to enter an overseas price and compare its estimated net c
 Remember home residency/currency and shopping country/currency after initial setup. Suggest home currency from locale; never infer residency or refund eligibility from currency. For repeat comparisons, only the price is required. Item name and home price are optional. Recalculate automatically after a short debounce on valid edits; no Calculate button is required.
 
 Load supported countries, FX rates, and VAT metadata from the sibling fxService repository’s canonical endpoints, mocked initially, following [the app integration notes](api-contract.md), and persist validated data for four hours. Refund rules are separate illustrative local fixtures in prototype mode only; the current backend does not supply them. Perform all calculations and rule selection on-device; input changes reuse cached data without API requests. Default to the configured FX source and an editable 0% additional bank fee (a Savly assumption, not a universal card fee). FX and available VAT are automatically populated. Automatic net refund rates are populated only from explicitly labeled prototype fixtures; real backend mode requires manual refund input or shows refund unavailable. Advanced users can override FX, fee, or refund amount through “Edit assumptions” and reset to automatic values. Persist card fee preferences; FX/refund overrides apply only to the current comparison and clear when its country, currency, or price changes.
+
+Compare and Result are sections of one scrolling screen. Recalculation uses a 180 ms debounce; stale results and sharing controls are hidden while edits settle. Country selectors use localized names when `Intl.DisplayNames` is available and bundled English names otherwise; missing optional internationalization APIs must not prevent startup. Decimal-separator detection supports engines without `NumberFormat.formatToParts`; unexpected asynchronous settings-initialization failures show an error and Retry rather than leaving the loader pending. Residency starts unselected and is never inferred; missing residency leaves automatic refunds unavailable. Additional bank fees accept up to four decimal places in percent.
 
 ## Inputs
 

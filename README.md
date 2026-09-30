@@ -2,7 +2,7 @@
 
 A mobile shopping companion that answers: **“What will this cost me in my home currency, and how much could I save?”**
 
-Status: Expo + TypeScript scaffold implemented with a Savly welcome screen. The on-device calculation engine and illustrative refund-rule selector are implemented and tested. The reference-data client and cache are implemented and tested separately. Calculator UI integration and billing are not implemented yet.
+Status: the calculator foundation and interactive sample prototype are implemented, including automatic estimates, editable assumptions, remembered settings, and sharing. History, billing, real refund data, and production API access remain future work.
 
 ## Start here
 
@@ -23,7 +23,7 @@ You do not need a special specification tool or paid service to start. These Mar
 
 Suggested next instruction to your coding assistant:
 
-> Read the project specs and build milestone 1. Use the documented defaults for unresolved choices, implement and test the calculation engine, and tell me which acceptance criteria pass. Keep the task list current.
+> Read the project specs and build milestone 3: local history, saved comparisons, and mocked premium/account flows. Preserve the completed calculator and keep the task list current.
 
 ## Technology and local setup
 
@@ -36,7 +36,7 @@ npm ci
 npm start
 ```
 
-Open the project in an Expo Go version compatible with SDK 57. Press `i` for an installed iOS simulator (macOS with Xcode) or `a` for a configured Android emulator. You can also use `npm run ios` or `npm run android`. A physical phone must be able to reach the development server. No backend, account, or API credentials are needed for this welcome screen.
+Open the project in an Expo Go version compatible with SDK 57. Press `i` for an installed iOS simulator (macOS with Xcode) or `a` for a configured Android emulator. You can also use `npm run ios` or `npm run android`. A physical phone must be able to reach the development server. No backend, account, or API credentials are needed for the sample prototype. For a browser preview without the Android SDK, run `npm run web`.
 
 Checks:
 
@@ -49,7 +49,7 @@ NODE_ENV=production npm run export:mobile
 
 The export command bundles Android and iOS JavaScript into ignored `dist/`; it does not produce installable store binaries. `npm test` runs the calculation, refund-selection, and reference-data tests without Expo, a device, or a backend. `npm run typecheck` checks both app code and tests.
 
-`App.tsx` sets up safe areas and the status bar; `src/app/WelcomeScreen.tsx` contains the initial screen and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
+`App.tsx` sets up safe areas and the status bar; `src/app/CompareScreen.tsx` presents Compare and Result, and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
 
 Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo dependency compatibility, and production bundling for Android and iOS passed. No simulator or physical-device tests were run. npm audit reported 10 moderate advisories in the Expo tooling dependency tree (including transitive `uuid`/`xcode`); its suggested full fix downgrades Expo to SDK 46, so it was not applied. Revisit compatible upstream fixes before release.
 
@@ -57,21 +57,37 @@ Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo depend
 
 `src/domain/calculator.ts` calculates VAT, card fees, before/after refund costs, and savings using decimal.js. `src/domain/refunds.ts` selects illustrative rules by country, currency, explicit residency, category, and price band. Both are pure on-device modules with no UI or network dependencies.
 
-Pass normalized decimal strings (`"120"`, `"1.10"`, fee `"0.03"` for 3%) and explicit currency minor units. UI input normalization belongs to the future form layer. Domain inputs allow up to 18 digits on each side of the decimal point. Results contain formatted decimal strings and retained FX/refund provenance. Invalid input returns a field error; unavailable FX returns no totals. An unknown refund returns the without-refund cost, with refund-dependent totals and savings left null. Real mode rejects sample FX and disables sample refund rules.
+Pass normalized decimal strings (`"120"`, `"1.10"`, fee `"0.03"` for 3%) and explicit currency minor units. The form layer normalizes the locale decimal separator and whitespace; grouping separators are rejected rather than guessed. Domain inputs allow up to 18 digits on each side of the decimal point. Results contain formatted decimal strings and retained FX/refund provenance. Invalid input returns a field error; unavailable FX returns no totals. An unknown refund returns the without-refund cost, with refund-dependent totals and savings left null. Real mode rejects sample FX and disables sample refund rules.
 
-Verified: 29 tests cover AC1–AC6 calculations/validation, AC7 provenance retention, AC8 unknown/zero refunds and same-currency conversion, AC11 rounding, the AC12 numeric example, and refund-rule boundaries/ambiguity. App and test TypeScript checks passed. UI labels and device execution remain unverified; cache verification is described below.
+Verified: 29 tests cover AC1–AC6 calculations/validation, AC7 provenance retention, AC8 unknown/zero refunds and same-currency conversion, AC11 rounding, the AC12 numeric example, and refund-rule boundaries/ambiguity. App and test TypeScript checks passed. UI behavior is now covered by browser tests; native device execution remains unverified.
 
 ## Reference-data client and cache
 
 `src/data/reference-store.ts` shares one refresh cycle across consumers, validates both fxService responses, and saves one immutable snapshot for exactly four hours. `get()` reuses fresh data; `retry()` bypasses failure backoff. Failed refreshes retain the previous snapshot with `status: "stale"` and a “Rates out of date” label. Keep `snapshot.mode` visible as well so stale sample data remains identifiable. A successful fetch does not change the source's own `asOf` timestamp.
 
-Country membership comes directly from the snapshot. `selectedCountry()` returns null when a selection is no longer supported, allowing the future screen to request a new selection while retaining old history. Refresh subscriptions provide new snapshots without modifying previously returned results.
+Country membership comes directly from the snapshot. `selectedCountry()` returns null when a selection is no longer supported, allowing the screen to request a new selection while retaining old history. Refresh subscriptions provide new snapshots without modifying previously returned results.
 
 `src/data/transport.ts` supplies asynchronous sample responses and an HTTP adapter for `/v1/rates` and `/v1/countries`. The HTTP adapter accepts a base URL and optional token callback, has a request timeout, and never falls back to sample data. No production URL or authentication flow is configured.
 
-`src/data/mobile-reference-store.ts` supplies a shared sample-mode store backed by [AsyncStorage](https://react-native-async-storage.github.io/2.0/Usage/) and a foreground/background adapter. Mount `activateReferenceData()` once from the future calculator root and return its cleanup from the effect. The welcome screen does not activate this service yet. Active sessions refresh at expiry and retry after 1, 5, then 15 minutes; background sessions do not poll. Authentication failures await an explicit retry after credentials are available.
+`src/data/mobile-reference-store.ts` supplies a shared sample-mode store backed by [AsyncStorage](https://react-native-async-storage.github.io/2.0/Usage/) and a foreground/background adapter. The calculator mounts `activateReferenceData()` once, subscribes to refreshed snapshots, and cleans it up on unmount. Active sessions refresh at expiry and retry after 1, 5, then 15 minutes; background sessions do not poll. Authentication failures await an explicit retry after credentials are available.
 
-Verified with `npm test`: 52 tests total, including 23 data-layer tests for exact TTL boundaries, request counts, concurrent refreshes, reconstructed stores using persisted storage, dynamic countries, offline recovery, malformed/partial responses, rollback, retries, timeouts, and immutable history data. TypeScript and Expo dependency compatibility also pass. Storage, clocks, HTTP responses, and lifecycle events use test doubles; native disk persistence, actual AppState events, and a deployed fxService connection have not been device-tested. FX orientation and UI state integration remain the next task.
+Verified with `npm test`: 52 tests total, including 23 data-layer tests for exact TTL boundaries, request counts, concurrent refreshes, reconstructed stores using persisted storage, dynamic countries, offline recovery, malformed/partial responses, rollback, retries, timeouts, and immutable history data. TypeScript and Expo dependency compatibility also pass. Storage, clocks, HTTP responses, and lifecycle events use test doubles; native disk persistence, actual AppState events, and a deployed fxService connection have not been device-tested. FX orientation and calculator UI integration are implemented; reversed quotes retain their original rate for decimal calculations.
+
+## Try the prototype
+
+See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Select your country of residence explicitly; it is never inferred from currency. The France/US-resident example is illustrative. Other residency/country combinations may have no automatic refund estimate.
+
+The comparison screen recalculates after 180 ms, retains settings, and labels sample, manual, and stale estimates. **Share savings** / **Share comparison** uses the native share sheet with the displayed result snapshot. It never fetches fresh rates or claims delivery. Sharing defaults to a labeled demo link; see `.env.example` for `EXPO_PUBLIC_SAVLY_APP_LINK`. A local demo landing page lives in `public/app/index.html`; no site or store listing is published.
+
+To reproduce browser tests (Python 3 is used only to serve the static export):
+
+```bash
+npx playwright install chromium
+NODE_ENV=production npm run export:web
+npm run test:ui
+```
+
+The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 68 domain/data/integration tests, eight browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
 
 ## Premium access
 

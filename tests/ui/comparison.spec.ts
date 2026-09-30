@@ -1,0 +1,142 @@
+import { test, expect, type Page } from '@playwright/test';
+
+async function comparison(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Country of residence: Choose country', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('United States');
+  await page.getByRole('button', { name: 'United States', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('150');
+  await expect(page.getByText('You could save USD 34.50', { exact: true })).toBeVisible();
+}
+
+test('AC12–15: automatic result, fee changes, overrides, validation and restart settings', async ({ page }) => {
+  await comparison(page);
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
+  await expect(page.getByText('1 EUR = 1.1 USD · Sample rate', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true }).fill('3');
+  await expect(page.getByText('You could save USD 30.54', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true }).fill('21');
+  await expect(page.getByRole('button', { name: 'Share savings', exact: true })).toHaveCount(0);
+  await expect(page.getByText('Refund cannot exceed included VAT (EUR 20.00).').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true }).click();
+  await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveValue('3');
+});
+
+test('Share payload matches the display; cancellation leaves it intact', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (content: { text: string }) => {
+      (window as unknown as { sharedText: string }).sharedText = content.text;
+      throw new DOMException('Cancelled', 'AbortError');
+    } });
+  });
+  await comparison(page);
+  await page.getByRole('button', { name: 'Share savings', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('USD 34.50 (23.0%)');
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
+  await expect(page.getByText('Sharing couldn’t open. Please try again.', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/delivered/i)).toHaveCount(0);
+});
+
+test('Missing, equal, unfavorable comparisons and context override reset', async ({ page }) => {
+  await comparison(page);
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('100');
+  await expect(page.getByText('Costs USD 15.50 more', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('115.50');
+  await expect(page.getByText('Same estimated cost', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('');
+  await expect(page.getByText('Add a home price to compare potential savings.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true }).fill('2');
+  await expect(page.getByText('USD 210.00', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
+  await expect(page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true })).toHaveValue('');
+  await expect(page.getByText('USD 96.25', { exact: true })).toBeVisible();
+});
+
+test('Small screen layout and demo landing page', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await comparison(page);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.getByText('A little clarity', { exact: false }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/savly-compare-320.png' });
+  await page.getByText('Your comparison', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/savly-result-320.png' });
+  await page.goto('/app/');
+  await expect(page.getByRole('heading', { name: 'Coming to Android and iOS', exact: true })).toBeVisible();
+  await expect(page.getByText('Store downloads are not available yet.', { exact: true })).toBeVisible();
+});
+
+test('Stale cached data stays labeled and Retry recovers after storage becomes available', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'FR', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
+    localStorage.setItem('savly:reference:1:prototype:sample', JSON.stringify({
+      adapterVersion: 1, environment: 'prototype', mode: 'sample', id: 'old', fetchedAt: Date.now() - 14_400_001,
+      rates: [{ pair: 'EURUSD', rate: 1.1, pipSize: 0.0001, source: 'CityIndex', asOf: '2026-09-26T12:00:00Z' }],
+      countries: [{ country: 'FR', currency: 'EUR', vatRate: 0.2 }, { country: 'US', currency: 'USD', vatRate: null }],
+    }));
+    const original = Storage.prototype.setItem;
+    (window as unknown as { storageBlocked: boolean }).storageBlocked = true;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith('savly:reference') && (window as unknown as { storageBlocked: boolean }).storageBlocked) throw new Error('Storage unavailable');
+      return original.call(this, key, value);
+    };
+  });
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
+  await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
+  await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
+  await expect(page.getByText('Sample estimate', { exact: true })).toBeVisible();
+  await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toHaveCount(0);
+});
+
+test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await expect(page.getByText('Refund estimate unavailable.', { exact: false })).toBeVisible();
+  await page.getByRole('button', { name: 'Home currency: USD', exact: true }).click();
+  await page.getByRole('button', { name: 'JPY', exact: true }).click();
+  await expect(page.getByText('Conversion unavailable.', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Share comparison', exact: true })).toHaveCount(0);
+});
+
+test('Calculator starts and computes when optional Intl constructors are unavailable', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    Object.defineProperty(Intl, 'DisplayNames', { configurable: true, value: undefined });
+    Object.defineProperty(Intl, 'Locale', { configurable: true, value: undefined });
+    Object.defineProperty(Intl, 'supportedValuesOf', { configurable: true, value: undefined });
+    Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', { configurable: true, value: undefined });
+  });
+  await comparison(page);
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('Unexpected async settings errors are handled and can be retried', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    const original = Intl.NumberFormat.prototype.formatToParts;
+    Intl.NumberFormat.prototype.formatToParts = function (...args) {
+      // Exercise a failure in the asynchronous initialization callback, once.
+      Intl.NumberFormat.prototype.formatToParts = original;
+      throw new Error('Simulated settings initialization failure');
+    };
+  });
+  await page.goto('/');
+  await expect(page.getByText('Your settings couldn’t load. Please try again.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Retry loading settings', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});

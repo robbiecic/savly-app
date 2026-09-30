@@ -1,4 +1,4 @@
-import { decimal, fraction, InputError, money, positive } from './decimal';
+import { D, decimal, fraction, InputError, money, positive } from './decimal';
 import type { DataMode, RefundSelection } from './refunds';
 
 export interface Currency {
@@ -79,7 +79,12 @@ export function calculate(input: CalculationInput): CalculationResult {
         (input.mode === 'real' && fx.kind === 'sample')) {
       return { status: 'unavailable', field: 'fx', message: 'FX direction or provenance is invalid.' };
     }
-    const r = positive(fx.rate, 'fx');
+    // Reverse quotes retain the original rate so no rounded reciprocal enters money arithmetic.
+    const r = fx.inverted && fx.kind !== 'manual'
+      ? fx.originalPair === home.code + shopping.code && fx.originalRate
+        ? new D(1).div(positive(fx.originalRate, 'fx'))
+        : (() => { throw new InputError('fx', 'The original reverse quote is required.'); })()
+      : positive(fx.rate, 'fx');
     const converted = p.mul(r);
     const fee = converted.mul(f);
     const before = converted.plus(fee);

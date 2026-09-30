@@ -107,11 +107,11 @@ test('Expired offline data retains timestamps and labels; refresh does not alter
 test('A country appears or disappears only after refresh; null VAT is preserved', async () => {
   const h = setup(); const first = (await h.store.get()).snapshot!;
   assert.equal(selectedCountry(first, 'US')?.vatRate, null);
-  h.responses['/v1/countries'].countries = [{ country: 'JP', currency: 'JPY', vatRate: 0.1 }];
-  assert.equal(selectedCountry((await h.store.get()).snapshot!, 'JP'), null);
+  h.responses['/v1/countries'].countries = [{ country: 'CA', currency: 'CAD', vatRate: 0.1 }];
+  assert.equal(selectedCountry((await h.store.get()).snapshot!, 'CA'), null);
   h.clock.advance(CACHE_TTL_MS);
   const next = (await h.store.get()).snapshot!;
-  assert.equal(selectedCountry(next, 'JP')?.currency, 'JPY');
+  assert.equal(selectedCountry(next, 'CA')?.currency, 'CAD');
   assert.equal(selectedCountry(next, 'FR'), null);
   assert.equal(selectedCountry(first, 'FR')?.country, 'FR');
 });
@@ -178,7 +178,7 @@ test('Active timer refreshes at expiry, pauses while suspended, resumes on foreg
 });
 test('Subscribers receive recovery snapshots, and unsubscribe stops notifications', async () => {
   const h = setup(); const states: string[] = [];
-  const unsubscribe = h.store.subscribe((state) => states.push(state.status));
+  const unsubscribe = h.store.subscribe((state) => { if (states.at(-1) !== state.status) states.push(state.status); });
   await h.store.get(); h.clock.advance(CACHE_TTL_MS); h.fail(new Error('offline')); await h.store.get();
   h.fail(null); await h.store.retry(); assert.deepEqual(states, ['fresh', 'stale', 'fresh']);
   unsubscribe(); h.clock.advance(CACHE_TTL_MS); await h.store.get(); assert.equal(states.length, 3);

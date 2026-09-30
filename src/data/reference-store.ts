@@ -97,6 +97,8 @@ export class ReferenceStore {
       return this.state();
     }
     this.inFlight = this.refresh();
+    // Immediately expose expiry while the refresh is pending.
+    if (this.snapshot) for (const listener of this.listeners) listener(this.state());
     try { return await this.inFlight; }
     finally {
       this.inFlight = null;

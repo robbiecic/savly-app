@@ -1,6 +1,6 @@
 # fxService integration and four-hour cache
 
-Status: reference-data validation, HTTP/mock transports, persistent cache, and native storage/lifecycle adapters implemented. Calculator UI wiring, FX orientation, and production authentication remain pending. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
+Status: reference-data validation, HTTP/mock transports, persistent cache, and native storage/lifecycle adapters implemented. Calculator UI wiring and FX orientation are implemented; production authentication and device validation remain pending. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
 
 - [Backend setup and local API](../../../fxService/README.md)
 - [Canonical API contract](../../../fxService/specs/requirements/03-api-contract.md)
@@ -50,4 +50,4 @@ Use a fake clock and per-endpoint request counters: first use makes two requests
 
 ## Implementation verification
 
-The data layer has 23 automated tests in `tests/reference-data.test.ts`, using fake time, storage, lifecycle scheduling, and HTTP responses. These verify country membership, exact four-hour expiry, restart cache reuse, shared refresh, offline states, validation, partial failures, immutable snapshots, retry backoff, clock rollback, and request boundaries. Native persistence and actual foreground/background behavior still require device testing. The welcome screen does not start reference-data loading; the calculator integration will activate the shared store and subscribe to updates.
+The data layer has 23 automated tests in `tests/reference-data.test.ts`, using fake time, storage, lifecycle scheduling, and HTTP responses. These verify country membership, exact four-hour expiry, restart cache reuse, shared refresh, offline states, validation, partial failures, immutable snapshots, retry backoff, clock rollback, and request boundaries. Native persistence and actual foreground/background behavior still require device testing. The calculator activates the shared store and subscribes to updates; stale data is exposed immediately when a refresh begins.
