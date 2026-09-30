@@ -24,6 +24,8 @@ Guest history stays on the device and may be lost after uninstall or device loss
 
 ## History behavior
 
+Current prototype: the separate result page offers explicit Save and Share. Save requires a name and stores an immutable comparison on-device. Saved comparisons can be reopened, deleted, or cleared with confirmation; failures and corrupt data show a recoverable error. This implements local favorites only. Automatic recent history, billing, account isolation, and cloud sync remain future work.
+
 - Shopping history records completed valid comparisons as immutable snapshots, with item label if provided, price, countries/currencies, reference dataset and override metadata, before/after refund costs, home price if supplied, and timestamp.
 - Automatic recalculation must not create a record per keystroke. Upsert one draft comparison while editing; commit it when the user leaves its valid result or starts another item. Reopening a completed record does not rewrite it.
 - Saved/favorite comparisons remain distinct from automatic recent history.

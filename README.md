@@ -2,7 +2,7 @@
 
 A mobile shopping companion that answers: **“What will this cost me in my home currency, and how much could I save?”**
 
-Status: the calculator foundation and interactive sample prototype are implemented, including automatic estimates, editable assumptions, remembered settings, and sharing. History, billing, real refund data, and production API access remain future work.
+Status: the calculator foundation and interactive sample prototype are implemented, including submitted estimates, editable assumptions, remembered settings, local saved comparisons, and sharing. Automatic recent history, billing, real refund data, and production API access remain future work.
 
 ## Start here
 
@@ -49,7 +49,7 @@ NODE_ENV=production npm run export:mobile
 
 The export command bundles Android and iOS JavaScript into ignored `dist/`; it does not produce installable store binaries. `npm test` runs the calculation, refund-selection, and reference-data tests without Expo, a device, or a backend. `npm run typecheck` checks both app code and tests.
 
-`App.tsx` sets up safe areas and the status bar; `src/app/CompareScreen.tsx` presents Compare and Result, and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
+`App.tsx` sets up safe areas and the status bar; `src/app/CompareScreen.tsx` presents the calculator, `src/app/ResultScreen.tsx` presents submitted savings details, and `src/app/SavedScreen.tsx` lists locally saved comparisons, and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
 
 Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo dependency compatibility, and production bundling for Android and iOS passed. No simulator or physical-device tests were run. npm audit reported 10 moderate advisories in the Expo tooling dependency tree (including transitive `uuid`/`xcode`); its suggested full fix downgrades Expo to SDK 46, so it was not applied. Revisit compatible upstream fixes before release.
 
@@ -79,7 +79,7 @@ The app opens with a photo-led welcome screen. **Get started** opens Compare; **
 
 See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. The France/US-resident example is illustrative. Other residency/country combinations may have no automatic refund estimate.
 
-The comparison screen recalculates after 180 ms, retains settings, and labels sample, manual, and stale estimates. **Share savings** / **Share comparison** uses the native share sheet with the displayed result snapshot. It never fetches fresh rates or claims delivery. Sharing defaults to a labeled demo link; see `.env.example` for `EXPO_PUBLIC_SAVLY_APP_LINK`. A local demo landing page lives in `public/app/index.html`; no site or store listing is published.
+The calculator validates edits after 180 ms. **Calculate savings** opens a separate result page with a fixed snapshot and Save/Share actions; Back preserves the form. **Saved comparisons** reopens locally stored snapshots and supports deletion. Sample, manual, and stale estimates remain labeled. **Share savings** / **Share comparison** uses the native share sheet with the displayed result snapshot. It never fetches fresh rates or claims delivery. Sharing defaults to a labeled demo link; see `.env.example` for `EXPO_PUBLIC_SAVLY_APP_LINK`. A local demo landing page lives in `public/app/index.html`; no site or store listing is published.
 
 To reproduce browser tests (Python 3 is used only to serve the static export):
 
@@ -89,7 +89,7 @@ NODE_ENV=production npm run export:web
 npm run test:ui
 ```
 
-The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 69 domain/data/integration tests, ten browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
+The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 73 domain/data/integration/storage tests, twelve browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
 
 ## Premium access
 

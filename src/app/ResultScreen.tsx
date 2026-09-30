@@ -1,0 +1,100 @@
+import { useState } from 'react';
+import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ResultAction } from '../components/ResultAction';
+import { Action, Card, Field, ui } from '../components/controls';
+import { fxLabel, savingsLabel } from '../features/comparison/model';
+import { openShare, shareMessage } from '../features/comparison/sharing';
+import { appShareLink } from '../config/sharing';
+import { colors } from '../theme/colors';
+import { savedComparisons } from '../storage/mobile-saved-comparisons';
+import type { SavedComparison } from '../storage/saved-comparisons';
+
+export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean }) {
+  const comparison = entry.comparison;
+  const [name, setName] = useState(comparison.itemName);
+  const [saved, setSaved] = useState(fromSaved);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const save = async () => {
+    if (!name.trim()) { setSaveError('Enter an item name to save this comparison.'); return; }
+    setSaving(true); setSaveError('');
+    try {
+      await savedComparisons.save({ ...entry, form: { ...entry.form, itemName: name.trim() }, comparison: { ...comparison, itemName: name.trim() } });
+      setSaved(true);
+    } catch { setSaveError('Couldn’t save on this device. Please try again.'); }
+    finally { setSaving(false); }
+  };
+  const [details, setDetails] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState(false);
+  const r = comparison.result;
+  const summary = savingsLabel(r);
+  const favorable = r.savings?.outcome === 'save';
+  const money = (value: string) => `${r.homeCurrency} ${value}`;
+  const share = async () => {
+    // Capture exactly the displayed snapshot before opening the native sheet.
+    const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink);
+    setSharing(true); setShareError(false);
+    const outcome = await openShare(message, (content) => Share.share(content));
+    setShareError(outcome === 'failed'); setSharing(false);
+  };
+  return <SafeAreaView style={styles.screen}><ScrollView contentContainerStyle={styles.content}>
+    <Action label={fromSaved ? 'Back to saved comparisons' : 'Back to calculator'} secondary onPress={onBack} />
+    <Text accessibilityRole="header" style={ui.title}>Your savings</Text>
+    <Card>
+    {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
+    <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
+    <Text style={styles.badge}>{comparison.sample ? 'Sample estimate' : 'Estimated cost'}{comparison.stale ? ' · Rates out of date' : ''}</Text>
+      {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
+        <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
+        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
+      </View>}
+    <View style={{ gap: 16 }}>
+      <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {comparison.price}</Text></View>
+      <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
+      <View style={styles.row}><Text style={ui.text}>Card fee</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>
+      <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
+      {r.refundHome !== null && r.withRefund !== null ? <>
+        <View style={styles.row}><Text style={ui.text}>Estimated VAT refund</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
+        <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
+        <Text style={ui.muted}>Estimated refund, subject to eligibility{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
+      </> : <Text style={ui.muted}>Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.</Text>}
+      {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
+      {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
+    </View>
+    <Action label={details ? 'Hide rate details' : 'Rate details & assumptions'} secondary expanded={details} onPress={() => setDetails(!details)} />
+    {details && <View style={{ gap: 10 }}>
+      <Text selectable style={ui.text}>{fxLabel(r.fx)}</Text>
+      {!!r.fx.asOf && <Text style={ui.muted}>{comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
+      {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate}.</Text>}
+      <Text style={ui.muted}>Card fee: {money(r.cardFee)} · Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
+      {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
+      {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
+    </View>}
+    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
+
+    {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
+    <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
+    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      <ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
+        accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
+        disabled={saved || saving} onPress={() => { void save(); }} />
+      <ResultAction icon="share" label={sharing ? 'Sharing…' : 'Share'}
+        accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
+        disabled={sharing} onPress={() => { void share(); }} />
+    </View>
+    {appShareLink.demo && <Text style={ui.muted}>Sharing includes a demo link. App download links are not available yet.</Text>}
+    {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
+  </Card></ScrollView></SafeAreaView>;
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
+  badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
+  total: { color: colors.ink, fontSize: 32, fontWeight: '700', paddingTop: 4 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+  summary: { padding: 20, borderRadius: 16, backgroundColor: '#F0F2F7', gap: 8 },
+  summaryText: { color: colors.ink, fontWeight: '700', fontSize: 24 },
+});

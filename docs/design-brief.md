@@ -24,9 +24,9 @@ Validate contrast during implementation. Support enlarged text and both Android 
 
 ## Screen interpretation
 
-1. **Compare:** Savly branding, a centered rounded shopping-country dropdown above the price form (flag, name, and currency), remembered home settings, prominent price entry, optional item name and home price, automatic recalculation, and a secondary “Edit assumptions” action.
-2. **Result:** a simple summary showing “Without VAT refund,” “Estimated VAT refund,” and “With VAT refund,” followed by a green savings panel when a home price supports a favorable comparison. Align purchase cost, card fee, and expected refund in a clear breakdown. Keep bank-fee defaults and rate provenance in the expandable details, with a visible “Sample estimate” label for mocked results. Unfavorable results need clear wording without celebratory styling.
-3. **History / Saved, later milestone:** compact item cards with name, currency, price, savings if available, and snapshot date. Product thumbnails can come later; manual entry works without images.
+1. **Compare:** Savly branding, a centered rounded shopping-country dropdown above the price form (flag, name, and currency), remembered home settings, prominent price entry, optional item name and home price, a primary **Calculate savings** button opening a separate result page, and a secondary “Edit assumptions” action.
+2. **Result:** a separate page with a back action, potential savings first, Save and Share actions, and a simple summary showing “Without VAT refund,” “Estimated VAT refund,” and “With VAT refund,” followed by a green savings panel when a home price supports a favorable comparison. Align purchase cost, card fee, and expected refund in a clear breakdown. Keep bank-fee defaults and rate provenance in the expandable details, with a visible “Sample estimate” label for mocked results. Unfavorable results need clear wording without celebratory styling.
+3. **Saved:** locally persisted named comparison snapshots that can be reopened or deleted. Automatic recent history remains a later milestone. Design direction: compact item cards with name, currency, price, savings if available, and snapshot date. Product thumbnails can come later; manual entry works without images.
 
 A photo-led welcome screen opens on each app launch. Match the board’s white italic wordmark and airplane motif, dark lower gradient, and rounded white **Get started** button. Get started opens Compare; **Sign in** is present but disabled at the owner’s request. Use the standalone generated travel image documented in [welcome image notes](welcome-image.md). Do not use the entire board as a screen background or extract its product photographs as production assets.
 
@@ -53,4 +53,4 @@ Carry the same visual system into purchase choices and optional login. Keep acco
 
 ## Share action
 
-Place an outline share icon and “Share savings” beside Save on favorable results; use “Share comparison” otherwise. Open the native share sheet directly. The public download landing page uses Savly branding and clear store buttons. See [sharing spec](../specs/003-sharing/spec.md).
+Use equal-width white outlined rounded buttons side by side: an outline heart with “Save” and an upload/share icon with “Share”, matching the board. After saving, fill the heart and show “Saved”. Keep the descriptive accessible share label “Share savings” for favorable results and “Share comparison” otherwise. Open the native share sheet directly. The public download landing page uses Savly branding and clear store buttons. See [sharing spec](../specs/003-sharing/spec.md).

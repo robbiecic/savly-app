@@ -8,7 +8,7 @@ As a Savly user, I want to share my estimated savings with a friend through What
 
 ## Sender flow
 
-Add a visible **Share savings** action on a valid result with positive home-price savings. Use **Share comparison** when savings are zero, negative, or no home price is entered. Tapping opens the native iOS/Android share sheet with a text summary and HTTPS app link. The user chooses WhatsApp, Messages, email, or another available destination and completes sending there. No Savly login, contact access, or WhatsApp-specific integration is required.
+Show an outlined **Share** button with a share icon beside the matching heart-icon **Save** button. Use the accessible name **Share savings** on a valid result with positive home-price savings, and **Share comparison** when savings are zero, negative, or no home price is entered. Tapping opens the native iOS/Android share sheet with a text summary and HTTPS app link. The user chooses WhatsApp, Messages, email, or another available destination and completes sending there. No Savly login, contact access, or WhatsApp-specific integration is required.
 
 Generate the message entirely on-device from the displayed result snapshot. Do not request new rates, upload a comparison, or recompute using different assumptions while sharing. MVP sharing is text plus a link; a branded image card can follow later.
 

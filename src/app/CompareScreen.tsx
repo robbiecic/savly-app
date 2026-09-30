@@ -1,62 +1,26 @@
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
 import { useComparison } from '../features/comparison/useComparison';
-import { fxLabel, savingsLabel, type DisplayedComparison } from '../features/comparison/model';
+import { ResultScreen } from './ResultScreen';
+import { SavedScreen } from './SavedScreen';
+import type { SavedComparison } from '../storage/saved-comparisons';
 import { countryFlag, countryName, residenceOptions } from '../features/comparison/countries';
-import { openShare, shareMessage } from '../features/comparison/sharing';
-import { appShareLink } from '../config/sharing';
 import { colors } from '../theme/colors';
 
-function Result({ comparison }: { comparison: DisplayedComparison }) {
-  const [details, setDetails] = useState(false);
-  const [sharing, setSharing] = useState(false);
-  const [shareError, setShareError] = useState(false);
-  const r = comparison.result;
-  const summary = savingsLabel(r);
-  const favorable = r.savings?.outcome === 'save';
-  const money = (value: string) => `${r.homeCurrency} ${value}`;
-  const share = async () => {
-    // Capture exactly the displayed snapshot before opening the native sheet.
-    const message = shareMessage(comparison, appShareLink);
-    setSharing(true); setShareError(false);
-    const outcome = await openShare(message, (content) => Share.share(content));
-    setShareError(outcome === 'failed'); setSharing(false);
-  };
-  return <Card>
-    <Text accessibilityRole="header" style={ui.title}>Your comparison</Text>
-    <Text style={styles.badge}>{comparison.sample ? 'Sample estimate' : 'Estimated cost'}{comparison.stale ? ' · Rates out of date' : ''}</Text>
-    <View accessibilityLiveRegion="polite" style={{ gap: 16 }}>
-      <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
-      {r.refundHome !== null && r.withRefund !== null ? <>
-        <View style={styles.row}><Text style={ui.text}>Estimated VAT refund</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
-        <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
-        <Text style={ui.muted}>Estimated refund, subject to eligibility{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
-      </> : <Text style={ui.muted}>Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.</Text>}
-      {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
-        <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
-        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
-      </View>}
-      {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
-    </View>
-    <Action label={details ? 'Hide rate details' : 'Rate details & assumptions'} secondary expanded={details} onPress={() => setDetails(!details)} />
-    {details && <View style={{ gap: 10 }}>
-      <Text selectable style={ui.text}>{fxLabel(r.fx)}</Text>
-      {!!r.fx.asOf && <Text style={ui.muted}>{comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
-      {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate}.</Text>}
-      <Text style={ui.muted}>Card fee: {money(r.cardFee)} · Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
-      {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
-      {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
-    </View>}
-    <Action label={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'} disabled={sharing} onPress={() => { void share(); }} />
-    {appShareLink.demo && <Text style={ui.muted}>Sharing includes a demo link. App download links are not available yet.</Text>}
-    {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
-  </Card>;
-}
 
 export function CompareScreen() {
   const state = useComparison();
+  const [page, setPage] = useState<'calculator' | 'result' | 'saved'>('calculator');
+  const [entry, setEntry] = useState<SavedComparison | null>(null);
+  const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
+  const goBack = () => setPage(page === 'result' ? resultOrigin : 'calculator');
+  useEffect(() => {
+    if (page === 'calculator') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
+    return () => subscription.remove();
+  }, [page, resultOrigin]);
   const [settings, setSettings] = useState<boolean | null>(null);
   const [assumptions, setAssumptions] = useState(false);
   const { form, view, reference } = state;
@@ -66,6 +30,15 @@ export function CompareScreen() {
   const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}`, flag: countryFlag(row.country) })) ?? [];
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
   const showSettings = (settings ?? !form.residence) || !!error('homeCurrency');
+  const calculate = () => {
+    if (state.pending || view.status !== 'ready') return;
+    Keyboard.dismiss();
+    setEntry({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), savedAt: new Date().toISOString(),
+      form: { ...form }, comparison: JSON.parse(JSON.stringify(view.comparison)) });
+    setResultOrigin('calculator'); setPage('result');
+  };
+  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} />;
+  if (page === 'saved') return <SavedScreen onBack={goBack} onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} />;
   return <SafeAreaView style={styles.screen}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -74,6 +47,7 @@ export function CompareScreen() {
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
+          <Action label="Saved comparisons" secondary onPress={() => setPage('saved')} />
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
@@ -96,13 +70,14 @@ export function CompareScreen() {
               <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
+            <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
           </Card>
           {state.storageError && <Text accessibilityRole="alert" style={ui.error}>Settings couldn’t be saved on this device.</Text>}
           {(reference?.status === 'stale' || reference?.status === 'unavailable') && <Card>
             <Text style={ui.text}>{reference.label}</Text>
             <Action label={state.retrying ? 'Retrying…' : 'Retry rates'} disabled={state.retrying} secondary onPress={() => { void state.retry(); }} />
           </Card>}
-          {state.pending ? <Text accessibilityLiveRegion="polite" style={ui.muted}>Updating estimate…</Text> : view.status === 'ready' ? <Result comparison={view.comparison} /> : <Card>
+          {state.pending ? <Text accessibilityLiveRegion="polite" style={ui.muted}>Updating estimate…</Text> : view.status === 'ready' ? null : <Card>
             <Text accessibilityRole={view.status === 'invalid' ? 'alert' : undefined} style={ui.text}>{view.message}</Text>
           </Card>}
         </>}
@@ -118,8 +93,4 @@ const styles = StyleSheet.create({
   brand: { fontSize: 32, fontWeight: '800', color: colors.ink },
   badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
   shoppingPicker: { alignSelf: 'center', width: '100%', maxWidth: 360 },
-  total: { color: colors.ink, fontSize: 32, fontWeight: '700', paddingTop: 4 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
-  summary: { padding: 20, borderRadius: 16, backgroundColor: '#F0F2F7', gap: 8 },
-  summaryText: { color: colors.ink, fontWeight: '700', fontSize: 24 },
 });

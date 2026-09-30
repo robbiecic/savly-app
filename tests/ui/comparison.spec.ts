@@ -5,6 +5,13 @@ async function openCompare(page: Page) {
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
 }
 
+async function calculate(page: Page) {
+  await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toBeVisible();
+}
+async function back(page: Page) {
+  await page.getByRole('button', { name: /^Back to (calculator|saved comparisons)$/ }).click();
+}
 async function comparison(page: Page) {
   await openCompare(page);
   await page.getByRole('button', { name: 'Country of residence: Choose country', exact: true }).click();
@@ -12,26 +19,35 @@ async function comparison(page: Page) {
   await page.getByRole('button', { name: 'United States', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('150');
+  await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toHaveCount(0);
+  await calculate(page);
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
   await expect(page.getByText('You could save USD 34.50', { exact: true })).toBeVisible();
 }
 
-test('AC12–15: automatic result, fee changes, overrides, validation and restart settings', async ({ page }) => {
+test('AC12–15: submitted result, fee changes, overrides, validation and restart settings', async ({ page }) => {
   await comparison(page);
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
   await expect(page.getByText('1 EUR = 1.1 USD · Sample rate', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true }).fill('3');
+  await calculate(page);
   await expect(page.getByText('You could save USD 30.54', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true }).fill('21');
   await expect(page.getByRole('button', { name: 'Share savings', exact: true })).toHaveCount(0);
   await expect(page.getByText('Refund cannot exceed included VAT (EUR 20.00).').first()).toBeVisible();
   await page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true }).click();
+  await calculate(page);
   await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await calculate(page);
   await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveValue('3');
 });
@@ -53,17 +69,27 @@ test('Share payload matches the display; cancellation leaves it intact', async (
 
 test('Missing, equal, unfavorable comparisons and context override reset', async ({ page }) => {
   await comparison(page);
+  await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('100');
+  await calculate(page);
   await expect(page.getByText('Costs USD 15.50 more', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('115.50');
+  await calculate(page);
   await expect(page.getByText('Same estimated cost', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('');
+  await calculate(page);
   await expect(page.getByText('Add a home price to compare potential savings.', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true }).fill('2');
+  await calculate(page);
   await expect(page.getByText('USD 210.00', { exact: true })).toBeVisible();
+  await back(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
   await expect(page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true })).toHaveValue('');
+  await calculate(page);
   await expect(page.getByText('USD 96.25', { exact: true })).toBeVisible();
 });
 
@@ -71,10 +97,14 @@ test('Small screen layout and demo landing page', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await comparison(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await back(page);
   await page.getByRole('button', { name: 'Shopping country: France · EUR', exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
   await page.screenshot({ path: 'test-results/savly-compare-320.png' });
-  await page.getByText('Your comparison', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await calculate(page);
+  await page.getByText('Your savings', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
   await page.screenshot({ path: 'test-results/savly-result-320.png' });
+  await page.getByRole('button', { name: 'Save', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/savly-result-actions-320.png' });
   await page.goto('/app/');
   await expect(page.getByRole('heading', { name: 'Coming to Android and iOS', exact: true })).toBeVisible();
   await expect(page.getByText('Store downloads are not available yet.', { exact: true })).toBeVisible();
@@ -97,10 +127,13 @@ test('Stale cached data stays labeled and Retry recovers after storage becomes a
   });
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await calculate(page);
   await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toBeVisible();
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
+  await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
+  await calculate(page);
   await expect(page.getByText('Sample estimate', { exact: true })).toBeVisible();
   await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toHaveCount(0);
 });
@@ -110,7 +143,9 @@ test('Unknown refund and missing FX never invent a total; invalid input hides sh
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('button', { name: 'Country of residence: Choose country', exact: true }).click();
   await page.getByRole('button', { name: 'France', exact: true }).click();
+  await calculate(page);
   await expect(page.getByText('Refund estimate unavailable.', { exact: false })).toBeVisible();
+  await back(page);
   await page.getByRole('button', { name: /Edit settings/ }).click();
   await page.getByRole('button', { name: 'Country of residence: France', exact: true }).click();
   await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('Japan');
@@ -180,4 +215,37 @@ test('Home country selects currency automatically and migrates saved currency ch
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Home price (EUR, optional)', exact: true })).toBeVisible();
+});
+
+test('Save persists the displayed snapshot and supports reopening and deletion', async ({ page }) => {
+  await comparison(page);
+  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Travel bag');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Saved on this device', exact: true })).toBeDisabled();
+  await back(page);
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('999');
+  await page.reload();
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Saved comparisons', exact: true }).click();
+  await page.getByRole('button', { name: 'Open Travel bag', exact: true }).click();
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
+  await back(page);
+  await page.getByRole('button', { name: 'Delete Travel bag', exact: true }).click();
+  await expect(page.getByText('No saved comparisons yet.', { exact: true })).toBeVisible();
+});
+test('Failed saves remain retryable and do not claim success', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'savly:saved:1') throw new Error('Disk full');
+      return original.call(this, key, value);
+    };
+  });
+  await comparison(page);
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Enter an item name to save this comparison.')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Bag');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Couldn’t save on this device. Please try again.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
 });

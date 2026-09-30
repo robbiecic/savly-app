@@ -1,30 +1,30 @@
 # Prototype verification
 
-The calculator foundation and interactive sample prototype are implemented. Compare and Result are two sections of one scrolling screen, so input edits and results stay together. This is a prototype with mocked reference data and illustrative refund assumptions, not production FX or verified refund eligibility.
+The calculator foundation and interactive sample prototype are implemented. Compare and Result are separate pages. Calculate savings opens the submitted result; Back preserves form entries. Save stores a named snapshot locally, and Saved comparisons lets users reopen or delete it. This is a prototype with mocked reference data and illustrative refund assumptions, not production FX or verified refund eligibility.
 
 ## Demonstrate it
 
-Run `npm start` on a configured Android/iOS environment, or `npm run web` for a browser preview without an Android SDK. Tap **Get started** on the welcome screen; **Sign in** is disabled. On first use, select **United States** as the country of residence explicitly. Home currency becomes **USD** automatically. With shopping country **France**, price **120**, and home price **150**, the result should show:
+Run `npm start` on a configured Android/iOS environment, or `npm run web` for a browser preview without an Android SDK. Tap **Get started** on the welcome screen; **Sign in** is disabled. On first use, select **United States** as the country of residence explicitly. Home currency becomes **USD** automatically. With shopping country **France**, price **120**, and home price **150**, tap **Calculate savings**. The result should show:
 
 - Without VAT refund: **USD 132.00**.
 - Estimated refund: **USD 16.50**.
 - With VAT refund: **USD 115.50**.
 - Potential savings: **USD 34.50 (23.0%)**.
 
-Use **Edit assumptions** to enter a 3% bank fee; the net cost becomes USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, residency, or shopping price clears comparison overrides. Changing the automatically derived home currency also clears the home price. Saved legacy currency choices are reconciled on startup; missing country/currency metadata blocks totals with an explanation. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
+Use **Back to calculator**, then **Edit assumptions** to enter a 3% bank fee; tap Calculate savings again to see a net cost of USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, residency, or shopping price clears comparison overrides. Changing the automatically derived home currency also clears the home price. Saved legacy currency choices are reconciled on startup; missing country/currency metadata blocks totals with an explanation. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
 
 Sample country/currency options include France/EUR, US/USD, Japan/JPY, UK/GBP, and Australia/AUD. Membership still comes from the reference snapshot, so an existing fresh cache gains new fixture countries at its next refresh. The one illustrative automatic refund rule covers general goods in France for US residents. Other combinations display refund unavailable unless a manual amount is supplied. Residency choices remain independent of shopping-country support.
 
 ## Checks actually run
 
 - `npm run typecheck`: app and test TypeScript passed.
-- `npm test`: 69 domain/data/integration tests passed.
+- `npm test`: 73 domain/data/integration/storage tests passed.
 - `npm run check:dependencies`: Expo dependency versions passed.
 - `NODE_ENV=production npm run export:mobile`: Android and iOS JavaScript bundles passed.
 - `NODE_ENV=production npm run export:web`: browser production bundle passed.
-- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: ten Chromium browser tests passed against the production web export.
+- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: twelve Chromium browser tests passed against the production web export.
 
-The browser tests verify welcome-to-Compare navigation, disabled Sign in, and the automatic numerical example, fee edits, refund validation, settings after reload, override reset, missing/equal/unfavorable comparisons, stale-cache recovery, missing FX, unavailable refunds, sharing payload/cancellation with a simulated browser share API, and a 320-pixel layout without horizontal overflow. API/cache failures also have fake-clock and transport tests. Stale browser recovery uses a simulated storage-write failure; it is not a deployed-backend outage test.
+The browser tests verify submission-only result navigation, Back/form preservation, Save/reopen/delete after reload, save failure handling, welcome-to-Compare navigation, disabled Sign in, and the automatic numerical example, fee edits, refund validation, settings after reload, override reset, missing/equal/unfavorable comparisons, stale-cache recovery, missing FX, unavailable refunds, sharing payload/cancellation with a simulated browser share API, and a 320-pixel layout without horizontal overflow. API/cache failures also have fake-clock and transport tests. Stale browser recovery uses a simulated storage-write failure; it is not a deployed-backend outage test.
 
 Startup compatibility regression: country selectors were reproduced failing when `Intl.DisplayNames` was undefined. They now use bundled English names when it is missing or a locale is unsupported. Unit tests cover this fallback and a browser test opens the app and verifies the AC12 calculation with `Intl.DisplayNames`, `Intl.Locale`, and `Intl.supportedValuesOf` disabled. The same regression now also disables `NumberFormat.formatToParts`, covering settings hydration and decimal parsing. Decimal separators fall back to the basic number formatter, preserving comma-decimal locales. A separate browser regression injects an asynchronous initialization error and verifies the error/Retry screen recovers with no unhandled promise rejection. This is simulated engine coverage, not a native device run.
 
@@ -36,7 +36,11 @@ Screenshots from the 320-pixel browser preview, visually reviewed:
 
 ![Compare section](screenshots/compare-320.png)
 
-![Result section](screenshots/result-320.png)
+![Savings detail page](screenshots/result-320.png)
+
+![Save and Share actions](screenshots/result-actions-320.png)
+
+Save/Share styling follow-up: four targeted browser checks (sharing, small-screen layout, saving/reopening, and save failures), TypeScript, and Android/iOS/web exports passed. Outlined icon buttons were visually reviewed at 320 pixels.
 
 ## Device and release checks still needed
 

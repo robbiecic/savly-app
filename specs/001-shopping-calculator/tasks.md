@@ -21,6 +21,8 @@
 
 ## Milestone 2
 
+- [x] Match Save/Share to the board with equal outlined buttons, heart/share icons, and a filled-heart Saved state.
+
 - [x] Move shopping-country selection to a rounded top dropdown before price entry, outside home settings.
 
 - [x] Derive home currency from country of residence; remove currency selection, reconcile saved settings, and clear home amounts on currency changes.
@@ -32,7 +34,7 @@
 - [x] Build shared visual styles and accessible controls.
 - [x] Fix startup without Intl.DisplayNames using bundled English country names; verify missing-constructor regression in unit and browser tests.
 - [x] Support missing NumberFormat.formatToParts during settings hydration/input parsing; handle unexpected asynchronous initialization failures with Retry.
-- [x] Build price-first Compare and Result screens with automatic recalculation.
+- [x] Build calculator and separate result pages with Calculate savings, preserved form on Back, and Save/Share actions.
 - [x] Implement native Share savings/comparison with local summary formatting (spec 003).
 - [x] Verify sharing variants, cancellation, and no extra data requests.
 - [x] Remember home/trip settings and present costs with and without refunds.
@@ -43,10 +45,12 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 ## Milestone 3 — History and mocked premium/account flows
 
-- [ ] Implement local snapshots, recent history, and Saved screen.
+- [x] Implement explicit local snapshots and Saved screen with reopening, deletion, confirmed clearing, and storage-error handling.
+- [ ] Implement automatic recent history.
 - [ ] Implement mock purchase/restore and optional sign-in states from spec 002.
 - [ ] Verify guest isolation, history import, and simulated sync behavior.
-- [ ] Verify persistence, deletion, and corrupt-storage handling.
+- [x] Verify local saved-comparison persistence, deletion, duplicate-save behavior, and corrupt-storage handling.
+- [ ] Verify account-specific history persistence after mocked account flows are added.
 
 ## Later
 
