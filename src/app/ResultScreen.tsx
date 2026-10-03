@@ -1,3 +1,4 @@
+import { responsive, useWideLayout } from '../components/responsive';
 import { ItemPhoto } from '../components/ItemPhoto';
 import { pickPhoto } from '../features/photos/pick-photo';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
@@ -16,6 +17,7 @@ import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
 export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean }) {
+  const wide = useWideLayout();
   const comparison = entry.comparison;
   const [name, setName] = useState(comparison.itemName);
   const [photoUri, setPhotoUri] = useState(entry.photoUri);
@@ -56,7 +58,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     setShareError(outcome === 'failed'); setSharing(false);
   };
   return <SafeAreaView style={styles.screen}>
-    <View style={styles.header}>
+    <View style={[styles.header, wide && responsive.wideContent]}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back to calculator" onPress={onBack}
         style={({ pressed }) => [styles.back, pressed && { opacity: 0.5 }]}>
         <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false} aria-hidden>
@@ -67,7 +69,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
       <View style={styles.back} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
-    <KeyboardFormScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
+    <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
     <Card>
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
@@ -76,6 +78,8 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
         {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
+    <View style={wide ? responsive.columns : responsive.stack}>
+    <View style={[responsive.stack, wide && responsive.column]}>
     <View style={{ gap: 16 }}>
       <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {comparison.price}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
@@ -103,6 +107,8 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
     </View>}
+    </View>
+    <View style={[responsive.stack, wide && responsive.column]}>
     {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
 
     {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
@@ -127,7 +133,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     </View>
     {appShareLink.demo && <Text style={ui.muted}>Sharing includes a demo link. App download links are not available yet.</Text>}
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
-  </Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
+  </View></View></Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({

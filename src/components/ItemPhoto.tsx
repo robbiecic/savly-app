@@ -18,7 +18,7 @@ export function ItemPhoto({ uri, name }: { uri: string; name: string }) {
       <Image source={source} accessibilityLabel={`Photo of ${label}`} accessible
         resizeMode="cover" style={styles.thumbnail} onError={() => setFailed(true)} />
     </Pressable>
-    <Modal visible={open} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setOpen(false)}>
+    <Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={styles.viewer}>
         <View style={styles.header}>
           <Text style={styles.title} numberOfLines={1}>{label}</Text>

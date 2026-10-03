@@ -86,3 +86,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Verify camera capture and permission denial on physical Android/iOS devices.
 
 - [x] Use circular item-photo previews with a tappable full-screen viewer and Close/Android Back dismissal.
+
+- [x] Enable landscape and responsive welcome, calculator, result, Saved, country-picker, and photo-viewer layouts while preserving state on rotation.

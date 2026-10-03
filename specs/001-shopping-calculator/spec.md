@@ -104,3 +104,9 @@ Use the existing fxService backend and canonical contract. Confirm deployment UR
 The calculator, savings-name field, and country search remain usable with the soft keyboard open. Android uses native resizing plus explicit height avoidance and scrolls the focused input into the visible viewport after keyboard/layout changes. iOS uses padding avoidance. Forms and country options scroll within the remaining space. Form scrolling dismisses the keyboard, and action/selection taps remain available while it is open. Verify on native devices with small screens and enlarged text before release.
 
 Card-fee inputs and zero-fee rows are removed from new calculator results and shares. Previously saved comparisons retain their original totals and show any nonzero card fee as a saved-estimate detail. VAT refund provider fees remain separate and unchanged.
+
+## Responsive layout and rotation
+
+Allow portrait and landscape on phones. Reflow live without resetting the active tab, form values, submitted result, or draft photo. Use two columns when safe-area width allows at least 680 points at the current text scale: calculator purchase/settings beside home-price/item/assumptions, result details beside save/photo/share controls, and a two-column Saved list. Narrow windows and larger accessibility text retain a readable single column. Width, rather than reduced keyboard height, selects the form layout. Content remains vertically scrollable without horizontal scrolling.
+
+Welcome uses a compact side-by-side layout on wider screens and removes its portrait spacer on short screens. Country selection and full-screen photo modals support rotation; the full photo fits within the available space without cropping. Respect notches and safe areas in either orientation. Existing native builds must be rebuilt to remove the portrait orientation lock.

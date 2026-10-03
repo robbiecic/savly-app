@@ -1,19 +1,22 @@
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useWideLayout } from '../components/responsive';
+import { useWindowDimensions, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function WelcomeScreen({ onGetStarted }: { onGetStarted: () => void }) {
+  const wide = useWideLayout();
+  const compact = useWindowDimensions().height < 500;
   return <ImageBackground source={require('../../assets/welcome-travel.png')} resizeMode="cover" imageStyle={styles.backgroundImage} style={styles.screen}>
     <LinearGradient pointerEvents="none" colors={['rgba(3,9,18,0.18)', 'rgba(3,9,18,0)', 'rgba(3,9,18,0.68)', '#030912']}
       locations={[0, 0.36, 0.68, 1]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} bounces={false}>
+      <ScrollView contentContainerStyle={[styles.content, compact && { minHeight: 0, paddingTop: 16 }, wide && styles.wideContent]} bounces={false}>
         <View accessibilityLabel="Savly" accessible style={styles.brand}>
           <Text style={styles.wordmark}>Savly</Text>
           <Text accessible={false} style={styles.plane}>{'✈\uFE0E'}</Text>
         </View>
-        <View style={styles.bottom}>
-          <Text accessibilityRole="header" style={styles.headline}>{'Shop the world.\nDiscover what\nyou could save.'}</Text>
+        <View style={[styles.bottom, compact && { paddingTop: 24 }, wide && styles.wideBottom]}>
+          <Text accessibilityRole="header" style={[styles.headline, wide && styles.wideHeadline]}>{'Shop the world.\nDiscover what\nyou could save.'}</Text>
           <Text style={styles.description}>Compare overseas prices, exchange rates and estimated VAT refunds — and see what you could save.</Text>
           <Pressable accessibilityRole="button" onPress={onGetStarted}
             style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}>
@@ -28,6 +31,9 @@ export function WelcomeScreen({ onGetStarted }: { onGetStarted: () => void }) {
   </ImageBackground>;
 }
 const styles = StyleSheet.create({
+  wideContent: { flexDirection: 'row', alignItems: 'center', minHeight: 0, paddingTop: 16, paddingBottom: 16, gap: 32, maxWidth: 1080, width: '100%', alignSelf: 'center' },
+  wideBottom: { paddingTop: 0, flex: 1 },
+  wideHeadline: { fontSize: 26, lineHeight: 30, marginBottom: 10 },
   screen: { flex: 1, backgroundColor: 'transparent' },
   backgroundImage: { width: '100%', height: '100%' },
   content: { flexGrow: 1, justifyContent: 'space-between', paddingHorizontal: 28, paddingTop: 32, paddingBottom: 8, minHeight: 660 },

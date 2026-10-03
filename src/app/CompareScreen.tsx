@@ -1,3 +1,4 @@
+import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -12,6 +13,7 @@ import { colors } from '../theme/colors';
 
 
 export function CompareScreen() {
+  const wide = useWideLayout();
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved'>('calculator');
   const [entry, setEntry] = useState<SavedComparison | null>(null);
@@ -41,7 +43,7 @@ export function CompareScreen() {
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} />;
   return <SafeAreaView style={styles.screen}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
-      <KeyboardFormScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
+      <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
         <View style={styles.heading}><Text style={styles.brand}>Savly</Text><Text style={styles.badge}>SAMPLE PROTOTYPE</Text></View>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
@@ -60,6 +62,8 @@ export function CompareScreen() {
           {page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
+            <View style={wide ? responsive.columns : responsive.stack}>
+            <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
             <Text style={ui.muted}>Enter the full price, including any local purchase tax.</Text>
             <Action label={`${form.homeCurrency || 'Home country'} · ${showSettings ? 'Hide' : 'Edit'} settings`} secondary expanded={showSettings} onPress={() => setSettings(!showSettings)} />
@@ -67,6 +71,8 @@ export function CompareScreen() {
               <Select label="Country of residence" value={form.residence} options={residences} onChange={(v) => state.edit('residence', v)} error={error('homeCurrency')} />
               <Text style={ui.muted}>Home currency follows your country of residence. Refund eligibility is not verified.</Text>
             </View>}
+            </View>
+            <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Field label="Item name (optional)" value={form.itemName} onChange={(v) => state.edit('itemName', v)} placeholder="What caught your eye?" />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
@@ -76,6 +82,7 @@ export function CompareScreen() {
               <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
+            </View></View>
             <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
           </Card>
           {state.storageError && <Text accessibilityRole="alert" style={ui.error}>Settings couldn’t be saved on this device.</Text>}

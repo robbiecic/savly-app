@@ -1,11 +1,13 @@
+import { useWideLayout } from '../components/responsive';
 import { ItemPhoto } from '../components/ItemPhoto';
 import { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { Action, Card, ui } from '../components/controls';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
 export function SavedScreen({ onOpen }: { onOpen: (entry: SavedComparison) => void }) {
+  const wide = useWideLayout();
   const [items, setItems] = useState<SavedComparison[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
@@ -31,14 +33,16 @@ export function SavedScreen({ onOpen }: { onOpen: (entry: SavedComparison) => vo
       {!!error && <><Text accessibilityRole="alert" style={ui.error}>{error}</Text><Action label="Retry saved comparisons" disabled={busy} onPress={() => { void load(); }} /></>}
       {busy && <Text style={ui.muted}>Loading…</Text>}
       {!busy && !error && !items.length && <Text style={ui.text}>No saved comparisons yet.</Text>}
-      {items.map(item => <Card key={item.id}>
+      <View style={{ flexDirection: wide ? 'row' : 'column', flexWrap: 'wrap', gap: 20 }}>
+      {items.map(item => <View key={item.id} style={{ width: wide ? '48%' : '100%' }}><Card>
         <Text style={ui.title}>{item.comparison.itemName}</Text>
         {!!item.photoUri && <ItemPhoto uri={item.photoUri} name={item.comparison.itemName} />}
         <Text style={ui.text}>{item.form.country} · {item.comparison.result.shoppingCurrency} {item.comparison.price}</Text>
         <Text style={ui.muted}>{new Date(item.savedAt).toLocaleDateString()} · {item.comparison.sample ? 'Sample estimate' : 'Historical estimate'}</Text>
         <Action label={'Open ' + item.comparison.itemName} disabled={busy} onPress={() => onOpen(item)} />
         <Action label={'Delete ' + item.comparison.itemName} secondary disabled={busy} onPress={() => { void remove(item.id); }} />
-      </Card>)}
+      </Card></View>)}
+      </View>
       {(items.length > 0 || !!error) && <Action label="Clear saved comparisons" secondary disabled={busy} onPress={() => setConfirmClear(true)} />}
       {confirmClear && <Card>
         <Text style={ui.text}>Delete all saved comparisons from this device? This cannot be undone.</Text>

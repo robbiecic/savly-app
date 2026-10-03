@@ -1,3 +1,4 @@
+import { useWideLayout } from './responsive';
 import { RevealInputContext } from './KeyboardFormScrollView';
 import { useContext, useRef, useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -41,6 +42,7 @@ function OptionLabel({ label, flag, selected = false }: { label: string; flag?: 
   </View>;
 }
 export function Select({ label, value, options, onChange, error, compact = false }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string; compact?: boolean }) {
+  const wide = useWideLayout();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const selectedOption = options.find((option) => option.value === value);
@@ -52,11 +54,13 @@ export function Select({ label, value, options, onChange, error, compact = false
       <OptionLabel label={chosen} flag={selectedOption?.flag} /><Text style={ui.text}>⌄</Text>
     </Pressable>
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
-    <RevealInputContext.Provider value={null}><Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+    <RevealInputContext.Provider value={null}><Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} style={{ padding: 24, gap: 16, flex: 1 }}>
-          <Text accessibilityRole="header" style={ui.title}>{label}</Text>
-          <Field label={`Search ${label.toLowerCase()}`} value={search} onChange={setSearch} />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} style={{ padding: wide ? 16 : 24, gap: 16, flex: 1, width: '100%', maxWidth: 1080, alignSelf: 'center' }}>
+          <View style={{ flexDirection: wide ? 'row' : 'column', gap: 16, alignItems: wide ? 'center' : 'stretch' }}>
+          <Text accessibilityRole="header" style={[ui.title, wide && { flex: 1 }]}>{label}</Text>
+          <View style={wide && { flex: 2 }}><Field label={`Search ${label.toLowerCase()}`} value={search} onChange={setSearch} /></View>
+          </View>
           <ScrollView keyboardShouldPersistTaps="handled">
             {options.filter((option) => `${option.label} ${option.value}`.toLowerCase().includes(search.toLowerCase())).map((option) =>
               <Pressable key={option.value} accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: option.value === value }}
