@@ -56,3 +56,13 @@ Cross-platform purchase portability, subscription-to-lifetime upgrades, authenti
 ## Delivery
 
 Prototype: mocked purchase and account states, local history, and simulated sync behind adapters. Production: store products and transaction verification, authenticated private storage, account recovery/deletion, and real multi-device tests. Mock login is never represented as actual cloud retention.
+
+## Optional item photo
+
+Before saving a comparison, offer **Take photo** and **Add photo** beside the item name. Accept one still image, show a circular cropped preview, and let the user replace or remove it before Save. A photo is optional; canceling selection leaves the current photo and comparison intact. Request camera permission only when taking a photo; use the system library picker for selected-image access. Denial or selection errors show a recoverable message and still allow saving without a photo.
+
+Resize large photos to at most 1000 pixels on the longest edge and encode as JPEG, capped at approximately 300 KB (400,000 base64 characters). Oversized images show an error without replacing the existing selection. Save the photo together with the named comparison. On native devices, copy image data into app document storage and persist a relative reference, never only a camera-cache path. Browser previews persist the bounded JPEG in browser storage. Show photos in Saved and on reopening; missing files show a photo-unavailable message without hiding the estimate. Existing records without photos remain valid.
+
+Failed record writes roll back newly created photo files. Deleting an item or clearing saved items removes its local photo files after the record write succeeds; cleanup failure does not undo a committed record operation. Photos stay on-device and are not uploaded or included in the current text-only share action. Camera availability and capture behavior on web depend on the browser/device.
+
+Tap a photo preview in the save form, Saved list, or reopened comparison to open a full-screen viewer. Fit the entire image without cropping against a dark background. Close returns to the same screen; Android Back also dismisses the viewer. The circular preview does not crop the stored photo.

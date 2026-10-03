@@ -1,3 +1,4 @@
+import { ItemPhoto } from '../components/ItemPhoto';
 import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 import { Action, Card, ui } from '../components/controls';
@@ -32,6 +33,7 @@ export function SavedScreen({ onOpen }: { onOpen: (entry: SavedComparison) => vo
       {!busy && !error && !items.length && <Text style={ui.text}>No saved comparisons yet.</Text>}
       {items.map(item => <Card key={item.id}>
         <Text style={ui.title}>{item.comparison.itemName}</Text>
+        {!!item.photoUri && <ItemPhoto uri={item.photoUri} name={item.comparison.itemName} />}
         <Text style={ui.text}>{item.form.country} · {item.comparison.result.shoppingCurrency} {item.comparison.price}</Text>
         <Text style={ui.muted}>{new Date(item.savedAt).toLocaleDateString()} · {item.comparison.sample ? 'Sample estimate' : 'Historical estimate'}</Text>
         <Action label={'Open ' + item.comparison.itemName} disabled={busy} onPress={() => onOpen(item)} />

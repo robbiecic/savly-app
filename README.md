@@ -114,3 +114,7 @@ For a USB Android device, run `adb reverse tcp:3000 tcp:3000` and set `EXPO_PUBL
 Android uses keyboard resizing, explicit height avoidance, and focused-input scrolling; iOS form and picker layouts use padding avoidance. The lower calculator input was verified above the soft keyboard in Android Expo Go on 2026-10-03. Physical-device, iOS, enlarged-text, and savings-page keyboard checks remain pending. The focused-input fix applies on JavaScript reload; rebuild existing native binaries to apply Android configuration changes.
 
 New calculator estimates exclude card/bank fees. Legacy fee preferences are ignored; saved comparisons keep their original totals. VAT refund provider fees are unchanged.
+
+When saving an item, **Take photo** opens the camera and **Add photo** opens the library picker. One optional photo can be previewed, replaced, or removed before saving. Photos appear in Saved and reopened comparisons, stay on-device, and are deleted with the item. Existing text sharing does not attach photos. Native builds need rebuilding for the new Expo image-picker module and camera permission text; Expo Go must support the installed SDK. Browser previews use browser storage and device-dependent camera capture.
+
+Photo verification: TypeScript, 83 unit/integration tests, the photo add/remove/save/reopen browser flow, and Android/iOS/web exports pass. The other browser cases passed across the full run and a targeted rerun of the updated corrupt-settings test. Physical camera capture and permission-denial checks remain pending.

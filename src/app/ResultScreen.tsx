@@ -1,3 +1,5 @@
+import { ItemPhoto } from '../components/ItemPhoto';
+import { pickPhoto } from '../features/photos/pick-photo';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
 import Svg, { Path } from 'react-native-svg';
 import { D } from '../domain/decimal';
@@ -16,6 +18,17 @@ import type { SavedComparison } from '../storage/saved-comparisons';
 export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean }) {
   const comparison = entry.comparison;
   const [name, setName] = useState(comparison.itemName);
+  const [photoUri, setPhotoUri] = useState(entry.photoUri);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const choosePhoto = async (source: 'camera' | 'library') => {
+    setPhotoBusy(true); setPhotoError('');
+    try {
+      const uri = await pickPhoto(source);
+      if (uri) setPhotoUri(uri);
+    } catch (error) { setPhotoError(error instanceof Error && /Camera access|too large|No photo/.test(error.message) ? error.message : 'Couldn’t open this photo. Please try again or choose another image.'); }
+    finally { setPhotoBusy(false); }
+  };
   const [saved, setSaved] = useState(fromSaved);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -23,7 +36,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     if (!name.trim()) { setSaveError('Enter an item name to save this comparison.'); return; }
     setSaving(true); setSaveError('');
     try {
-      await savedComparisons.save({ ...entry, form: { ...entry.form, itemName: name.trim() }, comparison: { ...comparison, itemName: name.trim() } });
+      await savedComparisons.save({ ...entry, ...(photoUri ? { photoUri } : {}), form: { ...entry.form, itemName: name.trim() }, comparison: { ...comparison, itemName: name.trim() } });
       setSaved(true);
     } catch { setSaveError('Couldn’t save on this device. Please try again.'); }
     finally { setSaving(false); }
@@ -92,12 +105,22 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     </View>}
     {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
 
+    {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
+    {!saved && <View style={{ gap: 12 }}>
+      <Text style={ui.label}>Item photo (optional)</Text>
+      <Action label="Take photo" secondary disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
+      <Action label="Add photo" secondary disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
+      {!!photoUri && <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />}
+      {photoBusy && <Text style={ui.muted}>Preparing photo…</Text>}
+      {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
+    </View>}
+
     {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
     <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
     <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
       <ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
         accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
-        disabled={saved || saving} onPress={() => { void save(); }} />
+        disabled={saved || saving || photoBusy} onPress={() => { void save(); }} />
       <ResultAction icon="share" label={sharing ? 'Sharing…' : 'Share'}
         accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
         disabled={sharing} onPress={() => { void share(); }} />

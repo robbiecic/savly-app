@@ -20,7 +20,15 @@
       "softwareKeyboardLayoutMode": "resize"
     },
     "plugins": [
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Savly to attach a photo to a saved item.",
+          "cameraPermission": "Allow Savly to take a photo of an item you want to save.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "web": {
       "favicon": "./assets/favicon.png"

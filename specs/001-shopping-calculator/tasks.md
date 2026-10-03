@@ -81,3 +81,8 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Fix Android keyboard overlap with explicit height avoidance and focused-input scrolling; verify the lower item-name input with the soft keyboard in Android Expo Go.
 
 - [x] Remove card/bank fees from new calculator estimates and ignore legacy fee preferences; retain original saved totals and VAT refund provider fees.
+
+- [x] Add optional camera/library item photos with preview/removal, persistent local storage, Saved thumbnails, and cleanup on deletion.
+- [ ] Verify camera capture and permission denial on physical Android/iOS devices.
+
+- [x] Use circular item-photo previews with a tappable full-screen viewer and Close/Android Back dismissal.

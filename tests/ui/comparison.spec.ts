@@ -168,21 +168,15 @@ test('Calculator starts and computes when optional Intl constructors are unavail
   expect(errors).toEqual([]);
 });
 
-test('Unexpected async settings errors are handled and can be retried', async ({ page }) => {
+test('Corrupt saved settings recover with defaults without an unhandled error', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.addInitScript(() => {
-    const original = Intl.NumberFormat.prototype.formatToParts;
-    Intl.NumberFormat.prototype.formatToParts = function (...args) {
-      // Exercise a failure in the asynchronous initialization callback, once.
-      Intl.NumberFormat.prototype.formatToParts = original;
-      throw new Error('Simulated settings initialization failure');
-    };
+    localStorage.setItem('savly:preferences:1', '{broken');
   });
   await openCompare(page);
-  await expect(page.getByText('Your settings couldn’t load. Please try again.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Retry loading settings', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Country of residence: Choose country', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -293,4 +287,33 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   }
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
   await expect(page.getByText('Calculated from USDEUR at 0.8887.', { exact: true })).toBeVisible();
+});
+
+test('Item photo can be added, removed, saved and reopened after reload', async ({ page }) => {
+  await comparison(page);
+  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Photo bag');
+  await expect(page.getByRole('button', { name: 'Take photo', exact: true })).toBeVisible();
+  const addPhoto = async () => {
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Add photo', exact: true }).click();
+    await (await chooser).setFiles('assets/favicon.png');
+    await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
+  };
+  await addPhoto();
+  await page.getByRole('button', { name: 'View photo of Photo bag', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Full-screen photo of Photo bag', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Close photo', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Full-screen photo of Photo bag', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Remove photo', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toHaveCount(0);
+  await addPhoto();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Saved on this device', exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Open Photo bag', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 34.50', { exact: true })).toBeVisible();
 });

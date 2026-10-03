@@ -1,3 +1,4 @@
+import { itemPhotos } from './item-photos';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SavedComparisonStore } from './saved-comparisons';
-export const savedComparisons = new SavedComparisonStore(AsyncStorage);
+export const savedComparisons = new SavedComparisonStore(AsyncStorage, itemPhotos);
