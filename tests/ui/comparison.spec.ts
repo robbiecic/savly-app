@@ -260,8 +260,7 @@ test('Country dropdown precedes tabs; tab switching preserves the calculator dra
   const tabBox = await tab.boundingBox();
   expect(countryBox!.y + countryBox!.height).toBeLessThanOrEqual(tabBox!.y);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('123');
-  await page.getByRole('tab', { name: 'Scan', exact: true }).click();
-  await expect(page.getByText('Scanning is coming soon.')).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Scan', exact: true })).toHaveCount(0);
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await expect(page.getByText('No saved comparisons yet.')).toBeVisible();
   await tab.click();

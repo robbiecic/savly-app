@@ -2,7 +2,7 @@
 
 The calculator foundation and interactive sample prototype are implemented. Compare and Result are separate pages. Calculate savings opens the submitted result; Back preserves form entries. Save stores a named snapshot locally, and Saved comparisons lets users reopen or delete it. This is a prototype with mocked reference data and illustrative refund assumptions, not production FX or verified refund eligibility.
 
-Navigation update (2026-10-02): the shopping-country dropdown appears above Calculate, Scan, and Saved. Tab switches retain the draft. Scan is a coming-soon placeholder. The fixed Your Savings header has a back arrow returning to Calculate.
+Navigation update (2026-10-02): the shopping-country dropdown appears above Calculate and Saved. Tab switches retain the draft. Scan is hidden until ready. The fixed Your Savings header has a back arrow returning to Calculate.
 
 ## Demonstrate it
 

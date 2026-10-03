@@ -12,7 +12,7 @@ import { colors } from '../theme/colors';
 
 export function CompareScreen() {
   const state = useComparison();
-  const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'scan'>('calculator');
+  const [page, setPage] = useState<'calculator' | 'result' | 'saved'>('calculator');
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
   const goBack = () => setPage('calculator');
@@ -50,18 +50,13 @@ export function CompareScreen() {
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
           <View accessibilityRole="tablist" style={styles.tabs}>
-            {(['calculator', 'scan', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
+            {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
               style={[styles.tab, page === tab && styles.selectedTab]}>
-              <Text style={[styles.tabText, page === tab && styles.selectedTabText]}>{tab === 'calculator' ? 'Calculate' : tab === 'scan' ? 'Scan' : 'Saved'}</Text>
+              <Text style={[styles.tabText, page === tab && styles.selectedTabText]}>{tab === 'calculator' ? 'Calculate' : 'Saved'}</Text>
             </Pressable>)}
           </View>
-          {page === 'scan' ? <Card>
-            <Text accessibilityRole="header" style={ui.title}>Scan</Text>
-            <Text style={ui.text}>Scanning is coming soon.</Text>
-            <Text style={ui.muted}>Use Calculate to enter a shopping price for now.</Text>
-            <Action label="Enter price manually" onPress={() => setPage('calculator')} />
-          </Card> : page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
+          {page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
