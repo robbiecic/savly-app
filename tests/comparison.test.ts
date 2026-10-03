@@ -35,8 +35,8 @@ test('Reverse quotes remain calculable when reciprocals repeat beyond 18 decimal
   assert.equal(value.result.convertedCost, '100.00');
   assert.equal(value.result.fx.originalRate, '1.1'); assert.equal(value.result.fx.inverted, true);
 });
-test('AC13 fee, overrides, automatic reset and context changes', () => {
-  assert.equal(ready({ feePercent: '3' }).result.withRefund, '119.46');
+test('AC13 legacy fees ignored, overrides, automatic reset and context changes', () => {
+  assert.equal(ready({ feePercent: '3' }).result.withRefund, '115.50');
   assert.equal(ready({ fxOverride: '2', refundOverride: '10' }).result.withRefund, '220.00');
   const overridden = { ...form, fxOverride: '2', refundOverride: '10' };
   for (const field of ['price', 'country', 'homeCurrency', 'residence'] as const) {
@@ -57,7 +57,7 @@ test('AC14 loading, unavailable, missing pair, invalid, empty and unknown refund
   assert.equal(ready({ residence: 'FR' }).result.withRefund, null);
 });
 test('AC15 locale normalizes decimal separator without inferring residency from currency', () => {
-  assert.equal(ready({ price: '120,00', feePercent: '3,0' }, reference, 'fr-FR').result.withRefund, '119.46');
+  assert.equal(ready({ price: '120,00', feePercent: '3,0' }, reference, 'fr-FR').result.withRefund, '115.50');
   assert.equal(compare({ ...form, price: '1,200' }, reference, 'en-US').status, 'invalid');
   assert.equal(initialPreferences().homeCurrency, '');
   assert.equal(initialPreferences().residence, '');
@@ -67,7 +67,7 @@ test('AC15 settings persist separately from item inputs and comparison overrides
   const storage = { async getItem() { return stored || null; }, async setItem(_key: string, value: string) { stored = value; } };
   const store = new PreferenceStore(storage);
   await store.save({ country: 'JP', homeCurrency: 'USD', residence: 'US', feePercent: '3' });
-  assert.deepEqual(await new PreferenceStore(storage).load(), { country: 'JP', homeCurrency: 'USD', residence: 'US', feePercent: '3' });
+  assert.deepEqual(await new PreferenceStore(storage).load(), { country: 'JP', homeCurrency: 'USD', residence: 'US', feePercent: '0' });
   assert.ok(!stored.includes('price')); stored = '{bad'; assert.equal(await store.load(), null);
 });
 test('AC16 removed countries block new estimates; history snapshots retain original values', () => {
@@ -132,4 +132,14 @@ test('Home currency follows reference country data and clears amounts when units
   assert.equal(withHomeCurrency({ ...old, residence: 'CA' }, snapshot).homeCurrency, '');
   assert.equal(withHomeCurrency(old, { ...snapshot, countries: snapshot.countries.filter(c => c.country !== 'US') }).homeCurrency, '');
   assert.equal(withHomeCurrency({ ...old, homeCurrency: 'GBP' }, snapshot).homeCurrency, 'USD');
+});
+
+test('Legacy fee preferences cannot charge new comparisons or appear in shares', () => {
+  assert.equal(newForm({ ...form, feePercent: '3' }).feePercent, '0');
+  for (const feePercent of ['3', 'invalid']) {
+    const comparison = ready({ feePercent });
+    assert.equal(comparison.result.cardFee, '0.00');
+    assert.equal(comparison.result.savings?.amount, '34.50');
+    assert.doesNotMatch(shareMessage(comparison, shareLink()), /bank fee/i);
+  }
 });

@@ -1,12 +1,10 @@
-import { decimalSeparator } from './locale';
 import { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { activateReferenceData, getReferenceStore } from '../../data/mobile-reference-store';
 import type { ReferenceState } from '../../data/reference-store';
 import { PreferenceStore, initialPreferences } from '../../storage/preferences';
-import { D } from '../../domain/decimal';
-import { withHomeCurrency, compare, editForm, newForm, normalizeDecimal, resetOverrides, type ComparisonForm } from './model';
+import { withHomeCurrency, compare, editForm, newForm, resetOverrides, type ComparisonForm } from './model';
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
@@ -40,8 +38,7 @@ export function useComparison() {
       if (!saved && state.snapshot && !state.snapshot.countries.some((row) => row.country === preferences.country)) {
         preferences.country = state.snapshot.countries[0]?.country ?? '';
       }
-      const separator = decimalSeparator(locale);
-      setForm(newForm({ ...preferences, feePercent: preferences.feePercent.replace('.', separator) }));
+      setForm(newForm(preferences));
       setReference(state); setReady(true);
     }).catch((error: unknown) => {
       if (!mounted) return;
@@ -52,13 +49,11 @@ export function useComparison() {
   }, [startupAttempt]);
   useEffect(() => {
     if (!ready) return;
-    const normalized = normalizeDecimal(form.feePercent, locale);
-    if (!/^\d{1,3}(?:\.\d{1,4})?$/.test(normalized) || new D(normalized).gt(100)) return;
     let current = true;
-    void preferenceStore.save({ country: form.country, homeCurrency: form.homeCurrency, residence: form.residence, feePercent: normalized })
+    void preferenceStore.save({ country: form.country, homeCurrency: form.homeCurrency, residence: form.residence, feePercent: '0' })
       .then(() => { if (current) setStorageError(false); }).catch(() => { if (current) setStorageError(true); });
     return () => { current = false; };
-  }, [ready, form.country, form.homeCurrency, form.residence, form.feePercent, locale]);
+  }, [ready, form.country, form.homeCurrency, form.residence]);
   const [settledForm, setSettledForm] = useState(form);
   useEffect(() => {
     const timer = setTimeout(() => setSettledForm(form), 180);

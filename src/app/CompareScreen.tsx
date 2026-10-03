@@ -70,9 +70,8 @@ export function CompareScreen() {
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Field label="Item name (optional)" value={form.itemName} onChange={(v) => state.edit('itemName', v)} placeholder="What caught your eye?" />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
-            {(assumptions || error('fxOverride') || error('refundOverride') || error('feePercent')) && <View style={{ gap: 16 }}>
+            {(assumptions || error('fxOverride') || error('refundOverride')) && <View style={{ gap: 16 }}>
               <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
-              <Field label="Additional bank fee (%)" value={form.feePercent} onChange={(v) => state.edit('feePercent', v)} numeric error={error('feePercent') ?? error('bankFee')} />
               {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric placeholder="Automatic rate" error={error('fxOverride')} />}
               <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />

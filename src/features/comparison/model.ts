@@ -1,17 +1,18 @@
 import { decimalSeparator } from './locale';
 import { calculate, type Calculation, type FxQuote } from '../../domain/calculator';
-import { D, InputError, decimal, positive } from '../../domain/decimal';
+import { D, InputError, positive } from '../../domain/decimal';
 import { selectRefundRule, type RefundRule } from '../../domain/refunds';
 import { selectedCountry, type Snapshot } from '../../data/reference-data';
 import type { ReferenceState } from '../../data/reference-store';
 
+// feePercent is retained as zero for compatibility with stored comparison forms.
 export interface Preferences { country: string; homeCurrency: string; residence: string; feePercent: string }
 export interface ComparisonForm extends Preferences {
   price: string; homePrice: string; itemName: string; fxOverride: string; refundOverride: string;
 }
 export const DEFAULT_PREFERENCES: Preferences = { country: 'FR', homeCurrency: 'USD', residence: '', feePercent: '0' };
 export function newForm(preferences: Preferences = DEFAULT_PREFERENCES): ComparisonForm {
-  return { ...preferences, price: '', homePrice: '', itemName: '', fxOverride: '', refundOverride: '' };
+  return { ...preferences, feePercent: '0', price: '', homePrice: '', itemName: '', fxOverride: '', refundOverride: '' };
 }
 export function editForm(form: ComparisonForm, field: keyof ComparisonForm, value: string): ComparisonForm {
   const clear = ['country', 'homeCurrency', 'residence', 'price'].includes(field) && value !== form[field];
@@ -90,14 +91,10 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
     if (form.fxOverride.trim() && country.currency !== form.homeCurrency) {
       fx = { from: country.currency, to: form.homeCurrency, rate: normalizeDecimal(form.fxOverride, locale), kind: 'manual', source: 'Manual rate', asOf: null };
     }
-    const normalizedFee = normalizeDecimal(form.feePercent, locale);
-    if (!/^\d{1,3}(?:\.\d{1,4})?$/.test(normalizedFee)) throw new InputError('feePercent', 'Enter a bank fee from 0 through 100%, with up to four decimal places.');
-    const feePercent = decimal(normalizedFee, 'feePercent');
-    if (feePercent.gt(100)) throw new InputError('feePercent', 'Enter a bank fee from 0 through 100%.');
     const homePrice = form.homePrice.trim() ? normalizeDecimal(form.homePrice, locale) : undefined;
     const calculation = calculate({
       mode: snapshot.mode, shoppingCurrency, homeCurrency, price, homePrice,
-      bankFee: feePercent.div(100).toFixed(), vatRate: country.vatRate === null ? null : new D(country.vatRate).toFixed(), fx,
+      bankFee: '0', vatRate: country.vatRate === null ? null : new D(country.vatRate).toFixed(), fx,
       refund: form.refundOverride.trim() ? { kind: 'manual', amount: normalizeDecimal(form.refundOverride, locale) }
         : selectRefundRule(SAMPLE_REFUND_RULES, { mode: snapshot.mode, country: country.country, currency: country.currency, residenceCountry: form.residence, price }),
     });

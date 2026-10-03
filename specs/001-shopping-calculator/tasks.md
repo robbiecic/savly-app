@@ -79,3 +79,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Add Android keyboard resizing and iOS avoidance to calculator, savings details, and country search. Native keyboard verification remains pending.
 
 - [x] Fix Android keyboard overlap with explicit height avoidance and focused-input scrolling; verify the lower item-name input with the soft keyboard in Android Expo Go.
+
+- [x] Remove card/bank fees from new calculator estimates and ignore legacy fee preferences; retain original saved totals and VAT refund provider fees.

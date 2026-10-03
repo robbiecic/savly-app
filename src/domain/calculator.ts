@@ -137,7 +137,7 @@ export function calculate(input: CalculationInput): CalculationResult {
       savings, fx: { ...fx }, refund: refund.kind === 'sample' ? { ...refund, assumptions: [...refund.assumptions] } : { ...refund },
       bankFee: f.toString(), assumptions: [
         'Purchase and refund use the same FX rate; actual settlement may differ.',
-        'Card fees apply to the full purchase and are not refunded.',
+        ...(f.gt(0) ? ['Card fees apply to the full purchase and are not refunded.'] : []),
         'Customs duties, import taxes, and travel costs are excluded.',
       ],
     } };

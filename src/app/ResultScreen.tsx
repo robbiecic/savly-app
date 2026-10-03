@@ -66,7 +66,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     <View style={{ gap: 16 }}>
       <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {comparison.price}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
-      <View style={styles.row}><Text style={ui.text}>Card fee</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>
+      {new D(r.cardFee).gt(0) && <View style={styles.row}><Text style={ui.text}>Card fee (saved estimate)</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>}
       <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
       {r.priceDifference != null && <View style={styles.row}><Text style={ui.text}>Price difference before refund</Text><Text style={ui.text}>{money(r.priceDifference)}</Text></View>}
       {!!r.refundBreakdown && <>
@@ -86,7 +86,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
       <Text selectable style={ui.text}>{fxLabel(r.fx)}</Text>
       {!!r.fx.asOf && <Text style={ui.muted}>{comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
       {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate}.</Text>}
-      <Text style={ui.muted}>Card fee: {money(r.cardFee)} · Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
+      <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
     </View>}

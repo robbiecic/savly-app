@@ -25,31 +25,31 @@ async function comparison(page: Page) {
   await expect(page.getByText('You could save USD 34.50', { exact: true })).toBeVisible();
 }
 
-test('AC12–15: submitted result, fee changes, overrides, validation and restart settings', async ({ page }) => {
+test('AC12–15: submitted result, no card fee, overrides, validation and restart settings', async ({ page }) => {
   await comparison(page);
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
   await expect(page.getByText('1 EUR = 1.1 USD · Sample rate', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true }).fill('3');
+  await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
   await calculate(page);
-  await expect(page.getByText('You could save USD 30.54', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 34.50', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true }).fill('21');
   await expect(page.getByRole('button', { name: 'Share savings', exact: true })).toHaveCount(0);
   await expect(page.getByText('Refund cannot exceed included VAT (EUR 20.00).').first()).toBeVisible();
   await page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('USD 119.46', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveValue('3');
+  await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
 });
 
 test('Share payload matches the display; cancellation leaves it intact', async ({ page }) => {

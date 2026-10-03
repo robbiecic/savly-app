@@ -57,7 +57,7 @@ Worked example: [USA vs Spain, stale FX, and an assumed 28% refund fee](specs/00
 
 ## Calculation engine
 
-`src/domain/calculator.ts` calculates VAT, card fees, before/after refund costs, and savings using decimal.js. `src/domain/refunds.ts` selects illustrative rules by country, currency, explicit residency, category, and price band. Both are pure on-device modules with no UI or network dependencies.
+`src/domain/calculator.ts` calculates VAT, before/after refund costs, and savings (with legacy card-fee support for historical compatibility) using decimal.js. `src/domain/refunds.ts` selects illustrative rules by country, currency, explicit residency, category, and price band. Both are pure on-device modules with no UI or network dependencies.
 
 Pass normalized decimal strings (`"120"`, `"1.10"`, fee `"0.03"` for 3%) and explicit currency minor units. The form layer normalizes the locale decimal separator and whitespace; grouping separators are rejected rather than guessed. Domain inputs allow up to 18 digits on each side of the decimal point. Results contain formatted decimal strings and retained FX/refund provenance. Invalid input returns a field error; unavailable FX returns no totals. An unknown refund returns the without-refund cost, with refund-dependent totals and savings left null. Real mode rejects sample FX and disables sample refund rules.
 
@@ -112,3 +112,5 @@ Start fxService using its [local setup instructions](../fxService/README.md), th
 For a USB Android device, run `adb reverse tcp:3000 tcp:3000` and set `EXPO_PUBLIC_FX_API_URL=http://127.0.0.1:3000` in `.env.local`, then restart Expo. A physical iPhone cannot reach the Mac through its own loopback address; it requires an accessible API address and a development URL override. The backend currently binds only to the Mac's loopback interface. Web previews keep fixtures by default; a web API override additionally requires backend CORS support. Production builds ignore the development override.
 
 Android uses keyboard resizing, explicit height avoidance, and focused-input scrolling; iOS form and picker layouts use padding avoidance. The lower calculator input was verified above the soft keyboard in Android Expo Go on 2026-10-03. Physical-device, iOS, enlarged-text, and savings-page keyboard checks remain pending. The focused-input fix applies on JavaScript reload; rebuild existing native binaries to apply Android configuration changes.
+
+New calculator estimates exclude card/bank fees. Legacy fee preferences are ignored; saved comparisons keep their original totals. VAT refund provider fees are unchanged.

@@ -36,7 +36,7 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     ...(comparison.stale ? ['Rates out of date'] : []),
     fxLabel(r.fx),
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),
-    `Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`,
+    ...(new D(r.bankFee).gt(0) ? [`Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`] : []),
     'Refund subject to eligibility. Excludes customs/import taxes.',
     ...(link.demo ? ['Demo link only; app open/download routing is not available.'] : []),
     `Open or download Savly: ${link.url}`,

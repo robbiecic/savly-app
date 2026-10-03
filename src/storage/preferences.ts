@@ -11,14 +11,13 @@ export class PreferenceStore {
       if (!raw) return null;
       const p = JSON.parse(raw);
       if (p.version !== 1 || !/^[A-Z]{2}$/.test(p.country) || !(p.homeCurrency === '' || /^[A-Z]{3}$/.test(p.homeCurrency)) ||
-          !(p.residence === '' || /^[A-Z]{2}$/.test(p.residence)) || typeof p.feePercent !== 'string' ||
-          !/^\d{1,3}(?:\.\d{1,4})?$/.test(p.feePercent) || Number(p.feePercent) > 100) return null;
-      return { country: p.country, homeCurrency: p.homeCurrency, residence: p.residence, feePercent: p.feePercent };
+          !(p.residence === '' || /^[A-Z]{2}$/.test(p.residence))) return null;
+      return { country: p.country, homeCurrency: p.homeCurrency, residence: p.residence, feePercent: '0' };
     } catch { return null; }
   }
   save(preferences: Preferences): Promise<void> {
     // Serial writes stop an older preference save overwriting a later edit.
-    const value = JSON.stringify({ version: 1, ...preferences });
+    const value = JSON.stringify({ version: 1, ...preferences, feePercent: '0' });
     this.writes = this.writes.catch(() => {}).then(() => this.storage.setItem(this.key, value));
     return this.writes;
   }
