@@ -71,7 +71,7 @@ export function CompareScreen() {
               <Select label="Country of residence" value={form.residence} options={residences} onChange={(v) => state.edit('residence', v)} error={error('homeCurrency')} />
               <Text style={ui.muted}>Home currency follows your country of residence. Refund eligibility is not verified.</Text>
             </View>}
-            <Field label={`Home price (${form.homeCurrency || 'home currency'}, optional)`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
+            <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Field label="Item name (optional)" value={form.itemName} onChange={(v) => state.edit('itemName', v)} placeholder="What caught your eye?" />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
             {(assumptions || error('fxOverride') || error('refundOverride') || error('feePercent')) && <View style={{ gap: 16 }}>

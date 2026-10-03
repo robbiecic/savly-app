@@ -21,6 +21,8 @@
 
 ## Milestone 2
 
+- [x] Remove the optional marker from the Home price label.
+
 - [x] Add AC19 Spain/USA worked example with VAT-inclusive arithmetic, explicit assumed refund fee, stale reverse-quote FX, and result/share/save regression coverage.
 
 - [x] Keep country selection above Calculate/Scan/Saved tabs; preserve the form across tabs and add a savings-page back arrow to Calculate. Scan is a coming-soon placeholder.

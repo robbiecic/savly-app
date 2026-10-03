@@ -18,7 +18,7 @@ async function comparison(page: Page) {
   await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('United States');
   await page.getByRole('button', { name: 'United States', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('150');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toHaveCount(0);
   await calculate(page);
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
@@ -70,15 +70,15 @@ test('Share payload matches the display; cancellation leaves it intact', async (
 test('Missing, equal, unfavorable comparisons and context override reset', async ({ page }) => {
   await comparison(page);
   await back(page);
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('100');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('100');
   await calculate(page);
   await expect(page.getByText('Costs USD 15.50 more', { exact: true })).toBeVisible();
   await back(page);
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('115.50');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('115.50');
   await calculate(page);
   await expect(page.getByText('Same estimated cost', { exact: true })).toBeVisible();
   await back(page);
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('');
   await calculate(page);
   await expect(page.getByText('Add a home price to compare potential savings.', { exact: true })).toBeVisible();
   await back(page);
@@ -204,17 +204,17 @@ test('Home country selects currency automatically and migrates saved currency ch
     }));
   });
   await openCompare(page);
-  await expect(page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Home price (USD)', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Home currency:/ })).toHaveCount(0);
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('150');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await page.getByRole('button', { name: /Edit settings/ }).click();
   await page.getByRole('button', { name: 'Country of residence: United States', exact: true }).click();
   await page.getByRole('textbox', { name: 'Search country of residence', exact: true }).fill('France');
   await page.getByRole('button', { name: 'France', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Home price (EUR, optional)', exact: true })).toHaveValue('');
+  await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toHaveValue('');
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Home price (EUR, optional)', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toBeVisible();
 });
 
 test('Save persists the displayed snapshot and supports reopening and deletion', async ({ page }) => {
@@ -285,7 +285,7 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   });
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
-  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('500');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
   for (const label of ['You could save USD 56.92', 'Sample estimate · Rates out of date', 'USD -6.36',
     'VAT refund before fee (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61',
