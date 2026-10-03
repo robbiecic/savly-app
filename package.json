@@ -20,6 +20,7 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.3",
     "@types/react": "~19.2.2",
+    "jimp-compact": "^0.16.1",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
@@ -33,7 +34,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "web": "expo start --web",
     "test:ui": "playwright test",
-    "export:web": "expo export --platform web --output-dir dist-web"
+    "export:web": "expo export --platform web --output-dir dist-web",
+    "export:icons": "node scripts/export-icons.cjs"
   },
   "private": true
 }

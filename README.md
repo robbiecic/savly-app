@@ -49,7 +49,7 @@ NODE_ENV=production npm run export:mobile
 
 The export command bundles Android and iOS JavaScript into ignored `dist/`; it does not produce installable store binaries. `npm test` runs the calculation, refund-selection, and reference-data tests without Expo, a device, or a backend. `npm run typecheck` checks both app code and tests.
 
-`App.tsx` sets up safe areas and the status bar; `src/app/CompareScreen.tsx` presents the calculator, `src/app/ResultScreen.tsx` presents submitted savings details, and `src/app/SavedScreen.tsx` lists locally saved comparisons, and `src/theme/colors.ts` holds the starting palette. The generated icons are Expo placeholders pending Savly artwork.
+`App.tsx` sets up safe areas and the status bar; `src/app/CompareScreen.tsx` presents the calculator, `src/app/ResultScreen.tsx` presents submitted savings details, and `src/app/SavedScreen.tsx` lists locally saved comparisons, and `src/theme/colors.ts` holds the starting palette. Savly app icons and thumbnails are configured; see [asset notes and regeneration instructions](docs/app-icons.md).
 
 Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo dependency compatibility, and production bundling for Android and iOS passed. No simulator or physical-device tests were run. npm audit reported 10 moderate advisories in the Expo tooling dependency tree (including transitive `uuid`/`xcode`); its suggested full fix downgrades Expo to SDK 46, so it was not applied. Revisit compatible upstream fixes before release.
 

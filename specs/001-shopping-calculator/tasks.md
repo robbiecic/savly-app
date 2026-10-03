@@ -21,6 +21,8 @@
 
 ## Milestone 2
 
+- [x] Create Savly app icons, Android adaptive/themed layers, favicon, and thumbnail exports from the approved icon concept; native launcher verification remains.
+
 - [x] Hide Scan navigation and its placeholder until scanning is implemented.
 
 - [x] Remove the optional marker from the Home price label.
