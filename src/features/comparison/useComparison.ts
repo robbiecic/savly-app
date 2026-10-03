@@ -2,7 +2,7 @@ import { decimalSeparator } from './locale';
 import { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
-import { activateReferenceData, referenceStore } from '../../data/mobile-reference-store';
+import { activateReferenceData, getReferenceStore } from '../../data/mobile-reference-store';
 import type { ReferenceState } from '../../data/reference-store';
 import { PreferenceStore, initialPreferences } from '../../storage/preferences';
 import { D } from '../../domain/decimal';
@@ -24,9 +24,17 @@ export function useComparison() {
   useEffect(() => {
     let mounted = true;
     setStartupError(false);
-    const unsubscribe = referenceStore.subscribe((state) => { if (mounted) setReference(state); });
-    const deactivate = activateReferenceData();
-    void Promise.all([preferenceStore.load(), referenceStore.get()]).then(([saved, state]) => {
+    let unsubscribe = () => {};
+    let deactivate = () => {};
+    const loadReference = async () => {
+      const store = await getReferenceStore();
+      if (mounted) {
+        unsubscribe = store.subscribe((state) => { if (mounted) setReference(state); });
+        deactivate = activateReferenceData(store);
+      }
+      return store.get();
+    };
+    void Promise.all([preferenceStore.load(), loadReference()]).then(([saved, state]) => {
       if (!mounted) return;
       const preferences = saved ?? initialPreferences();
       if (!saved && state.snapshot && !state.snapshot.countries.some((row) => row.country === preferences.country)) {
@@ -63,6 +71,6 @@ export function useComparison() {
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
     edit: (field: keyof ComparisonForm, value: string) => setForm(withHomeCurrency(editForm(form, field, value), reference?.snapshot ?? null)),
     reset: () => setForm(resetOverrides(form)),
-    retry: async () => { setRetrying(true); try { setReference(await referenceStore.retry()); } finally { setRetrying(false); } },
+    retry: async () => { setRetrying(true); try { setReference(await (await getReferenceStore()).retry()); } finally { setRetrying(false); } },
   };
 }

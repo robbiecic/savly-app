@@ -74,3 +74,8 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Configure sharing domain, fallback page, live store links, and Universal/App Links.
 - [ ] Verify WhatsApp text/link delivery and installed/uninstalled routing (SH1–SH6).
 - [ ] Complete device testing and store preparation.
+
+- [x] Select the local fxService API in native development with emulator-aware addresses, isolated cache, and labeled sample fallback when unavailable.
+- [x] Add Android keyboard resizing and iOS avoidance to calculator, savings details, and country search. Native keyboard verification remains pending.
+
+- [x] Fix Android keyboard overlap with explicit height avoidance and focused-input scrolling; verify the lower item-name input with the soft keyboard in Android Expo Go.

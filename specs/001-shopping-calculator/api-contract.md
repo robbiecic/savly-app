@@ -51,3 +51,9 @@ Use a fake clock and per-endpoint request counters: first use makes two requests
 ## Implementation verification
 
 The data layer has 23 automated tests in `tests/reference-data.test.ts`, using fake time, storage, lifecycle scheduling, and HTTP responses. These verify country membership, exact four-hour expiry, restart cache reuse, shared refresh, offline states, validation, partial failures, immutable snapshots, retry backoff, clock rollback, and request boundaries. Native persistence and actual foreground/background behavior still require device testing. The calculator activates the shared store and subscribes to updates; stale data is exposed immediately when a refresh begins.
+
+## Local development connection
+
+Native development builds first use the local fxService API: iOS at `http://127.0.0.1:3000`, Android emulator at `http://10.0.2.2:3000`. `EXPO_PUBLIC_FX_API_URL` overrides the development address. Release builds and web previews continue with prototype fixtures by default; the override is ignored in release builds. Web overrides require the API to allow the preview's origin through CORS.
+
+Resolve the source once per app session, allowing two seconds per endpoint. Reuse a validated local cache for four hours. With no local cache and a network/server failure, use clearly labeled prototype fixtures; reload after starting the API to select it. Invalid API data or authentication/storage errors remain visible. Once selected, the local store retains ordinary stale-cache/retry behavior and never substitutes fixtures on refresh failure. Local and prototype caches are isolated, and local caches include the URL in their key. Local data stays labeled sample because fxService defaults to mock CityIndex data and the contract does not identify mock versus real upstream mode.

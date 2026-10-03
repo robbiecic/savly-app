@@ -1,7 +1,8 @@
+import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
 import Svg, { Path } from 'react-native-svg';
 import { D } from '../domain/decimal';
 import { useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResultAction } from '../components/ResultAction';
 import { Action, Card, Field, ui } from '../components/controls';
@@ -52,7 +53,8 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
       <Text accessibilityRole="header" style={[ui.title, styles.headerTitle]}>Your savings</Text>
       <View style={styles.back} />
     </View>
-    <ScrollView contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
+    <KeyboardFormScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
     <Card>
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
@@ -102,7 +104,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     </View>
     {appShareLink.demo && <Text style={ui.muted}>Sharing includes a demo link. App download links are not available yet.</Text>}
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
-  </Card></ScrollView></SafeAreaView>;
+  </Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({

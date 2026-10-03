@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { RevealInputContext } from './KeyboardFormScrollView';
+import { useContext, useRef, useState, type ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 
@@ -22,9 +23,11 @@ export function Action({ label, onPress, secondary = false, disabled = false, ex
   </Pressable>;
 }
 export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder }: { label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string }) {
+  const input = useRef<TextInput>(null);
+  const reveal = useContext(RevealInputContext);
   return <View style={{ gap: 8 }}>
     <Text style={ui.label}>{label}</Text>
-    <TextInput accessibilityLabel={label} accessibilityHint={error} value={value} onChangeText={onChange} keyboardType={numeric ? 'decimal-pad' : 'default'}
+    <TextInput ref={input} onFocus={() => reveal?.(input.current)} onBlur={() => reveal?.(null)} accessibilityLabel={label} accessibilityHint={error} value={value} onChangeText={onChange} keyboardType={numeric ? 'decimal-pad' : 'default'}
       placeholder={placeholder} placeholderTextColor="#737A89" maxLength={numeric ? 40 : 100}
       style={[ui.input, prominent && { fontSize: 36, fontWeight: '600', paddingVertical: 20 }, !!error && { borderColor: '#A32828' }]} />
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
@@ -49,9 +52,9 @@ export function Select({ label, value, options, onChange, error, compact = false
       <OptionLabel label={chosen} flag={selectedOption?.flag} /><Text style={ui.text}>⌄</Text>
     </Pressable>
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
-    <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+    <RevealInputContext.Provider value={null}><Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ padding: 24, gap: 16, flex: 1 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} style={{ padding: 24, gap: 16, flex: 1 }}>
           <Text accessibilityRole="header" style={ui.title}>{label}</Text>
           <Field label={`Search ${label.toLowerCase()}`} value={search} onChange={setSearch} />
           <ScrollView keyboardShouldPersistTaps="handled">
@@ -62,8 +65,8 @@ export function Select({ label, value, options, onChange, error, compact = false
               </Pressable>)}
           </ScrollView>
           <Action label="Close selection" secondary onPress={() => setOpen(false)} />
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </Modal></RevealInputContext.Provider>
   </View>;
 }

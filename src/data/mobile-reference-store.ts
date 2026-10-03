@@ -1,15 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState } from 'react-native';
-import { ReferenceStore } from './reference-store';
-import { createMockTransport } from './transport';
+import { AppState, Platform } from 'react-native';
+import type { ReferenceStore } from './reference-store';
+import { developmentApiUrl, selectReferenceStore } from './development-reference-store';
 
-// One shared instance, intentionally sample-only until production access is agreed.
-export const referenceStore = new ReferenceStore({
-  environment: 'prototype', mode: 'sample', storage: AsyncStorage, transport: createMockTransport(),
-});
+let selected: Promise<ReferenceStore> | undefined;
+export function getReferenceStore(): Promise<ReferenceStore> {
+  return selected ??= selectReferenceStore({
+    baseUrl: developmentApiUrl(__DEV__, Platform.OS, process.env.EXPO_PUBLIC_FX_API_URL),
+    storage: AsyncStorage,
+  });
+}
 
-// Start from the future calculator's root effect; return its cleanup function.
-export function activateReferenceData(): () => void {
+export function activateReferenceData(referenceStore: ReferenceStore): () => void {
   referenceStore.setActive(AppState.currentState === 'active');
   const subscription = AppState.addEventListener('change', (state) => {
     referenceStore.setActive(state === 'active');

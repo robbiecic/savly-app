@@ -98,3 +98,7 @@ fxService supplies CityIndex MID bar closes. Label real rates with that source a
 ## Production integration requirements
 
 Use the existing fxService backend and canonical contract. Confirm deployment URL, authorized guest access, provider usage rights, and supported pair coverage before production integration. The four-hour client cache and outage behavior are defined in api-contract.md. Keep secret provider keys off the mobile client. A rate fetch failure must not silently substitute a sample rate. Automatic real refund rules require a separately agreed backend contract extension or approved data source.
+
+## Keyboard layout
+
+The calculator, savings-name field, and country search remain usable with the soft keyboard open. Android uses native resizing plus explicit height avoidance and scrolls the focused input into the visible viewport after keyboard/layout changes. iOS uses padding avoidance. Forms and country options scroll within the remaining space. Form scrolling dismisses the keyboard, and action/selection taps remain available while it is open. Verify on native devices with small screens and enlarged text before release.
