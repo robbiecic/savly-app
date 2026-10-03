@@ -89,7 +89,7 @@ NODE_ENV=production npm run export:web
 npm run test:ui
 ```
 
-The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 73 domain/data/integration/storage tests, twelve browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
+The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 73 domain/data/integration/storage tests, thirteen browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
 
 ## Premium access
 

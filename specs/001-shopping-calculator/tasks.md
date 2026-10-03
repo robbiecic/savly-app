@@ -21,6 +21,8 @@
 
 ## Milestone 2
 
+- [x] Keep country selection above Calculate/Scan/Saved tabs; preserve the form across tabs and add a savings-page back arrow to Calculate. Scan is a coming-soon placeholder.
+
 - [x] Match Save/Share to the board with equal outlined buttons, heart/share icons, and a filled-heart Saved state.
 
 - [x] Move shopping-country selection to a rounded top dropdown before price entry, outside home settings.

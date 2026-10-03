@@ -1,5 +1,6 @@
+import Svg, { Path } from 'react-native-svg';
 import { useState } from 'react';
-import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResultAction } from '../components/ResultAction';
 import { Action, Card, Field, ui } from '../components/controls';
@@ -39,9 +40,18 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     const outcome = await openShare(message, (content) => Share.share(content));
     setShareError(outcome === 'failed'); setSharing(false);
   };
-  return <SafeAreaView style={styles.screen}><ScrollView contentContainerStyle={styles.content}>
-    <Action label={fromSaved ? 'Back to saved comparisons' : 'Back to calculator'} secondary onPress={onBack} />
-    <Text accessibilityRole="header" style={ui.title}>Your savings</Text>
+  return <SafeAreaView style={styles.screen}>
+    <View style={styles.header}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Back to calculator" onPress={onBack}
+        style={({ pressed }) => [styles.back, pressed && { opacity: 0.5 }]}>
+        <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false} aria-hidden>
+          <Path d="m14 6-6 6 6 6" fill="none" stroke={colors.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      </Pressable>
+      <Text accessibilityRole="header" style={[ui.title, styles.headerTitle]}>Your savings</Text>
+      <View style={styles.back} />
+    </View>
+    <ScrollView contentContainerStyle={styles.content}>
     <Card>
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
@@ -90,6 +100,9 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
 }
 
 const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, width: '100%', maxWidth: 620, alignSelf: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 20 },
+  back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
   badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },

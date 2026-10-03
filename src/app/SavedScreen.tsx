@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from 'react-native';
 import { Action, Card, ui } from '../components/controls';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
-import { colors } from '../theme/colors';
 
-export function SavedScreen({ onBack, onOpen }: { onBack: () => void; onOpen: (entry: SavedComparison) => void }) {
+export function SavedScreen({ onOpen }: { onOpen: (entry: SavedComparison) => void }) {
   const [items, setItems] = useState<SavedComparison[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
@@ -26,9 +24,7 @@ export function SavedScreen({ onBack, onOpen }: { onBack: () => void; onOpen: (e
     } catch { setError('Couldn’t update saved comparisons. Please try again.'); }
     finally { setBusy(false); }
   };
-  return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 20, width: '100%', maxWidth: 620, alignSelf: 'center' }}>
-      <Action label="Back to calculator" secondary onPress={onBack} />
+  return <>
       <Text accessibilityRole="header" style={ui.title}>Saved comparisons</Text>
       <Text style={ui.muted}>Stored on this device only. These are historical estimates, not updated prices.</Text>
       {!!error && <><Text accessibilityRole="alert" style={ui.error}>{error}</Text><Action label="Retry saved comparisons" disabled={busy} onPress={() => { void load(); }} /></>}
@@ -47,6 +43,5 @@ export function SavedScreen({ onBack, onOpen }: { onBack: () => void; onOpen: (e
         <Action label="Delete all saved comparisons" disabled={busy} onPress={() => { void remove(); }} />
         <Action label="Cancel" secondary onPress={() => setConfirmClear(false)} />
       </Card>}
-    </ScrollView>
-  </SafeAreaView>;
+  </>;
 }

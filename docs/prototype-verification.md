@@ -2,6 +2,8 @@
 
 The calculator foundation and interactive sample prototype are implemented. Compare and Result are separate pages. Calculate savings opens the submitted result; Back preserves form entries. Save stores a named snapshot locally, and Saved comparisons lets users reopen or delete it. This is a prototype with mocked reference data and illustrative refund assumptions, not production FX or verified refund eligibility.
 
+Navigation update (2026-10-02): the shopping-country dropdown appears above Calculate, Scan, and Saved. Tab switches retain the draft. Scan is a coming-soon placeholder. The fixed Your Savings header has a back arrow returning to Calculate.
+
 ## Demonstrate it
 
 Run `npm start` on a configured Android/iOS environment, or `npm run web` for a browser preview without an Android SDK. Tap **Get started** on the welcome screen; **Sign in** is disabled. On first use, select **United States** as the country of residence explicitly. Home currency becomes **USD** automatically. With shopping country **France**, price **120**, and home price **150**, tap **Calculate savings**. The result should show:
@@ -22,7 +24,7 @@ Sample country/currency options include France/EUR, US/USD, Japan/JPY, UK/GBP, a
 - `npm run check:dependencies`: Expo dependency versions passed.
 - `NODE_ENV=production npm run export:mobile`: Android and iOS JavaScript bundles passed.
 - `NODE_ENV=production npm run export:web`: browser production bundle passed.
-- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: twelve Chromium browser tests passed against the production web export.
+- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: thirteen Chromium browser tests passed against the production web export.
 
 The browser tests verify submission-only result navigation, Back/form preservation, Save/reopen/delete after reload, save failure handling, welcome-to-Compare navigation, disabled Sign in, and the automatic numerical example, fee edits, refund validation, settings after reload, override reset, missing/equal/unfavorable comparisons, stale-cache recovery, missing FX, unavailable refunds, sharing payload/cancellation with a simulated browser share API, and a 320-pixel layout without horizontal overflow. API/cache failures also have fake-clock and transport tests. Stale browser recovery uses a simulated storage-write failure; it is not a deployed-backend outage test.
 

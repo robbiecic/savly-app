@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
 import { useComparison } from '../features/comparison/useComparison';
@@ -12,10 +12,10 @@ import { colors } from '../theme/colors';
 
 export function CompareScreen() {
   const state = useComparison();
-  const [page, setPage] = useState<'calculator' | 'result' | 'saved'>('calculator');
+  const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'scan'>('calculator');
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
-  const goBack = () => setPage(page === 'result' ? resultOrigin : 'calculator');
+  const goBack = () => setPage('calculator');
   useEffect(() => {
     if (page === 'calculator') return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
@@ -38,7 +38,6 @@ export function CompareScreen() {
     setResultOrigin('calculator'); setPage('result');
   };
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} />;
-  if (page === 'saved') return <SavedScreen onBack={goBack} onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} />;
   return <SafeAreaView style={styles.screen}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -47,10 +46,22 @@ export function CompareScreen() {
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
-          <Action label="Saved comparisons" secondary onPress={() => setPage('saved')} />
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
+          <View accessibilityRole="tablist" style={styles.tabs}>
+            {(['calculator', 'scan', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
+              accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
+              style={[styles.tab, page === tab && styles.selectedTab]}>
+              <Text style={[styles.tabText, page === tab && styles.selectedTabText]}>{tab === 'calculator' ? 'Calculate' : tab === 'scan' ? 'Scan' : 'Saved'}</Text>
+            </Pressable>)}
+          </View>
+          {page === 'scan' ? <Card>
+            <Text accessibilityRole="header" style={ui.title}>Scan</Text>
+            <Text style={ui.text}>Scanning is coming soon.</Text>
+            <Text style={ui.muted}>Use Calculate to enter a shopping price for now.</Text>
+            <Action label="Enter price manually" onPress={() => setPage('calculator')} />
+          </Card> : page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
@@ -80,6 +91,7 @@ export function CompareScreen() {
           {state.pending ? <Text accessibilityLiveRegion="polite" style={ui.muted}>Updating estimate…</Text> : view.status === 'ready' ? null : <Card>
             <Text accessibilityRole={view.status === 'invalid' ? 'alert' : undefined} style={ui.text}>{view.message}</Text>
           </Card>}
+          </>}
         </>}
         <Text style={[ui.muted, { textAlign: 'center' }]}>Estimates to help you decide. Always check the final price and refund conditions.</Text>
       </ScrollView>
@@ -92,5 +104,10 @@ const styles = StyleSheet.create({
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   brand: { fontSize: 32, fontWeight: '800', color: colors.ink },
   badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
+  tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border },
+  tab: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  selectedTab: { borderBottomColor: colors.ink },
+  tabText: { fontSize: 16, color: colors.muted },
+  selectedTabText: { color: colors.ink, fontWeight: '700' },
   shoppingPicker: { alignSelf: 'center', width: '100%', maxWidth: 360 },
 });

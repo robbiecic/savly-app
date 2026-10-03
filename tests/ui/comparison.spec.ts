@@ -226,10 +226,11 @@ test('Save persists the displayed snapshot and supports reopening and deletion',
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('999');
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
-  await page.getByRole('button', { name: 'Saved comparisons', exact: true }).click();
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await page.getByRole('button', { name: 'Open Travel bag', exact: true }).click();
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await back(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await page.getByRole('button', { name: 'Delete Travel bag', exact: true }).click();
   await expect(page.getByText('No saved comparisons yet.', { exact: true })).toBeVisible();
 });
@@ -248,4 +249,22 @@ test('Failed saves remain retryable and do not claim success', async ({ page }) 
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByText('Couldn’t save on this device. Please try again.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+});
+
+test('Country dropdown precedes tabs; tab switching preserves the calculator draft', async ({ page }) => {
+  await openCompare(page);
+  const country = page.getByRole('button', { name: 'Shopping country: France · EUR', exact: true });
+  const tab = page.getByRole('tab', { name: 'Calculate', exact: true });
+  await expect(country).toBeVisible();
+  const countryBox = await country.boundingBox();
+  const tabBox = await tab.boundingBox();
+  expect(countryBox!.y + countryBox!.height).toBeLessThanOrEqual(tabBox!.y);
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('123');
+  await page.getByRole('tab', { name: 'Scan', exact: true }).click();
+  await expect(page.getByText('Scanning is coming soon.')).toBeVisible();
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  await expect(page.getByText('No saved comparisons yet.')).toBeVisible();
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('123');
 });
