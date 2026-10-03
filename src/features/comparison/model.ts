@@ -59,6 +59,10 @@ export const SAMPLE_REFUND_RULES: readonly RefundRule[] = [{
   id: 'fr-general-demo', country: 'FR', currency: 'EUR', residenceCountries: ['US'], category: 'general-goods',
   minGrossPrice: '0', maxGrossPriceExclusive: null, vatRate: '0.20', netRefundRate: '0.125',
   assumptions: ['Illustrative France/US scenario, not current tax guidance.', 'Modeled provider fees included.'],
+}, {
+  id: 'es-us-worked-example', country: 'ES', currency: 'EUR', residenceCountries: ['US'], category: 'general-goods',
+  minGrossPrice: '0', maxGrossPriceExclusive: null, vatRate: '0.21', netRefundRate: null, providerFeeRate: '0.28',
+  assumptions: ['Illustrative Spain/US scenario, not current tax guidance.', 'Assumes all included VAT is eligible before an illustrative 28% provider fee; not a provider quote.'],
 }];
 export interface DisplayedComparison {
   result: Calculation; itemName: string; price: string; homePrice: string | null;

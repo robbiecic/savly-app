@@ -35,6 +35,8 @@ export interface Calculation {
   calculationVersion: 1;
   shoppingCurrency: string;
   homeCurrency: string;
+  priceDifference?: string | null; // Home price minus cost before refund, including card fees.
+  refundBreakdown?: { grossHome: string; feeHome: string; feeRate: string };
   convertedCost: string;
   cardFee: string;
   includedVat: string | null; // Shopping currency; all cost totals are home currency.
@@ -94,15 +96,24 @@ export function calculate(input: CalculationInput): CalculationResult {
       refund = { kind: 'unavailable', reason: 'Sample refund rules cannot be used with real data.' };
     }
     let amount = null;
+    let refundBreakdown: Calculation['refundBreakdown'];
     if (refund.kind === 'manual') amount = decimal(refund.amount, 'refund');
     if (refund.kind === 'sample') {
-      const q = fraction(refund.rate, 'refund');
       const ruleVat = fraction(refund.vatRate, 'refund');
       if (v === null || !ruleVat.eq(v)) throw new InputError('refund', 'Refund rule VAT does not match the purchase VAT.');
-      if (q.gt(v.div(v.plus(1)))) throw new InputError('refund', 'Refund rate exceeds included VAT.');
-      amount = p.mul(q);
+      if (refund.providerFeeRate !== undefined) {
+        const providerFee = fraction(refund.providerFeeRate, 'refund');
+        const gross = p.mul(v).div(v.plus(1));
+        const refundFee = gross.mul(providerFee);
+        amount = gross.minus(refundFee);
+        refundBreakdown = { grossHome: money(gross.mul(r), home.minorUnits), feeHome: money(refundFee.mul(r), home.minorUnits), feeRate: providerFee.toFixed() };
+      } else {
+        const q = fraction(refund.rate, 'refund');
+        if (q.gt(v.div(v.plus(1)))) throw new InputError('refund', 'Refund rate exceeds included VAT.');
+        amount = p.mul(q);
+      }
     }
-    if (amount !== null && (amount.gt(p) || (vat !== null && amount.gt(vat.toDecimalPlaces(shopping.minorUnits))))) {
+    if (amount !== null && (amount.gt(p) || (vat !== null && (refund.kind === 'sample' ? amount.gt(vat) : amount.gt(vat.toDecimalPlaces(shopping.minorUnits)))))) {
       throw new InputError('refund', vat === null ? 'Refund cannot exceed the purchase price.' : `Refund cannot exceed included VAT (${shopping.code} ${money(vat, shopping.minorUnits)}).`);
     }
     const refundHome = amount === null ? null : amount.mul(r);
@@ -116,6 +127,8 @@ export function calculate(input: CalculationInput): CalculationResult {
     };
     return { status: 'ok', value: {
       calculationVersion: 1, shoppingCurrency: shopping.code, homeCurrency: home.code,
+      priceDifference: h === null ? null : money(h.minus(before), home.minorUnits),
+      ...(refundBreakdown ? { refundBreakdown } : {}),
       convertedCost: money(converted, home.minorUnits), cardFee: money(fee, home.minorUnits),
       includedVat: vat === null ? null : money(vat, shopping.minorUnits),
       refundShopping: amount === null ? null : money(amount, shopping.minorUnits),

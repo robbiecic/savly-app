@@ -1,4 +1,5 @@
 import Svg, { Path } from 'react-native-svg';
+import { D } from '../domain/decimal';
 import { useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -65,8 +66,13 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
       <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Card fee</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>
       <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
+      {r.priceDifference != null && <View style={styles.row}><Text style={ui.text}>Price difference before refund</Text><Text style={ui.text}>{money(r.priceDifference)}</Text></View>}
+      {!!r.refundBreakdown && <>
+        <View style={styles.row}><Text style={ui.text}>VAT refund before fee (estimate)</Text><Text style={ui.text}>{money(r.refundBreakdown.grossHome)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>Refund fee ({new D(r.refundBreakdown.feeRate).mul(100).toFixed()}% assumed)</Text><Text style={ui.text}>−{money(r.refundBreakdown.feeHome)}</Text></View>
+      </>}
       {r.refundHome !== null && r.withRefund !== null ? <>
-        <View style={styles.row}><Text style={ui.text}>Estimated VAT refund</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
         <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
         <Text style={ui.muted}>Estimated refund, subject to eligibility{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
       </> : <Text style={ui.muted}>Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.</Text>}

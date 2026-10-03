@@ -268,3 +268,30 @@ test('Country dropdown precedes tabs; tab switching preserves the calculator dra
   await expect(tab).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('123');
 });
+
+test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund and savings', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'ES', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
+    localStorage.setItem('savly:reference:1:prototype:sample', JSON.stringify({
+      adapterVersion: 1, environment: 'prototype', mode: 'sample', id: 'spain-example', fetchedAt: Date.now() - 14_400_001,
+      rates: [{ pair: 'USDEUR', rate: 0.8887, pipSize: 0.0001, source: 'CityIndex', asOf: '2026-09-26T12:00:00Z' }],
+      countries: [{ country: 'ES', currency: 'EUR', vatRate: 0.21 }, { country: 'US', currency: 'USD', vatRate: null }],
+    }));
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith('savly:reference')) throw new Error('Simulated failed refresh');
+      return original.call(this, key, value);
+    };
+  });
+  await openCompare(page);
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
+  await page.getByRole('textbox', { name: 'Home price (USD, optional)', exact: true }).fill('500');
+  await calculate(page);
+  for (const label of ['You could save USD 56.92', 'Sample estimate · Rates out of date', 'USD -6.36',
+    'VAT refund before fee (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61',
+    'Net VAT refund (estimate)', 'USD 63.27', 'USD 443.08']) {
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
+  await expect(page.getByText('Calculated from USDEUR at 0.8887.', { exact: true })).toBeVisible();
+});

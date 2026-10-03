@@ -55,6 +55,7 @@ export const SAMPLE_RESPONSES = {
   ] },
   '/v1/countries': { countries: [
     { country: 'FR', currency: 'EUR', vatRate: 0.2 },
+    { country: 'ES', currency: 'EUR', vatRate: 0.21 },
     { country: 'US', currency: 'USD', vatRate: null },
     { country: 'JP', currency: 'JPY', vatRate: 0.1 },
     { country: 'GB', currency: 'GBP', vatRate: 0.2 },

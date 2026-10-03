@@ -24,6 +24,11 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     `Shopping price: ${r.shoppingCurrency} ${comparison.price}`,
     ...(comparison.homePrice ? [`Home price: ${money(comparison.homePrice)}`] : []),
     `Without VAT refund: ${money(r.withoutRefund)}`,
+    ...(r.priceDifference != null ? [`Price difference before refund: ${money(r.priceDifference)}`] : []),
+    ...(r.refundBreakdown ? [
+      `VAT refund before fee (estimate): ${money(r.refundBreakdown.grossHome)}`,
+      `Refund fee (${new D(r.refundBreakdown.feeRate).mul(100).toFixed()}% assumed): -${money(r.refundBreakdown.feeHome)}`,
+    ] : []),
     ...(r.refundHome !== null && r.withRefund !== null
       ? [`Estimated VAT refund: ${money(r.refundHome)}`, `With VAT refund: ${money(r.withRefund)}`]
       : ['Refund estimate unavailable']), '',

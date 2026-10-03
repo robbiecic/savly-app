@@ -28,6 +28,7 @@ Compare and Result are separate pages. Validation uses a 180 ms debounce; Calcul
 | Exchange rate r | API-populated, positive; home-currency units per 1 shopping-currency unit; editable override |
 | Card FX fee f | Percentage from 0 through 100; prepopulated 0% additional bank fee, editable in assumptions |
 | VAT rate v | API-populated fraction from 0 through 1 for the selected country, or null when unknown |
+| Sample provider fee | Optional illustrative fraction of included VAT; 28% for the Spain/US worked example, separate from bank fees |
 | Net refund rate q | Prototype-fixture fraction of the VAT-inclusive price, after modeled provider fees |
 | Expected refund R | Automatically P × q in shopping currency; advanced amount override allowed |
 | Home comparison price H | Optional, positive, in home currency, including applicable purchase taxes |
@@ -50,6 +51,8 @@ All formulas below execute exclusively in the client. The API returns FX rates a
 - Savings percentage = savings / H × 100.
 
 R must not exceed P. If a VAT rate is supplied, R must not exceed included VAT, rounded to the shopping currency's minor unit. Use the separately supplied net refund rate q, never the VAT rate itself, to populate the expected refund automatically. Validate 0 ≤ q ≤ v / (1 + v). Show “Included VAT” separately from “Expected refund.”
+
+For an explicitly configured local sample provider fee k, estimate gross refund as included VAT, provider fee as included VAT × k, and net refund as included VAT × (1 − k). This requires a separate labeled sample assumption of full eligibility before fees; never infer it from VAT metadata alone. A manual refund is a net amount and replaces this fee model.
 
 Use decimal arithmetic, retain precision in intermediate values, and round displayed monetary values once using the currency's minor units and half-up rounding. Display savings percentages to one decimal place. Determine zero/positive/negative savings messaging from the rounded monetary difference to avoid “Save 0.00.”
 
@@ -85,6 +88,8 @@ Refund eligibility is not verified by this version. Real schemes have conditions
 - **AC16:** All supported-country options come from the fetched dataset. Adding/removing a country in a refreshed fixture updates the selector without code changes; removed selections cannot generate new estimates.
 - **AC17:** One successful refresh cycle (one rates request and one countries request) at time T serves every calculation and country switch until T + 4 hours, including after restart. At exactly T + 4 hours, next active use refreshes once. Simultaneous consumers share that refresh; no item inputs or computed totals pass through the data API.
 - **AC18:** Failed refresh preserves the validated cache with a stale label and does not reset its age. Offline first launch without cache shows unavailable. Recovery replaces the dataset for the next calculation; already submitted results and saved comparisons remain unchanged.
+
+- **AC19:** The [Spain/USA worked example](spain-worked-example.md) uses VAT-inclusive EUR 450, home price USD 500, stale USDEUR 0.8887, 21% VAT, and an illustrative 28% fee on included VAT. Show converted cost USD 506.36, price difference USD −6.36, gross refund USD 87.88, fee USD 24.61, net refund USD 63.27, final cost USD 443.08, and savings USD 56.92 (11.4%). Preserve intermediate precision and stale/sample provenance through display, sharing, and saving.
 
 ## FX source and card assumptions
 

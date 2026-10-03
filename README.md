@@ -53,6 +53,8 @@ The export command bundles Android and iOS JavaScript into ignored `dist/`; it d
 
 Verified on 2026-09-29 with Node 26.0.0 and npm 11.14.1: TypeScript, Expo dependency compatibility, and production bundling for Android and iOS passed. No simulator or physical-device tests were run. npm audit reported 10 moderate advisories in the Expo tooling dependency tree (including transitive `uuid`/`xcode`); its suggested full fix downgrades Expo to SDK 46, so it was not applied. Revisit compatible upstream fixes before release.
 
+Worked example: [USA vs Spain, stale FX, and an assumed 28% refund fee](specs/001-shopping-calculator/spain-worked-example.md), verified with automated tests.
+
 ## Calculation engine
 
 `src/domain/calculator.ts` calculates VAT, card fees, before/after refund costs, and savings using decimal.js. `src/domain/refunds.ts` selects illustrative rules by country, currency, explicit residency, category, and price band. Both are pure on-device modules with no UI or network dependencies.
@@ -77,7 +79,7 @@ Verified with `npm test`: 52 tests total, including 23 data-layer tests for exac
 
 The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** is disabled for now.
 
-See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. The France/US-resident example is illustrative. Other residency/country combinations may have no automatic refund estimate.
+See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. The France/US-resident and Spain/US-resident examples are illustrative. Other residency/country combinations may have no automatic refund estimate.
 
 The calculator validates edits after 180 ms. **Calculate savings** opens a separate result page with a fixed snapshot and Save/Share actions; Back preserves the form. **Saved comparisons** reopens locally stored snapshots and supports deletion. Sample, manual, and stale estimates remain labeled. **Share savings** / **Share comparison** uses the native share sheet with the displayed result snapshot. It never fetches fresh rates or claims delivery. Sharing defaults to a labeled demo link; see `.env.example` for `EXPO_PUBLIC_SAVLY_APP_LINK`. A local demo landing page lives in `public/app/index.html`; no site or store listing is published.
 
@@ -89,7 +91,7 @@ NODE_ENV=production npm run export:web
 npm run test:ui
 ```
 
-The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 73 domain/data/integration/storage tests, thirteen browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
+The web build is written to ignored `dist-web/`; browser screenshots/results go to ignored `test-results/`. Current verification: 77 domain/data/integration/storage tests, fourteen browser tests, TypeScript, Expo compatibility, and Android/iOS/web bundling pass. Native device and WhatsApp delivery checks remain pending. Country names fall back to bundled English labels on engines without `Intl.DisplayNames`; a browser regression verifies startup and calculation with optional Intl APIs disabled.
 
 ## Premium access
 

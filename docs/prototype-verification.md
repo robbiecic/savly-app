@@ -15,16 +15,18 @@ Run `npm start` on a configured Android/iOS environment, or `npm run web` for a 
 
 Use **Back to calculator**, then **Edit assumptions** to enter a 3% bank fee; tap Calculate savings again to see a net cost of USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, residency, or shopping price clears comparison overrides. Changing the automatically derived home currency also clears the home price. Saved legacy currency choices are reconciled on startup; missing country/currency metadata blocks totals with an explanation. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
 
-Sample country/currency options include France/EUR, US/USD, Japan/JPY, UK/GBP, and Australia/AUD. Membership still comes from the reference snapshot, so an existing fresh cache gains new fixture countries at its next refresh. The one illustrative automatic refund rule covers general goods in France for US residents. Other combinations display refund unavailable unless a manual amount is supplied. Residency choices remain independent of shopping-country support.
+Sample country/currency options include Spain/EUR, France/EUR, US/USD, Japan/JPY, UK/GBP, and Australia/AUD. Membership still comes from the reference snapshot, so an existing fresh cache gains new fixture countries at its next refresh. Illustrative automatic refund rules cover general goods in France and Spain for US residents; Spain assumes full included VAT before an assumed 28% provider fee. Other combinations display refund unavailable unless a manual amount is supplied. Residency choices remain independent of shopping-country support.
+
+The [AC19 Spain worked example](../specs/001-shopping-calculator/spain-worked-example.md) is verified in domain/model, persistence, sharing, and browser tests using an injected stale quote of USDEUR 0.8887. The ordinary prototype FX fixture is unchanged.
 
 ## Checks actually run
 
 - `npm run typecheck`: app and test TypeScript passed.
-- `npm test`: 73 domain/data/integration/storage tests passed.
+- `npm test`: 77 domain/data/integration/storage tests passed.
 - `npm run check:dependencies`: Expo dependency versions passed.
 - `NODE_ENV=production npm run export:mobile`: Android and iOS JavaScript bundles passed.
 - `NODE_ENV=production npm run export:web`: browser production bundle passed.
-- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: thirteen Chromium browser tests passed against the production web export.
+- `PLAYWRIGHT_BROWSERS_PATH=/tmp/savly-playwright npm run test:ui`: fourteen Chromium browser tests passed against the production web export.
 
 The browser tests verify submission-only result navigation, Back/form preservation, Save/reopen/delete after reload, save failure handling, welcome-to-Compare navigation, disabled Sign in, and the automatic numerical example, fee edits, refund validation, settings after reload, override reset, missing/equal/unfavorable comparisons, stale-cache recovery, missing FX, unavailable refunds, sharing payload/cancellation with a simulated browser share API, and a 320-pixel layout without horizontal overflow. API/cache failures also have fake-clock and transport tests. Stale browser recovery uses a simulated storage-write failure; it is not a deployed-backend outage test.
 

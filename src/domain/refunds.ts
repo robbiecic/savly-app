@@ -1,4 +1,4 @@
-import { decimal, fraction, InputError, positive } from './decimal';
+import { D, decimal, fraction, InputError, positive } from './decimal';
 
 export type DataMode = 'sample' | 'real';
 
@@ -13,11 +13,12 @@ export interface RefundRule {
   maxGrossPriceExclusive: string | null;
   vatRate: string;
   netRefundRate: string | null;
+  providerFeeRate?: string; // Optional illustrative fee on included VAT, not purchase price.
   assumptions: readonly string[];
 }
 
 export type RefundSelection =
-  | { kind: 'sample'; ruleId: string; rate: string; vatRate: string; assumptions: readonly string[] }
+  | { kind: 'sample'; ruleId: string; rate: string; vatRate: string; providerFeeRate?: string; assumptions: readonly string[] }
   | { kind: 'manual'; amount: string }
   | { kind: 'unavailable'; reason: string };
 
@@ -50,6 +51,15 @@ export function selectRefundRule(rules: readonly RefundRule[], context: RefundCo
     }
     const rule = matches[0];
     const vat = fraction(rule.vatRate, 'refundRule');
+    if (rule.providerFeeRate !== undefined) {
+      if (rule.netRefundRate !== null) throw new InputError('refundRule', 'Choose a net rate or an explicit provider fee, not both.');
+      const fee = fraction(rule.providerFeeRate, 'refundRule');
+      return {
+        kind: 'sample', ruleId: rule.id, vatRate: rule.vatRate, providerFeeRate: fee.toFixed(),
+        rate: vat.div(vat.plus(1)).mul(new D(1).minus(fee)).toFixed(18),
+        assumptions: [...rule.assumptions, 'Illustrative refund; eligibility is not verified.'],
+      };
+    }
     if (rule.netRefundRate === null) return { kind: 'unavailable', reason: 'Refund rate is unknown.' };
     const rate = fraction(rule.netRefundRate, 'refundRule');
     if (rate.gt(vat.div(vat.plus(1)))) throw new InputError('refundRule', 'Refund exceeds included VAT.');

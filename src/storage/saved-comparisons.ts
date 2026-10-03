@@ -19,6 +19,9 @@ function valid(entry: SavedComparison): boolean {
     typeof c?.itemName === 'string' && !!c.itemName.trim() && amount(c.price) &&
     (c.homePrice === null || amount(c.homePrice)) && typeof c.sample === 'boolean' && typeof c.stale === 'boolean' &&
     typeof c.snapshotId === 'string' && Number.isFinite(c.fetchedAt) &&
+    (r?.priceDifference === undefined || r.priceDifference === null || amount(r.priceDifference)) &&
+    (r?.refundBreakdown === undefined || (!!r.refundBreakdown && amount(r.refundBreakdown.grossHome) &&
+      amount(r.refundBreakdown.feeHome) && amount(r.refundBreakdown.feeRate) && Number(r.refundBreakdown.feeRate) <= 1)) &&
     r?.calculationVersion === 1 && /^[A-Z]{3}$/.test(r.homeCurrency) && /^[A-Z]{3}$/.test(r.shoppingCurrency) &&
     [r.convertedCost, r.cardFee, r.withoutRefund, r.bankFee].every(amount) &&
     [r.includedVat, r.refundShopping, r.refundHome, r.withRefund].every(v => v === null || amount(v)) &&
