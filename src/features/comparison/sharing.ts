@@ -1,3 +1,4 @@
+import { isFxStale } from '../../data/fx-freshness';
 import { D } from '../../domain/decimal';
 import type { DisplayedComparison } from './model';
 import { fxLabel } from './model';
@@ -32,8 +33,8 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     ...(r.refundHome !== null && r.withRefund !== null
       ? [`Estimated VAT refund: ${money(r.refundHome)}`, `With VAT refund: ${money(r.withRefund)}`]
       : ['Refund estimate unavailable']), '',
-    comparison.sample ? 'Sample estimate' : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion' : r.fx.kind === 'manual' ? 'Estimated using a manual rate' : `Estimated using rates as of ${r.fx.asOf}`,
-    ...(comparison.stale ? ['Rates out of date'] : []),
+    r.fx.source === 'Built-in defaults' ? 'Estimate using built-in default rates' : comparison.sample ? 'Sample estimate' : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion' : r.fx.kind === 'manual' ? 'Estimated using a manual rate' : `Estimated using rates as of ${r.fx.asOf}`,
+    ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),
     fxLabel(r.fx),
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),
     ...(new D(r.bankFee).gt(0) ? [`Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`] : []),

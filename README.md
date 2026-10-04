@@ -65,7 +65,7 @@ Verified: 29 tests cover AC1–AC6 calculations/validation, AC7 provenance reten
 
 ## Reference-data client and cache
 
-`src/data/reference-store.ts` shares one refresh cycle across consumers, validates both fxService responses, and saves one immutable snapshot for exactly four hours. `get()` reuses fresh data; `retry()` bypasses failure backoff. Failed refreshes retain the previous snapshot with `status: "stale"` and a “Rates out of date” label. Keep `snapshot.mode` visible as well so stale sample data remains identifiable. A successful fetch does not change the source's own `asOf` timestamp.
+`src/data/reference-store.ts` shares one refresh cycle across consumers, validates both fxService responses, and saves one immutable snapshot for exactly four hours. `get()` reuses fresh data; `retry()` bypasses failure backoff. Failed refreshes retain the previous snapshot with internal cache `status: "stale"`. The UI separately warns when the FX source timestamp is more than 48 hours old. Keep `snapshot.mode` visible as well so stale sample data remains identifiable. A successful fetch does not change the source's own `asOf` timestamp.
 
 Country membership comes directly from the snapshot. `selectedCountry()` returns null when a selection is no longer supported, allowing the screen to request a new selection while retaining old history. Refresh subscriptions provide new snapshots without modifying previously returned results.
 
@@ -120,3 +120,5 @@ When saving an item, **Take photo** opens the camera and **Add photo** opens the
 Photo verification: TypeScript, 83 unit/integration tests, the photo add/remove/save/reopen browser flow, and Android/iOS/web exports pass. The other browser cases passed across the full run and a targeted rerun of the updated corrupt-settings test. Physical camera capture and permission-denial checks remain pending.
 
 The UI supports portrait and landscape, using two columns where screen width and text size allow. Rotation preserves the current comparison and draft photo. Rebuild existing native binaries to remove their portrait orientation lock; the device's rotation lock must also be off. Browser viewport checks are separate from physical-device rotation verification.
+
+Startup uses available API reference data or clearly identified built-in defaults, without a “Sample prototype” badge. FX warnings appear only on Your savings after calculation, using the applied rate’s original source timestamp. They appear after 48 hours even when the data was just fetched. Bundled defaults retain their fixed date (2026-09-26), so loading them again cannot make them fresh. Four-hour cache refreshes remain unchanged. Production API authentication is still pending; unconfigured release builds use defaults.

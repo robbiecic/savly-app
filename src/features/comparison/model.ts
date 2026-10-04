@@ -1,3 +1,4 @@
+import { isFxStale } from '../../data/fx-freshness';
 import { decimalSeparator } from './locale';
 import { calculate, type Calculation, type FxQuote } from '../../domain/calculator';
 import { D, InputError, positive } from '../../domain/decimal';
@@ -52,7 +53,7 @@ export function automaticFx(snapshot: Snapshot, from: string, to: string): FxQuo
   const inverted = !direct;
   return {
     from, to, rate: (inverted ? new D(1).div(row.rate) : new D(row.rate)).toFixed(),
-    kind: snapshot.mode === 'sample' ? 'sample' : 'reference', source: row.source,
+    kind: snapshot.mode === 'sample' ? 'sample' : 'reference', source: snapshot.environment === 'prototype' ? 'Built-in defaults' : row.source,
     asOf: row.asOf, originalPair: row.pair, originalRate: new D(row.rate).toFixed(), inverted,
   };
 }
@@ -74,8 +75,8 @@ export type ComparisonView =
   | { status: 'invalid'; field: string; message: string }
   | { status: 'ready'; comparison: DisplayedComparison };
 
-export function compare(form: ComparisonForm, reference: ReferenceState | null, locale = 'en-US'): ComparisonView {
-  if (!reference) return { status: 'loading', message: 'Loading sample rates…' };
+export function compare(form: ComparisonForm, reference: ReferenceState | null, locale = 'en-US', now = Date.now()): ComparisonView {
+  if (!reference) return { status: 'loading', message: 'Loading countries and rates…' };
   const snapshot = reference.snapshot;
   if (!snapshot) return { status: 'unavailable', message: 'Rates are unavailable. Try again when you’re connected.' };
   const country = selectedCountry(snapshot, form.country);
@@ -102,7 +103,7 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
     return { status: 'ready', comparison: {
       result: calculation.value, itemName: form.itemName.trim(), price: new D(price).toFixed(shoppingCurrency.minorUnits),
       homePrice: homePrice ? new D(homePrice).toFixed(homeCurrency.minorUnits) : null,
-      sample: snapshot.mode === 'sample', stale: reference.status === 'stale', snapshotId: snapshot.id, fetchedAt: snapshot.fetchedAt,
+      sample: snapshot.mode === 'sample', stale: isFxStale(calculation.value.fx, now), snapshotId: snapshot.id, fetchedAt: snapshot.fetchedAt,
     } };
   } catch (error) {
     if (error instanceof InputError) return { status: 'invalid', field: error.field, message: error.message };
@@ -111,7 +112,7 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
 }
 export function fxLabel(fx: FxQuote): string {
   const displayed = new D(fx.rate).toSignificantDigits(8).toFixed();
-  const label = fx.kind === 'manual' ? 'Manual rate' : fx.kind === 'sample' ? 'Sample rate' : fx.source;
+  const label = fx.kind === 'manual' ? 'Manual rate' : fx.source === 'Built-in defaults' ? 'Default FX rate' : fx.kind === 'sample' ? 'Sample rate' : fx.source;
   return `1 ${fx.from} = ${displayed} ${fx.to} · ${label}`;
 }
 export function savingsLabel(value: Calculation): string | null {

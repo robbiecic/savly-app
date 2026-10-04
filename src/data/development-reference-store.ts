@@ -21,8 +21,8 @@ export async function selectReferenceStore(options: {
     });
     const state = await local.get();
     // Local fxService defaults to mock CityIndex data. Keep sample provenance.
-    // Invalid responses/auth/storage failures should be visible, not masked.
-    if (state.snapshot || state.error !== 'network') return local;
+    // Without usable API data, start from explicitly identified dated defaults.
+    if (state.snapshot) return local;
   }
   return new ReferenceStore({
     environment: 'prototype', mode: 'sample', storage: options.storage, transport: createMockTransport(),

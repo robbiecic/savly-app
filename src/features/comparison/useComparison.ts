@@ -1,3 +1,4 @@
+import { useCurrentTime } from '../../hooks/useCurrentTime';
 import { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
@@ -8,6 +9,7 @@ import { withHomeCurrency, compare, editForm, newForm, resetOverrides, type Comp
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
+  const now = useCurrentTime();
   const localeInfo = getLocales()[0];
   const locale = localeInfo?.languageTag ?? 'en-US';
   const [storedForm, setForm] = useState(newForm);
@@ -60,9 +62,9 @@ export function useComparison() {
     return () => clearTimeout(timer);
   }, [form]);
   const pending = settledForm !== form;
-  const view = useMemo(() => compare(withHomeCurrency(settledForm, reference?.snapshot ?? null), ready ? reference : null, locale), [settledForm, reference, ready, locale]);
+  const view = useMemo(() => compare(withHomeCurrency(settledForm, reference?.snapshot ?? null), ready ? reference : null, locale, now), [settledForm, reference, ready, locale, now]);
   return {
-    form, reference, ready, view, pending, storageError, retrying, locale, startupError,
+    form, reference, ready, view, pending, now, storageError, retrying, locale, startupError,
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
     edit: (field: keyof ComparisonForm, value: string) => setForm(withHomeCurrency(editForm(form, field, value), reference?.snapshot ?? null)),
     reset: () => setForm(resetOverrides(form)),

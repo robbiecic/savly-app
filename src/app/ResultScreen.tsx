@@ -1,3 +1,5 @@
+import { isFxStale } from '../data/fx-freshness';
+import { useCurrentTime } from '../hooks/useCurrentTime';
 import { responsive, useWideLayout } from '../components/responsive';
 import { ItemPhoto } from '../components/ItemPhoto';
 import { pickPhoto } from '../features/photos/pick-photo';
@@ -18,6 +20,7 @@ import type { SavedComparison } from '../storage/saved-comparisons';
 
 export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean }) {
   const wide = useWideLayout();
+  const now = useCurrentTime();
   const comparison = entry.comparison;
   const [name, setName] = useState(comparison.itemName);
   const [photoUri, setPhotoUri] = useState(entry.photoUri);
@@ -73,7 +76,8 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     <Card>
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
-    <Text style={styles.badge}>{comparison.sample ? 'Sample estimate' : 'Estimated cost'}{comparison.stale ? ' · Rates out of date' : ''}</Text>
+    <Text style={styles.badge}>{r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}{isFxStale(r.fx, now) ? ' · Rates out of date' : ''}</Text>
+    {isFxStale(r.fx, now) && <Text accessibilityRole="alert" style={{ backgroundColor: '#FFF2D6', color: '#714300', padding: 14, borderRadius: 12 }}>FX rate is stale (over 48 hours old or its date cannot be verified). This estimate may differ from current prices.</Text>}
       {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
         {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
@@ -101,7 +105,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     <Action label={details ? 'Hide rate details' : 'Rate details & assumptions'} secondary expanded={details} onPress={() => setDetails(!details)} />
     {details && <View style={{ gap: 10 }}>
       <Text selectable style={ui.text}>{fxLabel(r.fx)}</Text>
-      {!!r.fx.asOf && <Text style={ui.muted}>{comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
+      {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate timestamp' : comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
       {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate}.</Text>}
       <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}

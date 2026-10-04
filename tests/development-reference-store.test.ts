@@ -31,10 +31,10 @@ test('local API loads both contracts once and retains sample provenance in an is
   assert.equal((await restarted.get()).snapshot?.environment, 'local:http://127.0.0.1:3000');
   assert.equal(urls.length, 2);
 });
-test('unreachable local server with no cache uses prototype; malformed API data stays unavailable', async () => {
+test('unreachable local server with no cache uses prototype; malformed API data also uses dated defaults', async () => {
   const options = { baseUrl: 'http://127.0.0.1:3000', storage: storage() };
   const offline = await selectReferenceStore({ ...options, fetcher: (async () => { throw Error('offline'); }) as typeof fetch });
   assert.equal((await offline.get()).snapshot?.environment, 'prototype');
   const malformed = await selectReferenceStore({ ...options, fetcher: (async () => new Response('{}')) as typeof fetch });
-  assert.equal((await malformed.get()).status, 'unavailable');
+  assert.equal((await malformed.get()).snapshot?.environment, 'prototype');
 });

@@ -88,3 +88,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Use circular item-photo previews with a tappable full-screen viewer and Close/Android Back dismissal.
 
 - [x] Enable landscape and responsive welcome, calculator, result, Saved, country-picker, and photo-viewer layouts while preserving state on rotation.
+
+- [x] Remove prototype startup badge, identify dated fallback defaults, and highlight FX source age beyond 48 hours independently of the four-hour cache TTL.

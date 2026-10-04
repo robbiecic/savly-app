@@ -102,7 +102,7 @@ test('SH1 and SH3: text matches displayed result and preserves qualifications', 
   assert.match(shareMessage(ready({ homePrice: '115.50' }), shareLink()), /Same estimated cost/);
   assert.match(shareMessage(ready({ residence: 'FR' }), shareLink()), /Refund estimate unavailable/);
   const manual = shareMessage({ ...ready({ fxOverride: '1.2', refundOverride: '10' }), stale: true }, shareLink());
-  assert.match(manual, /Manual rate/); assert.match(manual, /Manual refund/); assert.match(manual, /Rates out of date/);
+  assert.match(manual, /Manual rate/); assert.match(manual, /Manual refund/); assert.doesNotMatch(manual, /Rates out of date/);
 });
 test('SH4 share cancel and failure leave result unchanged; retries are possible', async () => {
   const value = ready(); const before = JSON.stringify(value); const message = shareMessage(value, shareLink());

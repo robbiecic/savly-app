@@ -44,11 +44,15 @@ export function CompareScreen() {
   return <SafeAreaView style={styles.screen}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
-        <View style={styles.heading}><Text style={styles.brand}>Savly</Text><Text style={styles.badge}>SAMPLE PROTOTYPE</Text></View>
+        <View style={styles.heading}><Text style={styles.brand}>Savly</Text></View>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
+          {snapshot && <View style={{ gap: 8 }}>
+            <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>
+
+          </View>}
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
@@ -87,7 +91,7 @@ export function CompareScreen() {
           </Card>
           {state.storageError && <Text accessibilityRole="alert" style={ui.error}>Settings couldn’t be saved on this device.</Text>}
           {(reference?.status === 'stale' || reference?.status === 'unavailable') && <Card>
-            <Text style={ui.text}>{reference.label}</Text>
+            <Text style={ui.text}>{reference.status === 'unavailable' ? reference.label : 'Reference data could not be refreshed. Using the last saved data.'}</Text>
             <Action label={state.retrying ? 'Retrying…' : 'Retry rates'} disabled={state.retrying} secondary onPress={() => { void state.retry(); }} />
           </Card>}
           {state.pending ? <Text accessibilityLiveRegion="polite" style={ui.muted}>Updating estimate…</Text> : view.status === 'ready' ? null : <Card>
@@ -105,7 +109,6 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   brand: { fontSize: 32, fontWeight: '800', color: colors.ink },
-  badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border },
   tab: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   selectedTab: { borderBottomColor: colors.ink },

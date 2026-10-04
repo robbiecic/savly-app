@@ -29,7 +29,7 @@ test('AC12–15: submitted result, no card fee, overrides, validation and restar
   await comparison(page);
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
-  await expect(page.getByText('1 EUR = 1.1 USD · Sample rate', { exact: true })).toBeVisible();
+  await expect(page.getByText('1 EUR = 1.1 USD · Default FX rate', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
@@ -110,7 +110,7 @@ test('Small screen layout and demo landing page', async ({ page }) => {
   await expect(page.getByText('Store downloads are not available yet.', { exact: true })).toBeVisible();
 });
 
-test('Stale cached data stays labeled and Retry recovers after storage becomes available', async ({ page }) => {
+test('Refreshing the cache does not make dated default FX fresh', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'FR', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
     localStorage.setItem('savly:reference:1:prototype:sample', JSON.stringify({
@@ -128,14 +128,14 @@ test('Stale cached data stays labeled and Retry recovers after storage becomes a
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toBeVisible();
+  await expect(page.getByText('Estimate · Default rates · Rates out of date', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toBeVisible();
   await expect(page.getByText('USD 115.50', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('Sample estimate', { exact: true })).toBeVisible();
-  await expect(page.getByText('Sample estimate · Rates out of date', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Estimate · Default rates · Rates out of date', { exact: true })).toBeVisible();
 });
 
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
@@ -280,7 +280,7 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
-  for (const label of ['You could save USD 56.92', 'Sample estimate · Rates out of date', 'USD -6.36',
+  for (const label of ['You could save USD 56.92', 'Estimate · Default rates · Rates out of date', 'USD -6.36',
     'VAT refund before fee (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61',
     'Net VAT refund (estimate)', 'USD 63.27', 'USD 443.08']) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
@@ -354,4 +354,11 @@ test('Rotation reflows welcome, calculator and savings while retaining the draft
   await back(page);
   await expect(home).toHaveValue('150');
   await expect(page.getByRole('textbox', { name: 'Item name (optional)', exact: true })).toHaveValue('Landscape bag');
+});
+
+test('Startup identifies defaults without prototype branding or a premature stale-rate warning', async ({ page }) => {
+  await openCompare(page);
+  await expect(page.getByText('SAMPLE PROTOTYPE', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Using built-in default countries, VAT and FX rates.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: /FX rate.*stale/ })).toHaveCount(0);
 });
