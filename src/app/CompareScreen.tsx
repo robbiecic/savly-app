@@ -1,6 +1,8 @@
+import { HomeCountryBadge } from '../components/HomeCountryBadge';
+import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
@@ -8,14 +10,14 @@ import { useComparison } from '../features/comparison/useComparison';
 import { ResultScreen } from './ResultScreen';
 import { SavedScreen } from './SavedScreen';
 import type { SavedComparison } from '../storage/saved-comparisons';
-import { countryFlag, countryName, residenceOptions } from '../features/comparison/countries';
+import { countryFlag, countryName } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
 
 
 export function CompareScreen() {
   const wide = useWideLayout();
   const state = useComparison();
-  const [page, setPage] = useState<'calculator' | 'result' | 'saved'>('calculator');
+  const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
   const goBack = () => setPage('calculator');
@@ -24,15 +26,12 @@ export function CompareScreen() {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
     return () => subscription.remove();
   }, [page, resultOrigin]);
-  const [settings, setSettings] = useState<boolean | null>(null);
   const [assumptions, setAssumptions] = useState(false);
   const { form, view, reference } = state;
   const snapshot = reference?.snapshot;
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
-  const residences = useMemo(() => residenceOptions(state.locale), [state.locale]);
   const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}`, flag: countryFlag(row.country) })) ?? [];
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
-  const showSettings = (settings ?? !form.residence) || !!error('homeCurrency');
   const calculate = () => {
     if (state.pending || view.status !== 'ready') return;
     Keyboard.dismiss();
@@ -40,15 +39,26 @@ export function CompareScreen() {
       form: { ...form }, comparison: JSON.parse(JSON.stringify(view.comparison)) });
     setResultOrigin('calculator'); setPage('result');
   };
-  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} />;
+  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
+    <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
+      <Text style={styles.brand}>Savly</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+        <HomeCountryBadge country={form.residence} locale={state.locale} />
+        <Pressable accessibilityRole="button" accessibilityLabel="Settings" disabled={!state.ready}
+          onPress={() => { Keyboard.dismiss(); setPage('settings'); }} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 24, color: colors.ink }}>⚙</Text>
+        </Pressable>
+      </View>
+    </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
-        <View style={styles.heading}><Text style={styles.brand}>Savly</Text></View>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
+          {page === 'settings' ? <SettingsScreen country={form.residence} currency={form.homeCurrency} locale={state.locale}
+            onChange={(country) => state.edit('residence', country)} onBack={goBack} storageError={state.storageError} /> : <>
           {snapshot && <View style={{ gap: 8 }}>
             <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>
 
@@ -70,11 +80,7 @@ export function CompareScreen() {
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
             <Text style={ui.muted}>Enter the full price, including any local purchase tax.</Text>
-            <Action label={`${form.homeCurrency || 'Home country'} · ${showSettings ? 'Hide' : 'Edit'} settings`} secondary expanded={showSettings} onPress={() => setSettings(!showSettings)} />
-            {(showSettings) && <View style={{ gap: 16 }}>
-              <Select label="Country of residence" value={form.residence} options={residences} onChange={(v) => state.edit('residence', v)} error={error('homeCurrency')} />
-              <Text style={ui.muted}>Home currency follows your country of residence. Refund eligibility is not verified.</Text>
-            </View>}
+            {!form.residence && <Text style={ui.muted}>Set your home country in Settings to calculate savings.</Text>}
             </View>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
@@ -98,6 +104,7 @@ export function CompareScreen() {
             <Text accessibilityRole={view.status === 'invalid' ? 'alert' : undefined} style={ui.text}>{view.message}</Text>
           </Card>}
           </>}
+          </>}
         </>}
         <Text style={[ui.muted, { textAlign: 'center' }]}>Estimates to help you decide. Always check the final price and refund conditions.</Text>
       </KeyboardFormScrollView>
@@ -105,6 +112,7 @@ export function CompareScreen() {
   </SafeAreaView>;
 }
 const styles = StyleSheet.create({
+  fixedHeader: { paddingHorizontal: 20, paddingVertical: 8, width: '100%', maxWidth: 620, alignSelf: 'center' },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },

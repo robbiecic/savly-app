@@ -1,3 +1,4 @@
+import { HomeCountryBadge } from '../components/HomeCountryBadge';
 import { isFxStale } from '../data/fx-freshness';
 import { useCurrentTime } from '../hooks/useCurrentTime';
 import { responsive, useWideLayout } from '../components/responsive';
@@ -18,7 +19,7 @@ import { colors } from '../theme/colors';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
-export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean }) {
+export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
   const wide = useWideLayout();
   const now = useCurrentTime();
   const comparison = entry.comparison;
@@ -69,7 +70,7 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
         </Svg>
       </Pressable>
       <Text accessibilityRole="header" style={[ui.title, styles.headerTitle]}>Your savings</Text>
-      <View style={styles.back} />
+      <HomeCountryBadge country={homeCountry} locale={locale} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
     <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
