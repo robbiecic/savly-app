@@ -104,3 +104,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Put the savings summary first and show an explicit missing-price/unknown-refund summary instead of silently hiding it.
 
 - [x] Assume all included numeric VAT refundable for new calculations; with null VAT, show cheaper/same/more comparisons without a refund and preserve unavailable refund metadata.
+
+- [x] Reuse the welcome wordmark and airplane in fixed top-left headers across app screens and app-owned modals.

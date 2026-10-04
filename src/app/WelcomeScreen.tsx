@@ -1,3 +1,4 @@
+import { SavlyLogo } from '../components/SavlyLogo';
 import { useWideLayout } from '../components/responsive';
 import { useWindowDimensions, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,11 +11,8 @@ export function WelcomeScreen({ onGetStarted }: { onGetStarted: () => void }) {
     <LinearGradient pointerEvents="none" colors={['rgba(3,9,18,0.18)', 'rgba(3,9,18,0)', 'rgba(3,9,18,0.68)', '#030912']}
       locations={[0, 0.36, 0.68, 1]} style={StyleSheet.absoluteFill} />
     <SafeAreaView style={styles.screen}>
+      <View style={{ paddingHorizontal: 28, paddingTop: compact ? 8 : 24, paddingBottom: 8 }}><SavlyLogo light large={!compact} /></View>
       <ScrollView contentContainerStyle={[styles.content, compact && { minHeight: 0, paddingTop: 16 }, wide && styles.wideContent]} bounces={false}>
-        <View accessibilityLabel="Savly" accessible style={styles.brand}>
-          <Text style={styles.wordmark}>Savly</Text>
-          <Text accessible={false} style={styles.plane}>{'✈\uFE0E'}</Text>
-        </View>
         <View style={[styles.bottom, compact && { paddingTop: 24 }, wide && styles.wideBottom]}>
           <Text accessibilityRole="header" style={[styles.headline, wide && styles.wideHeadline]}>{'Shop the world.\nDiscover what\nyou could save.'}</Text>
           <Text style={styles.description}>Compare overseas prices, exchange rates and estimated VAT refunds — and see what you could save.</Text>
@@ -36,10 +34,7 @@ const styles = StyleSheet.create({
   wideHeadline: { fontSize: 26, lineHeight: 30, marginBottom: 10 },
   screen: { flex: 1, backgroundColor: 'transparent' },
   backgroundImage: { width: '100%', height: '100%' },
-  content: { flexGrow: 1, justifyContent: 'space-between', paddingHorizontal: 28, paddingTop: 32, paddingBottom: 8, minHeight: 660 },
-  brand: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
-  wordmark: { fontSize: 48, lineHeight: 58, color: '#FFFFFF', fontWeight: '800', fontStyle: 'italic', letterSpacing: -2 },
-  plane: { fontSize: 34, color: '#FFFFFF', marginLeft: 8, transform: [{ rotate: '-20deg' }] },
+  content: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 28, paddingTop: 32, paddingBottom: 8, minHeight: 560 },
   bottom: { paddingTop: 200, maxWidth: 440, width: '100%' },
   headline: { fontSize: 32, lineHeight: 37, fontWeight: '700', color: '#FFFFFF', marginBottom: 16, letterSpacing: -0.6 },
   description: { fontSize: 16, lineHeight: 23, color: '#FFFFFF', marginBottom: 24 },

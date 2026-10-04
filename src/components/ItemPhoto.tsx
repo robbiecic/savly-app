@@ -1,3 +1,4 @@
+import { SavlyLogo } from './SavlyLogo';
 import { useState } from 'react';
 import { Image, Keyboard, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ export function ItemPhoto({ uri, name }: { uri: string; name: string }) {
     </Pressable>
     <Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={styles.viewer}>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}><SavlyLogo light /></View>
         <View style={styles.header}>
           <Text style={styles.title} numberOfLines={1}>{label}</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Close photo" onPress={() => setOpen(false)}

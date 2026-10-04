@@ -1,3 +1,4 @@
+import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeCountryBadge } from '../components/HomeCountryBadge';
 import { isFxStale } from '../data/fx-freshness';
 import { useCurrentTime } from '../hooks/useCurrentTime';
@@ -62,6 +63,10 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
     setShareError(outcome === 'failed'); setSharing(false);
   };
   return <SafeAreaView style={styles.screen}>
+    <View style={[styles.brandHeader, wide && responsive.wideContent]}>
+      <SavlyLogo />
+      <HomeCountryBadge country={homeCountry} locale={locale} />
+    </View>
     <View style={[styles.header, wide && responsive.wideContent]}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back to calculator" onPress={onBack}
         style={({ pressed }) => [styles.back, pressed && { opacity: 0.5 }]}>
@@ -70,7 +75,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
         </Svg>
       </Pressable>
       <Text accessibilityRole="header" style={[ui.title, styles.headerTitle]}>Your savings</Text>
-      <HomeCountryBadge country={homeCountry} locale={locale} />
+      <View style={{ width: 48 }} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
     <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
@@ -154,6 +159,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
 }
 
 const styles = StyleSheet.create({
+  brandHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingHorizontal: 20, paddingVertical: 8, width: '100%', maxWidth: 620, alignSelf: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, width: '100%', maxWidth: 620, alignSelf: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 20 },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },

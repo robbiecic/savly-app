@@ -1,3 +1,4 @@
+import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeCountryBadge } from '../components/HomeCountryBadge';
 import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
@@ -42,7 +43,7 @@ export function CompareScreen() {
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
-      <Text style={styles.brand}>Savly</Text>
+      <SavlyLogo />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
         <HomeCountryBadge country={form.residence} locale={state.locale} />
         <Pressable accessibilityRole="button" accessibilityLabel="Settings" disabled={!state.ready}
@@ -114,7 +115,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
-  brand: { fontSize: 32, fontWeight: '800', color: colors.ink },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border },
   tab: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   selectedTab: { borderBottomColor: colors.ink },

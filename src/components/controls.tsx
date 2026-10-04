@@ -1,3 +1,4 @@
+import { SavlyLogo } from './SavlyLogo';
 import { useWideLayout } from './responsive';
 import { RevealInputContext } from './KeyboardFormScrollView';
 import { useContext, useRef, useState, type ReactNode } from 'react';
@@ -56,6 +57,7 @@ export function Select({ label, value, options, onChange, error, compact = false
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
     <RevealInputContext.Provider value={null}><Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={{ paddingHorizontal: 24, paddingVertical: 8 }}><SavlyLogo /></View>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} style={{ padding: wide ? 16 : 24, gap: 16, flex: 1, width: '100%', maxWidth: 1080, alignSelf: 'center' }}>
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 16, alignItems: wide ? 'center' : 'stretch' }}>
           <Text accessibilityRole="header" style={[ui.title, wide && { flex: 1 }]}>{label}</Text>
