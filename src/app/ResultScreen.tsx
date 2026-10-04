@@ -118,8 +118,10 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
     {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
     {!saved && <View style={{ gap: 12 }}>
       <Text style={ui.label}>Item photo (optional)</Text>
-      <Action label="Take photo" secondary disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
-      <Action label="Add photo" secondary disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
+      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      <ResultAction icon="camera" label="Take photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
+      <ResultAction icon="image" label="Add photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
+      </View>
       {!!photoUri && <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />}
       {photoBusy && <Text style={ui.muted}>Preparing photo…</Text>}
       {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
@@ -135,7 +137,6 @@ export function ResultScreen({ entry, onBack, fromSaved }: { entry: SavedCompari
         accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
         disabled={sharing} onPress={() => { void share(); }} />
     </View>
-    {appShareLink.demo && <Text style={ui.muted}>Sharing includes a demo link. App download links are not available yet.</Text>}
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
   </View></View></Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }

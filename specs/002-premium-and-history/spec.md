@@ -66,3 +66,5 @@ Resize large photos to at most 1000 pixels on the longest edge and encode as JPE
 Failed record writes roll back newly created photo files. Deleting an item or clearing saved items removes its local photo files after the record write succeeds; cleanup failure does not undo a committed record operation. Photos stay on-device and are not uploaded or included in the current text-only share action. Camera availability and capture behavior on web depend on the browser/device.
 
 Tap a photo preview in the save form, Saved list, or reopened comparison to open a full-screen viewer. Fit the entire image without cropping against a dark background. Close returns to the same screen; Android Back also dismisses the viewer. The circular preview does not crop the stored photo.
+
+Take photo and Add photo use the same outlined action style as Save and Share, side by side with camera and image-library icons beside their text. Labels may wrap on narrow screens while touch targets remain at least 48 points.
