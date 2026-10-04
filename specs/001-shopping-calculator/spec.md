@@ -8,7 +8,7 @@ As a traveler, I want to enter an overseas price and compare its estimated net c
 
 ## Interaction model
 
-Each app launch begins with the photo-led Savly welcome screen inspired by the design board. **Get started** opens Compare without requiring an account. **Sign in** is disabled and has no action for now. Welcome copy describes potential savings rather than guaranteed savings or refunds.
+Each app launch begins with the photo-led Savly welcome screen inspired by the design board. **Get started** opens Compare without requiring an account. **Sign in** opens the Cognito sign-in flow described in spec 002. Welcome copy describes potential savings rather than guaranteed savings or refunds.
 
 Present the shopping-country dropdown at the top of Compare, before price entry, with its flag, country name, and currency code. Place it above the Calculate and Saved tabs as the first main-page control. Keep it visible outside the home-settings section; retain the remembered shopping country for repeat use. Tabs preserve the calculator draft. Hide the Scan tab and page until scanning is ready. Your Savings uses a header back arrow returning to the main Calculate tab, including when opened from Saved.
 

@@ -6,12 +6,17 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "decimal.js": "^10.6.0",
     "expo": "~57.0.26",
+    "expo-auth-session": "~57.0.13",
+    "expo-constants": "~57.0.20",
+    "expo-crypto": "~57.0.3",
+    "expo-dev-client": "~57.0.19",
     "expo-file-system": "~57.0.7",
     "expo-image-manipulator": "~57.0.20",
     "expo-image-picker": "~57.0.20",
     "expo-linear-gradient": "~57.0.2",
     "expo-localization": "~57.0.2",
     "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -29,8 +34,8 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "node scripts/run-android.cjs",
+    "ios": "expo run:ios",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tests/tsconfig.json",
     "check:dependencies": "expo install --check",
     "export:mobile": "expo export --platform android --platform ios",
@@ -38,7 +43,9 @@
     "web": "expo start --web",
     "test:ui": "playwright test",
     "export:web": "expo export --platform web --output-dir dist-web",
-    "export:icons": "node scripts/export-icons.cjs"
+    "export:icons": "node scripts/export-icons.cjs",
+    "test:auth:ui": "playwright test --config playwright.auth.config.ts",
+    "start:dev": "expo start --dev-client --clear"
   },
   "private": true
 }

@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.savly.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.savly.app"
     },
     "plugins": [
       "expo-localization",
@@ -28,10 +30,12 @@
           "cameraPermission": "Allow Savly to take a photo of an item you want to save.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "savly"
   }
 }

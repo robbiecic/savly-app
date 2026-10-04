@@ -1,3 +1,4 @@
+import { useAuth } from '../auth/AuthProvider';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { useWideLayout } from '../components/responsive';
 import { useWindowDimensions, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -5,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function WelcomeScreen({ onGetStarted }: { onGetStarted: () => void }) {
+  const { openSignIn } = useAuth();
   const wide = useWideLayout();
   const compact = useWindowDimensions().height < 500;
   return <ImageBackground source={require('../../assets/welcome-travel.png')} resizeMode="cover" imageStyle={styles.backgroundImage} style={styles.screen}>
@@ -20,7 +22,7 @@ export function WelcomeScreen({ onGetStarted }: { onGetStarted: () => void }) {
             style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}>
             <Text style={styles.primaryText}>Get started</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityState={{ disabled: true }} accessibilityHint="Sign in is not available yet" disabled style={styles.signIn}>
+          <Pressable accessibilityRole="button" onPress={openSignIn} style={styles.signIn}>
             <Text style={styles.signInText}>Sign in</Text>
           </Pressable>
         </View>

@@ -36,7 +36,7 @@ npm ci
 npm start
 ```
 
-Open the project in an Expo Go version compatible with SDK 57. Press `i` for an installed iOS simulator (macOS with Xcode) or `a` for a configured Android emulator. You can also use `npm run ios` or `npm run android`. A physical phone must be able to reach the development server. No backend, account, or API credentials are needed for the sample prototype. For a browser preview without the Android SDK, run `npm run web`.
+Use a Savly development build for sign-in: `npm run android` builds and installs it on an Android emulator; `npm run ios` does the same for an iOS simulator (Xcode required). Add `-- --device` to select a USB-connected phone; an iPhone also needs developer mode and configured Apple signing. After installing the build, use `npm run start:dev` for code reloads. A physical phone must be able to reach the development server. Expo Go can still preview the guest calculator via `npx expo start --go`, but cannot complete Cognito sign-in. For a browser preview, run `npm run web`.
 
 Checks:
 
@@ -77,7 +77,7 @@ Verified with `npm test`: 52 tests total, including 23 data-layer tests for exac
 
 ## Try the prototype
 
-The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** is disabled for now.
+The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** opens Cognito sign-in (configuration requirements below).
 
 See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. Numeric VAT is treated as fully refundable for estimates, regardless of residence. Null VAT means no available refund estimate; the app still compares the converted overseas cost against the home price.
 
@@ -103,7 +103,7 @@ The backend lives in the sibling [fxService repository](../fxService/README.md).
 
 ## Working assumptions
 
-The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with editable assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Optional login will retain history in the cloud; prototype billing and account flows are mocked without a deployed backend. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. Refund rules are separate illustrative prototype fixtures, not an existing backend capability. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
+The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with editable assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Cognito login is available; cloud history and prototype billing remain future work. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. Refund rules are separate illustrative prototype fixtures, not an existing backend capability. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
 
 ## Local API and keyboard behavior
 
@@ -126,3 +126,37 @@ Startup uses available API reference data or clearly identified built-in default
 Set your home country using the header's **Settings** button. The calculator automatically uses its currency and no longer offers an inline home-country selector. Your home country and flag stay visible in the header while scrolling. The selection is remembered across app launches; saved comparisons retain their original currencies and amounts.
 
 Current refund policy: numeric VAT means an assumed refund of all VAT included in the price, with no provider fee. Null VAT leaves the refund unavailable but still compares the converted overseas price against the home price. This replaces the previous France/Spain residency rules for new comparisons. Saved estimates keep their original rules and totals. Refunds are labeled as assumptions, not verified eligibility.
+
+## Cognito sign-in
+
+Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Sign out clears the app session; tokens stay in memory and are never written to local storage. Restart or token expiry requires signing in again. Saved comparisons remain on-device; this does not implement cloud history or billing.
+
+Local/native development now defaults to the owner's issuer, client `35vicii2qq71r09bcd0val80lm`, managed-login domain `https://savly.auth.us-east-1.amazoncognito.com`, and registered callback `savly://auth/callback`.
+
+- Rebuild the native development app to install the `savly` URL scheme and auth modules. Expo Go cannot complete this callback flow.
+- For web development, register the actual localhost URL (for example `http://localhost:8081`) in Cognito, set `EXPO_PUBLIC_COGNITO_REDIRECT_URI` to that URL, and open that same origin. For a local production-mode export, set `EXPO_PUBLIC_APP_ENV=development` explicitly.
+- Release builds require their own `EXPO_PUBLIC_COGNITO_AUTHORITY` and `EXPO_PUBLIC_COGNITO_CLIENT_ID`; configure their domain and callback as needed. Never put a client secret in the app. See `.env.example`.
+- The app client must permit the authorization code grant and requested scopes, and have managed login enabled. Live endpoint recheck on 2026-10-04 returned HTTP 200 and the email/password sign-in form using Savly’s client, requested scopes, PKCE, and registered native callback. The previous “Login pages unavailable” error is resolved. No credentials were submitted; successful account authentication and return to the native app remain unverified.
+
+The local reference API remains unauthenticated as defined by fxService. Sign-in does not change the four-hour reference cache or claim account history sync.
+
+Run `npm run test:auth:ui` for isolated browser checks using a simulated Cognito provider. That command creates an ignored `dist-auth-web/` build with test-only configuration; never deploy it. Run normal Expo builds with `--clear` when switching environment configuration to avoid reusing cached values.
+
+Implementation references: [Expo AuthSession](https://docs.expo.dev/versions/latest/sdk/auth-session/), [Expo authentication setup](https://docs.expo.dev/guides/authentication/), and [Cognito authorization endpoint](https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html).
+
+Sign-in verification: TypeScript, 98 unit/integration tests, six simulated-provider browser tests, all 20 existing browser tests, and Android/iOS/web exports passed. Expo’s bundled dependency compatibility check passed in offline mode. Real credentials, native browser return, and device sign-in were not tested.
+
+### Testing sign-in on phones
+
+Install and open the **Savly** development app, rather than opening the project inside Expo Go. The native app owns `savly://auth/callback`; Expo Go cannot receive that URL. Both Android and iOS use application identifier `com.savly.app` for local builds. The app now explains this setup requirement when opened in Expo Go, while actual connection errors still say **Can't connect right now**.
+
+`npm run android` automatically finds an installed Java 17 (including Gradle's JDK cache) and the Android SDK. It sets their locations only for the build process, without changing your shell configuration. Android Studio's bundled Java 25 is not used because it fails this project's native compiler setup. If no Java 17 is available, install JDK 17 or point `JAVA_HOME` to it.
+
+```bash
+npm run android -- --check   # Check Java and Android SDK without building
+npm run android             # Build and install on the emulator
+```
+
+For a physical Android phone, enable USB debugging, connect it, and append `-- --device`. For iPhone, use `npm run ios -- --device` with Xcode signing configured. These are local builds; no paid Expo build service is required. Rebuild after native dependencies or URL schemes change; ordinary TypeScript edits only need Metro reloads.
+
+Native development verification (2026-10-04): Java 17 auto-detection passed; the Android debug APK built and installed on the Pixel_10_Pro emulator. Savly startup and opening the Cognito browser were observed. The first APK had a missing generated Expo log-box class; cleaning that module’s build artifacts and rebuilding repaired it. Full authenticated-account verification, physical-phone installation, and iOS builds remain unverified. TypeScript, nine auth unit tests, and six simulated browser sign-in tests passed after the development-client setup.

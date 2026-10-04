@@ -1,6 +1,6 @@
 # 002 — Premium access and optional account history
 
-Status: monthly store billing and lifetime purchase confirmed; prices remain undecided. No billing or authentication implementation exists yet.
+Status: monthly store billing and lifetime purchase confirmed; prices remain undecided. Cognito browser sign-in is implemented; development domain/native callback are configured; Cognito’s login page is reachable; real-account and device sign-in verification remain pending. Billing is not implemented.
 
 ## Confirmed direction
 
@@ -38,7 +38,7 @@ Current prototype: the separate result page offers explicit Save and Share. Save
 
 Mock locked, active subscription, lifetime, expired, pending, canceled checkout, failed checkout, and restored states in the prototype. A canceled renewal remains active until its paid period ends; expiration or revocation removes premium calculation access without silently deleting history. Keep sign-in, restore, account/history management, and billing help reachable while locked. Define production offline entitlement/grace handling before billing integration.
 
-Cross-platform purchase portability, subscription-to-lifetime upgrades, authentication provider, and exact history-retention duration remain open. Do not promise automatic cancellation of an existing store subscription when buying lifetime access.
+Cross-platform purchase portability, subscription-to-lifetime upgrades, and exact history-retention duration remain open. Cognito is the selected authentication provider. Do not promise automatic cancellation of an existing store subscription when buying lifetime access.
 
 ## Acceptance criteria
 
@@ -55,7 +55,7 @@ Cross-platform purchase portability, subscription-to-lifetime upgrades, authenti
 
 ## Delivery
 
-Prototype: mocked purchase and account states, local history, and simulated sync behind adapters. Production: store products and transaction verification, authenticated private storage, account recovery/deletion, and real multi-device tests. Mock login is never represented as actual cloud retention.
+Prototype: mocked purchase states, real Cognito sign-in, local history, and future simulated sync behind adapters. Production: store products and transaction verification, authenticated private storage, account recovery/deletion, and real multi-device tests. Mock login is never represented as actual cloud retention.
 
 ## Optional item photo
 
@@ -68,3 +68,15 @@ Failed record writes roll back newly created photo files. Deleting an item or cl
 Tap a photo preview in the save form, Saved list, or reopened comparison to open a full-screen viewer. Fit the entire image without cropping against a dark background. Close returns to the same screen; Android Back also dismisses the viewer. The circular preview does not crop the stored photo.
 
 Take photo and Add photo use the same outlined action style as Save and Share, side by side with camera and image-library icons beside their text. Labels may wrap on narrow screens while touch targets remain at least 48 points.
+
+## Cognito sign-in milestone
+
+Welcome and Settings offer real Cognito sign-in, separate from billing, calculator access, and future history sync. Get started continues without an account. The sign-in sheet prepares a browser authorization request; Continue to sign in opens Cognito. On success, Welcome advances to Calculate and Settings shows the signed-in identity. Sign out clears the in-memory session. Saved comparisons remain device-local guest data; sign-in never uploads or reassigns them and does not claim cloud retention.
+
+For local/development, use issuer `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_MncSdF1r0` and public app client `35vicii2qq71r09bcd0val80lm`, with authorization code, S256 PKCE, random state, and scopes `aws.cognito.signin.user.admin email openid phone profile`. No client secret belongs in the app. Release builds require explicit configuration and must not automatically use development IDs.
+
+The owner registered `savly://auth/callback` and supplied `https://savly.auth.us-east-1.amazoncognito.com` as the managed-login domain. Use both as native development defaults, replacing the original `https://example.com` placeholder. For web, configure a registered same-origin callback (HTTPS, or HTTP localhost for development). Native sign-in requires a rebuilt development/standalone app with the Savly scheme; Expo Go is unsupported and displays “Sign-in requires the Savly development app. Open Savly instead of Expo Go.” before making auth requests; no retry button is shown for this setup limitation. The pool must have a working managed-login domain and a public client permitting the code grant and requested scopes.
+
+Network/HTTP/discovery/configuration/token failures display exactly **Can't connect right now**, with Try again and Back to Savly. Discovery, native login-page availability, token exchange, and user-info requests each have a 10-second timeout. Native builds check login-page availability before opening the browser. Web uses discovery and browser return handling because the authorization endpoint does not permit CORS. Browser cancellation returns without signing in or displaying a connection error. Reject mismatched state, missing code/verifier, invalid tokens, and late callbacks from dismissed attempts. Confirm identity through Cognito user-info before marking the user signed in.
+
+This milestone keeps access tokens only in memory, expiring at Cognito's token expiry; restart requires another sign-in. Refresh tokens are discarded. Do not persist tokens in AsyncStorage or localStorage, and never log tokens or provider error payloads. A new sign-in requests reauthentication after local sign-out. Durable secure sessions and private account history are separate future work.

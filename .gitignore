@@ -42,5 +42,6 @@ yarn-error.*
 
 # Local previews and browser test artifacts
 dist-web/
+dist-auth-web/
 test-results/
 playwright-report/

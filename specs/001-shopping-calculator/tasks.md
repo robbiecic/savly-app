@@ -39,7 +39,7 @@
 
 - [x] Add flags beside country names in shopping and residence pickers, preserving search and accessible names.
 
-- [x] Add the design-board-inspired welcome screen; Get started opens Compare and Sign in is disabled.
+- [x] Add the design-board-inspired welcome screen; Get started opens Compare and Sign in now opens Cognito.
 
 - [x] Build shared visual styles and accessible controls.
 - [x] Fix startup without Intl.DisplayNames using bundled English country names; verify missing-constructor regression in unit and browser tests.
@@ -57,10 +57,10 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 - [x] Implement explicit local snapshots and Saved screen with reopening, deletion, confirmed clearing, and storage-error handling.
 - [ ] Implement automatic recent history.
-- [ ] Implement mock purchase/restore and optional sign-in states from spec 002.
+- [ ] Implement mock purchase/restore states from spec 002 (sign-in uses real Cognito).
 - [ ] Verify guest isolation, history import, and simulated sync behavior.
 - [x] Verify local saved-comparison persistence, deletion, duplicate-save behavior, and corrupt-storage handling.
-- [ ] Verify account-specific history persistence after mocked account flows are added.
+- [ ] Verify account-specific history persistence when private account history is implemented.
 
 ## Later
 
@@ -106,3 +106,13 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Assume all included numeric VAT refundable for new calculations; with null VAT, show cheaper/same/more comparisons without a refund and preserve unavailable refund metadata.
 
 - [x] Reuse the welcome wordmark and airplane in fixed top-left headers across app screens and app-owned modals.
+
+- [x] Enable Cognito browser sign-in from Welcome/Settings with code + PKCE, session-only identity, sign-out, and the requested connection error.
+- [x] Configure the owner-confirmed development Cognito domain and registered native callback.
+- [x] Recheck the owner’s Cognito login-page fix: HTTP 200 with email/password form using the configured native authorization request.
+- [ ] Register a web callback if needed and verify real account sign-in and return on Android/iOS and web.
+- [x] Verify auth success/error/cancel/state/PKCE behavior with unit and simulated browser tests; retain passing calculator regressions and Android/iOS/web exports.
+
+- [x] Add the Savly development client and native app identifiers for Cognito callback support; explain Expo Go’s limitation instead of reporting a network error.
+- [x] Make the Android build command locate Java 17 and the Android SDK automatically, without changing shell settings.
+- [x] Build and install the Android development app on the emulator; verify startup and Cognito browser opening after repairing generated Expo log-box artifacts.

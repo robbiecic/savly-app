@@ -1,3 +1,4 @@
+import { useAuth } from '../auth/AuthProvider';
 import { useMemo } from 'react';
 import { Text } from 'react-native';
 import { Action, Card, Select, ui } from '../components/controls';
@@ -7,6 +8,7 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, st
   country: string; currency: string; locale: string; onChange: (country: string) => void;
   onBack: () => void; storageError: boolean;
 }) {
+  const { user, openSignIn, signOut } = useAuth();
   const options = useMemo(() => residenceOptions(locale), [locale]);
   return <Card>
     <Text accessibilityRole="header" style={ui.title}>Settings</Text>
@@ -16,6 +18,10 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, st
     {!!country && !currency && <Text accessibilityRole="alert" style={ui.error}>Currency data is unavailable for this home country. Choose a supported home country to calculate savings.</Text>}
     <Text style={ui.muted}>Changing home currency clears the entered home price and comparison overrides. Saved items keep their original estimates.</Text>
     {storageError && <Text accessibilityRole="alert" style={ui.error}>Your change is active, but settings couldn’t be saved for the next app launch.</Text>}
+    <Text style={ui.label}>Account</Text>
+    <Text style={ui.text}>{user ? `Signed in${user.email ? ` as ${user.email}` : ''}` : 'Not signed in'}</Text>
+    <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>
+    <Action label={user ? 'Sign out' : 'Sign in'} secondary onPress={user ? signOut : openSignIn} />
     <Action label="Back to calculator" onPress={onBack} />
   </Card>;
 }

@@ -182,10 +182,10 @@ test('Corrupt saved settings recover with defaults without an unhandled error', 
   expect(errors).toEqual([]);
 });
 
-test('Welcome screen matches the entry flow and Sign in remains inactive', async ({ page }) => {
+test('Welcome screen offers sign-in and guest entry', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Shop the world. Discover what you could save.' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'test-results/savly-welcome-390.png' });
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
