@@ -75,14 +75,25 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
     <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
     <Card>
+      {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
+        <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
+        {r.refund.kind === 'vat-unavailable' && <Text style={ui.text}>Compared without a VAT refund.</Text>}
+        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
+      </View>}
+    {!summary && <View style={styles.summary}>
+      <Text style={styles.summaryText}>{r.priceDifference != null
+        ? new D(r.priceDifference).isZero() ? 'Same price before VAT refund'
+          : `${money(r.priceDifference.replace('-', ''))} ${new D(r.priceDifference).gt(0) ? 'less' : 'more'} before VAT refund`
+        : comparison.homePrice ? 'Final savings unavailable' : 'Add a home price to see savings'}</Text>
+      <Text style={ui.text}>{comparison.homePrice
+        ? 'Final savings are unavailable because the VAT refund is unknown. Any price difference shown excludes a VAT refund.'
+        : 'Go back to Calculate and enter the price at home to compare savings.'}</Text>
+    </View>}
+
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
     <Text style={styles.badge}>{r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}{isFxStale(r.fx, now) ? ' · Rates out of date' : ''}</Text>
     {isFxStale(r.fx, now) && <Text accessibilityRole="alert" style={{ backgroundColor: '#FFF2D6', color: '#714300', padding: 14, borderRadius: 12 }}>FX rate is stale (over 48 hours old or its date cannot be verified). This estimate may differ from current prices.</Text>}
-      {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
-        <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
-        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
-      </View>}
     <View style={wide ? responsive.columns : responsive.stack}>
     <View style={[responsive.stack, wide && responsive.column]}>
     <View style={{ gap: 16 }}>
@@ -98,8 +109,8 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
       {r.refundHome !== null && r.withRefund !== null ? <>
         <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
         <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
-        <Text style={ui.muted}>Estimated refund, subject to eligibility{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
-      </> : <Text style={ui.muted}>Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.</Text>}
+        <Text style={ui.muted}>{r.refund.kind === 'vat-assumption' ? 'Assumes all included VAT is refundable, with no provider fee. Eligibility is not verified' : 'Estimated refund, subject to eligibility'}{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
+      </> : <Text style={ui.muted}>{r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable: no VAT rate supplied. The comparison uses the overseas price without a refund.' : 'Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.'}</Text>}
       {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
       {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
     </View>

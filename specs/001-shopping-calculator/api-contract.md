@@ -20,7 +20,7 @@ Use asynchronous mocks of the actual two response shapes for the initial prototy
 
 For a pair `EURUSD`, the rate means USD per EUR. The calculator needs home-currency units per shopping-currency unit: use the direct shopping+home pair, otherwise invert the reverse pair using decimal arithmetic. Same-currency conversion is 1. Do not triangulate. If neither direction is present, show conversion unavailable. Preserve the original pair, value, source, timestamp, and whether inversion occurred. Test direct and reverse orientation (e.g. EURUSD 1.25 gives USD per EUR 1.25 and EUR per USD 0.8).
 
-CityIndex rates are stored MID bar closes, not live quotes or Mastercard settlement rates. Display source and each rate’s `asOf`; a newly fetched cache does not imply newly published market data. Keep the editable additional bank-fee assumption separate, defaulting to 0%.
+CityIndex rates are stored MID bar closes, not live quotes or Mastercard settlement rates. Display source and each rate’s `asOf`; a newly fetched cache does not imply newly published market data. New calculations exclude additional bank/card fees.
 
 Validate the response shapes, country/currency codes, unique countries and pairs, positive finite rates and pip sizes, valid source timestamps, and VAT values from 0 through 1 or null. Null VAT means unknown, not zero. Missing pairs are allowed by the backend. `pipSize` formats FX quotes; it is not currency minor-unit metadata. Use maintained client currency metadata for money rounding and localized country names; supported-country membership still comes from the API.
 
@@ -28,9 +28,9 @@ The backend supplies no schema version, dataset version, country data timestamp,
 
 ## Refund estimates
 
-VAT metadata is not an assured refund. Current fxService responses cannot populate automatic net refunds. In the prototype only, use separately labeled illustrative local refund fixtures with residency/category/price-band assumptions; never add fictitious refund fields to backend responses. Match rules on-device, with lower-inclusive and upper-exclusive price bands. Zero or multiple matches mean unavailable. Validate net refund fraction `0 ≤ q ≤ v / (1 + v)` when VAT is known. An explicit zero refund is distinct from missing data.
+Numeric VAT metadata drives an explicit on-device assumption: all VAT included in the gross price is refundable, with no provider fee. Compute P × v / (1 + v) without intermediate rounding. This policy applies in API and default modes regardless of residency. It is not verified eligibility and must be labeled accordingly. Preserve source data and the assumption in saved results; add no invented API fields.
 
-Real backend mode shows “Refund estimate unavailable” until a validated manual amount is provided or a separately approved refund-data contract exists. Do not combine real FX with hidden sample refund rules. Preserve automatic and manual assumptions in saved results.
+Null VAT means refund unavailable, not a known zero refund. Compare the converted purchase cost without a refund against the home price and show cheaper/same/more. Numeric zero VAT produces an explicit zero refund. A bounded manual net refund can override automatic VAT only when VAT metadata exists. Legacy sample selections remain readable for historical saved estimates.
 
 ## Cache lifecycle
 
@@ -63,3 +63,7 @@ Resolve the source once per app session, allowing two seconds per endpoint. Reus
 Remove the SAMPLE PROTOTYPE startup badge. Load the existing API countries, FX and VAT endpoints when the development API is reachable, otherwise start with hardcoded defaults. Release builds without production API/authentication configuration use defaults. Preserve the defaults' fixed original timestamp; never stamp them with launch/fetch time. Identify defaults in the calculator and result details and retain illustrative refund assumptions.
 
 The four-hour cache TTL remains a refresh policy, not an FX freshness threshold. FX is stale strictly more than 48 hours after its source `asOf` (exactly 48 hours is not yet stale). A new fetch of an old quote remains stale. Invalid, missing, or future source dates are unverified and also warn. Show the amber FX warning only on Your savings after calculation, using the selected direct/reversed quote. Do not show stale-rate warnings on startup or the calculator form. Manual FX and same-currency calculations do not inherit automatic-rate staleness. Recheck time every 30 seconds and on foreground resume. Saved totals remain immutable, but reopened results and shared summaries also assess the original rate's age at viewing/sharing time.
+
+## Current app refund policy
+
+The owner explicitly selected a full-included-VAT refund assumption for numeric API/default VAT metadata, independent of home country. This supersedes the earlier requirement to select local residency rules for new comparisons. No refund API is added. Null VAT remains unavailable (never represented as a known zero refund), while the on-device calculator compares converted cost without refund against the home price. Clearly label full-VAT refunds as assumed, with no provider fee or eligibility verification. Historical saved sample rules remain readable.

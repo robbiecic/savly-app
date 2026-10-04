@@ -1,4 +1,6 @@
-# AC19 — USA home price versus a purchase in Spain
+# Historical AC19 — USA home price versus a purchase in Spain
+
+The current calculator assumes full included-VAT refund with no provider fee: USD 87.88 refund, USD 418.48 net cost, USD 81.52 savings (16.3%). The 28%-fee worked example below is retained for historical saved-calculation regression tests.
 
 Confirmed by the owner: **EUR 450 includes VAT**. This is an illustrative, on-device estimate, not a current exchange-rate quote, provider fee quote, or determination of refund eligibility.
 

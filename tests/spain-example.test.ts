@@ -17,7 +17,12 @@ const context = { mode: 'sample' as const, country: 'ES', currency: 'EUR', resid
 function example() {
   const view = compare(form, { status: 'stale', snapshot, label: 'Rates out of date', error: 'network' });
   if (view.status !== 'ready') assert.fail(view.message);
-  return view.comparison;
+  // Preserve the original 28%-fee scenario as a historical contract regression.
+  const legacy = calculate({ mode: 'sample', shoppingCurrency: { code: 'EUR', minorUnits: 2 }, homeCurrency: { code: 'USD', minorUnits: 2 },
+    price: '450', homePrice: '500', vatRate: '0.21', fx: automaticFx(snapshot, 'EUR', 'USD'),
+    refund: selectRefundRule(SAMPLE_REFUND_RULES, context) });
+  if (legacy.status !== 'ok') assert.fail('Invalid legacy fixture');
+  return { ...view.comparison, result: legacy.value };
 }
 test('AC19 Spain: VAT-inclusive purchase, reverse stale FX, explicit 28% fee and final rounding', () => {
   const c = example(); const r = c.result;

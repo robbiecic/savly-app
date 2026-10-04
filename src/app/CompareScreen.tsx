@@ -78,18 +78,16 @@ export function CompareScreen() {
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
             <View style={wide ? responsive.columns : responsive.stack}>
             <View style={[responsive.stack, wide && responsive.column]}>
-            <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric prominent placeholder="0.00" error={error('price')} />
-            <Text style={ui.muted}>Enter the full price, including any local purchase tax.</Text>
+            <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric placeholder="Price overseas, including taxes" error={error('price')} />
             {!form.residence && <Text style={ui.muted}>Set your home country in Settings to calculate savings.</Text>}
             </View>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
-            <Field label="Item name (optional)" value={form.itemName} onChange={(v) => state.edit('itemName', v)} placeholder="What caught your eye?" />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
             {(assumptions || error('fxOverride') || error('refundOverride')) && <View style={{ gap: 16 }}>
               <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
               {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric placeholder="Automatic rate" error={error('fxOverride')} />}
-              <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />
+              {shopping?.vatRate != null && <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />}
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
             </View></View>

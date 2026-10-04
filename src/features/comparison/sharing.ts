@@ -32,12 +32,13 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     ] : []),
     ...(r.refundHome !== null && r.withRefund !== null
       ? [`Estimated VAT refund: ${money(r.refundHome)}`, `With VAT refund: ${money(r.withRefund)}`]
-      : ['Refund estimate unavailable']), '',
+      : [r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable; comparison excludes any refund.' : 'Refund estimate unavailable']), '',
     r.fx.source === 'Built-in defaults' ? 'Estimate using built-in default rates' : comparison.sample ? 'Sample estimate' : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion' : r.fx.kind === 'manual' ? 'Estimated using a manual rate' : `Estimated using rates as of ${r.fx.asOf}`,
     ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),
     fxLabel(r.fx),
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),
     ...(new D(r.bankFee).gt(0) ? [`Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`] : []),
+    ...(r.refund.kind === 'vat-assumption' ? ['Assumes all included VAT is refundable, with no provider fee.'] : []),
     'Refund subject to eligibility. Excludes customs/import taxes.',
     ...(link.demo ? ['Demo link only; app open/download routing is not available.'] : []),
     `Open or download Savly: ${link.url}`,

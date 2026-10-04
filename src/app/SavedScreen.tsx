@@ -28,8 +28,7 @@ export function SavedScreen({ onOpen }: { onOpen: (entry: SavedComparison) => vo
     finally { setBusy(false); }
   };
   return <>
-      <Text accessibilityRole="header" style={ui.title}>Saved comparisons</Text>
-      <Text style={ui.muted}>Stored on this device only. These are historical estimates, not updated prices.</Text>
+      <Text style={ui.muted}>Stored on device only. These are historical estimates, not updated prices.</Text>
       {!!error && <><Text accessibilityRole="alert" style={ui.error}>{error}</Text><Action label="Retry saved comparisons" disabled={busy} onPress={() => { void load(); }} /></>}
       {busy && <Text style={ui.muted}>Loading…</Text>}
       {!busy && !error && !items.length && <Text style={ui.text}>No saved comparisons yet.</Text>}

@@ -2,7 +2,7 @@ import { isFxStale } from '../../data/fx-freshness';
 import { decimalSeparator } from './locale';
 import { calculate, type Calculation, type FxQuote } from '../../domain/calculator';
 import { D, InputError, positive } from '../../domain/decimal';
-import { selectRefundRule, type RefundRule } from '../../domain/refunds';
+import { type RefundRule } from '../../domain/refunds';
 import { selectedCountry, type Snapshot } from '../../data/reference-data';
 import type { ReferenceState } from '../../data/reference-store';
 
@@ -57,6 +57,7 @@ export function automaticFx(snapshot: Snapshot, from: string, to: string): FxQuo
     asOf: row.asOf, originalPair: row.pair, originalRate: new D(row.rate).toFixed(), inverted,
   };
 }
+// Historical fixtures retained for old worked-example regression tests only.
 export const SAMPLE_REFUND_RULES: readonly RefundRule[] = [{
   id: 'fr-general-demo', country: 'FR', currency: 'EUR', residenceCountries: ['US'], category: 'general-goods',
   minGrossPrice: '0', maxGrossPriceExclusive: null, vatRate: '0.20', netRefundRate: '0.125',
@@ -96,8 +97,8 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
     const calculation = calculate({
       mode: snapshot.mode, shoppingCurrency, homeCurrency, price, homePrice,
       bankFee: '0', vatRate: country.vatRate === null ? null : new D(country.vatRate).toFixed(), fx,
-      refund: form.refundOverride.trim() ? { kind: 'manual', amount: normalizeDecimal(form.refundOverride, locale) }
-        : selectRefundRule(SAMPLE_REFUND_RULES, { mode: snapshot.mode, country: country.country, currency: country.currency, residenceCountry: form.residence, price }),
+      refund: country.vatRate === null ? { kind: 'vat-unavailable' } : form.refundOverride.trim() ? { kind: 'manual', amount: normalizeDecimal(form.refundOverride, locale) }
+        : { kind: 'vat-assumption' },
     });
     if (calculation.status !== 'ok') return { ...calculation, status: 'invalid', field: calculation.field === 'refund' ? 'refundOverride' : calculation.field === 'fx' ? 'fxOverride' : calculation.field };
     return { status: 'ready', comparison: {

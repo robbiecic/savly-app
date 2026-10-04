@@ -96,6 +96,11 @@ export function calculate(input: CalculationInput): CalculationResult {
       refund = { kind: 'unavailable', reason: 'Sample refund rules cannot be used with real data.' };
     }
     let amount = null;
+    if (refund.kind === 'vat-assumption') {
+      if (vat === null) throw new InputError('refund', 'VAT data is required for an assumed VAT refund.');
+      amount = vat;
+    }
+    if (refund.kind === 'vat-unavailable' && v !== null) throw new InputError('refund', 'VAT metadata is available.');
     let refundBreakdown: Calculation['refundBreakdown'];
     if (refund.kind === 'manual') amount = decimal(refund.amount, 'refund');
     if (refund.kind === 'sample') {
@@ -113,12 +118,13 @@ export function calculate(input: CalculationInput): CalculationResult {
         amount = p.mul(q);
       }
     }
-    if (amount !== null && (amount.gt(p) || (vat !== null && (refund.kind === 'sample' ? amount.gt(vat) : amount.gt(vat.toDecimalPlaces(shopping.minorUnits)))))) {
+    if (amount !== null && (amount.gt(p) || (vat !== null && ((refund.kind === 'sample' || refund.kind === 'vat-assumption') ? amount.gt(vat) : amount.gt(vat.toDecimalPlaces(shopping.minorUnits)))))) {
       throw new InputError('refund', vat === null ? 'Refund cannot exceed the purchase price.' : `Refund cannot exceed included VAT (${shopping.code} ${money(vat, shopping.minorUnits)}).`);
     }
     const refundHome = amount === null ? null : amount.mul(r);
     const after = refundHome === null ? null : before.minus(refundHome);
-    const difference = h === null || after === null ? null : h.minus(after);
+    const comparisonCost = refund.kind === 'vat-unavailable' ? before : after;
+    const difference = h === null || comparisonCost === null ? null : h.minus(comparisonCost);
     const roundedDifference = difference?.toDecimalPlaces(home.minorUnits);
     const savings: Calculation['savings'] = difference === null || !roundedDifference || h === null ? null : {
       amount: money(difference, home.minorUnits),
@@ -136,6 +142,8 @@ export function calculate(input: CalculationInput): CalculationResult {
       withoutRefund: money(before, home.minorUnits), withRefund: after === null ? null : money(after, home.minorUnits),
       savings, fx: { ...fx }, refund: refund.kind === 'sample' ? { ...refund, assumptions: [...refund.assumptions] } : { ...refund },
       bankFee: f.toString(), assumptions: [
+        ...(refund.kind === 'vat-assumption' ? ['Assumes all VAT included in the price is refundable, with no provider fee. Eligibility is not verified.'] : []),
+        ...(refund.kind === 'vat-unavailable' ? ['VAT refund unavailable: no VAT rate supplied. Comparison excludes any refund.'] : []),
         'Purchase and refund use the same FX rate; actual settlement may differ.',
         ...(f.gt(0) ? ['Card fees apply to the full purchase and are not refunded.'] : []),
         'Customs duties, import taxes, and travel costs are excluded.',

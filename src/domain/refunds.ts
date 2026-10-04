@@ -18,6 +18,8 @@ export interface RefundRule {
 }
 
 export type RefundSelection =
+  | { kind: 'vat-assumption' } // Assume all included VAT refundable; not verified eligibility.
+  | { kind: 'vat-unavailable' } // No VAT metadata; compare without a refund.
   | { kind: 'sample'; ruleId: string; rate: string; vatRate: string; providerFeeRate?: string; assumptions: readonly string[] }
   | { kind: 'manual'; amount: string }
   | { kind: 'unavailable'; reason: string };

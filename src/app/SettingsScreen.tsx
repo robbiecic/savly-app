@@ -15,7 +15,7 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, st
     {!!currency && <Text style={ui.text}>Home currency: {currency}</Text>}
     {!!country && !currency && <Text accessibilityRole="alert" style={ui.error}>Currency data is unavailable for this home country. Choose a supported home country to calculate savings.</Text>}
     <Text style={ui.muted}>Changing home currency clears the entered home price and comparison overrides. Saved items keep their original estimates.</Text>
-    {storageError && <Text accessibilityRole="alert" style={ui.error}>Settings couldn’t be saved on this device. Choose your country again to retry.</Text>}
+    {storageError && <Text accessibilityRole="alert" style={ui.error}>Your change is active, but settings couldn’t be saved for the next app launch.</Text>}
     <Action label="Back to calculator" onPress={onBack} />
   </Card>;
 }

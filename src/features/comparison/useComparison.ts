@@ -15,7 +15,7 @@ export function useComparison() {
   const [storedForm, setForm] = useState(newForm);
   const [reference, setReference] = useState<ReferenceState | null>(null);
   const form = useMemo(() => withHomeCurrency(storedForm, reference?.snapshot ?? null), [storedForm, reference?.snapshot]);
-  useEffect(() => { if (form !== storedForm) setForm(form); }, [form, storedForm]);
+  useEffect(() => { if (form !== storedForm) setForm(current => withHomeCurrency(current, reference?.snapshot ?? null)); }, [form, storedForm, reference?.snapshot]);
   const [ready, setReady] = useState(false);
   const [startupError, setStartupError] = useState(false);
   const [startupAttempt, setStartupAttempt] = useState(0);
@@ -66,8 +66,8 @@ export function useComparison() {
   return {
     form, reference, ready, view, pending, now, storageError, retrying, locale, startupError,
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
-    edit: (field: keyof ComparisonForm, value: string) => setForm(withHomeCurrency(editForm(form, field, value), reference?.snapshot ?? null)),
-    reset: () => setForm(resetOverrides(form)),
+    edit: (field: keyof ComparisonForm, value: string) => setForm(current => withHomeCurrency(editForm(current, field, value), reference?.snapshot ?? null)),
+    reset: () => setForm(current => resetOverrides(current)),
     retry: async () => { setRetrying(true); try { setReference(await (await getReferenceStore()).retry()); } finally { setRetrying(false); } },
   };
 }

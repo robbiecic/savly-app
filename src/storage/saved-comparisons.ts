@@ -39,7 +39,7 @@ function valid(entry: SavedComparison): boolean {
     !!r.fx && amount(r.fx.rate) && typeof r.fx.from === 'string' && typeof r.fx.to === 'string' &&
     typeof r.fx.source === 'string' && ['sample', 'reference', 'manual'].includes(r.fx.kind) &&
     (r.fx.asOf === null || typeof r.fx.asOf === 'string') &&
-    !!r.refund && ['sample', 'manual', 'unavailable'].includes(r.refund.kind) &&
+    !!r.refund && ['sample', 'manual', 'unavailable', 'vat-assumption', 'vat-unavailable'].includes(r.refund.kind) &&
     (r.refund.kind !== 'sample' || (Array.isArray(r.refund.assumptions) && r.refund.assumptions.every(v => typeof v === 'string'))) &&
     Array.isArray(r.assumptions) && r.assumptions.every(v => typeof v === 'string');
 }

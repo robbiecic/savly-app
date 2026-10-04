@@ -94,3 +94,13 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Match camera/library actions to Save/Share with outlined side-by-side icon buttons.
 
 - [x] Remove the demo-link availability message from Your savings.
+
+- [x] Move home-country selection to Settings, automatically apply its currency to calculations, and show a fixed home-country flag badge across app pages.
+
+- [x] Remove the duplicate Saved comparisons heading from the Saved tab.
+
+- [x] Remove item-name entry from Calculate and retain it on Your savings for saving.
+
+- [x] Put the savings summary first and show an explicit missing-price/unknown-refund summary instead of silently hiding it.
+
+- [x] Assume all included numeric VAT refundable for new calculations; with null VAT, show cheaper/same/more comparisons without a refund and preserve unavailable refund metadata.
