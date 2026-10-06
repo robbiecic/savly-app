@@ -44,13 +44,15 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   return <SafeAreaView style={styles.screen}>
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Settings" disabled={!state.ready}
+        accessibilityHint="Change your home country"
+        onPress={() => { Keyboard.dismiss(); setPage('settings'); }}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minHeight: 48 }}>
         <HomeCountryBadge country={form.residence} locale={state.locale} />
-        <Pressable accessibilityRole="button" accessibilityLabel="Settings" disabled={!state.ready}
-          onPress={() => { Keyboard.dismiss(); setPage('settings'); }} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontSize: 24, color: colors.ink }}>⚙</Text>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
@@ -79,16 +81,16 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
             <View style={wide ? responsive.columns : responsive.stack}>
             <View style={[responsive.stack, wide && responsive.column]}>
-            <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric placeholder="Price overseas, including taxes" error={error('price')} />
+            <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric locale={state.locale} placeholder="Price overseas, including taxes" error={error('price')} />
             {!form.residence && <Text style={ui.muted}>Set your home country in Settings to calculate savings.</Text>}
             </View>
             <View style={[responsive.stack, wide && responsive.column]}>
-            <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric placeholder="Price at home, including taxes" error={error('homePrice')} />
+            <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric locale={state.locale} placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
             {(assumptions || error('fxOverride') || error('refundOverride')) && <View style={{ gap: 16 }}>
               <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
-              {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric placeholder="Automatic rate" error={error('fxOverride')} />}
-              {shopping?.vatRate != null && <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric placeholder="Automatic estimate, if available" error={error('refundOverride')} />}
+              {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric locale={state.locale} placeholder="Automatic rate" error={error('fxOverride')} />}
+              {shopping?.vatRate != null && <Field label={`Manual refund (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric locale={state.locale} placeholder="Automatic estimate, if available" error={error('refundOverride')} />}
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
             </View></View>

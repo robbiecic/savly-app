@@ -1,3 +1,4 @@
+import { formatNumberInput, unformatNumberInput } from '../features/comparison/number-input';
 import { SavlyLogo } from './SavlyLogo';
 import { useWideLayout } from './responsive';
 import { RevealInputContext } from './KeyboardFormScrollView';
@@ -24,13 +25,13 @@ export function Action({ label, onPress, secondary = false, disabled = false, ex
     <Text style={[ui.buttonText, secondary && { color: colors.ink }]}>{label}</Text>
   </Pressable>;
 }
-export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder }: { label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string }) {
+export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder, locale = 'en-US' }: { locale?: string; label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string }) {
   const input = useRef<TextInput>(null);
   const reveal = useContext(RevealInputContext);
   return <View style={{ gap: 8 }}>
     <Text style={ui.label}>{label}</Text>
-    <TextInput ref={input} onFocus={() => reveal?.(input.current)} onBlur={() => reveal?.(null)} accessibilityLabel={label} accessibilityHint={error} value={value} onChangeText={onChange} keyboardType={numeric ? 'decimal-pad' : 'default'}
-      placeholder={placeholder} placeholderTextColor="#737A89" maxLength={numeric ? 40 : 100}
+    <TextInput ref={input} onFocus={() => reveal?.(input.current)} onBlur={() => reveal?.(null)} accessibilityLabel={label} accessibilityHint={error} value={numeric ? formatNumberInput(value, locale) : value} onChangeText={(text) => onChange(numeric ? unformatNumberInput(text, locale) : text)} keyboardType={numeric ? 'decimal-pad' : 'default'}
+      placeholder={placeholder} placeholderTextColor="#737A89" maxLength={numeric ? 52 : 100}
       style={[ui.input, prominent && { fontSize: 36, fontWeight: '600', paddingVertical: 20 }, !!error && { borderColor: '#A32828' }]} />
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
   </View>;

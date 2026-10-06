@@ -1,3 +1,4 @@
+import { formatResultNumber } from '../features/comparison/number-display';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeCountryBadge } from '../components/HomeCountryBadge';
 import { isFxStale } from '../data/fx-freshness';
@@ -52,9 +53,10 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState(false);
   const r = comparison.result;
-  const summary = savingsLabel(r);
+  const number = (value: string) => formatResultNumber(value, locale);
+  const summary = savingsLabel(r, number);
   const favorable = r.savings?.outcome === 'save';
-  const money = (value: string) => `${r.homeCurrency} ${value}`;
+  const money = (value: string) => `${r.homeCurrency} ${number(value)}`;
   const share = async () => {
     // Capture exactly the displayed snapshot before opening the native sheet.
     const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink);
@@ -83,7 +85,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
       {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
         {r.refund.kind === 'vat-unavailable' && <Text style={ui.text}>Compared without a VAT refund.</Text>}
-        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings?.percentage.replace('-', '')}% {favorable ? 'less' : 'more'} than at home</Text>}
+        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings ? number(r.savings.percentage.replace('-', '')) : ''}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null
@@ -102,14 +104,14 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
     <View style={wide ? responsive.columns : responsive.stack}>
     <View style={[responsive.stack, wide && responsive.column]}>
     <View style={{ gap: 16 }}>
-      <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {comparison.price}</Text></View>
+      <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {number(comparison.price)}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
       {new D(r.cardFee).gt(0) && <View style={styles.row}><Text style={ui.text}>Card fee (saved estimate)</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>}
       <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
       {r.priceDifference != null && <View style={styles.row}><Text style={ui.text}>Price difference before refund</Text><Text style={ui.text}>{money(r.priceDifference)}</Text></View>}
       {!!r.refundBreakdown && <>
         <View style={styles.row}><Text style={ui.text}>VAT refund before fee (estimate)</Text><Text style={ui.text}>{money(r.refundBreakdown.grossHome)}</Text></View>
-        <View style={styles.row}><Text style={ui.text}>Refund fee ({new D(r.refundBreakdown.feeRate).mul(100).toFixed()}% assumed)</Text><Text style={ui.text}>−{money(r.refundBreakdown.feeHome)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>Refund fee ({number(new D(r.refundBreakdown.feeRate).mul(100).toFixed())}% assumed)</Text><Text style={ui.text}>−{money(r.refundBreakdown.feeHome)}</Text></View>
       </>}
       {r.refundHome !== null && r.withRefund !== null ? <>
         <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
@@ -121,10 +123,10 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
     </View>
     <Action label={details ? 'Hide rate details' : 'Rate details & assumptions'} secondary expanded={details} onPress={() => setDetails(!details)} />
     {details && <View style={{ gap: 10 }}>
-      <Text selectable style={ui.text}>{fxLabel(r.fx)}</Text>
+      <Text selectable style={ui.text}>{fxLabel(r.fx, number)}</Text>
       {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate timestamp' : comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
-      {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate}.</Text>}
-      <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${r.includedVat}`}</Text>
+      {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
+      <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
     </View>}

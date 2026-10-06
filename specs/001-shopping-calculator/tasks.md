@@ -120,3 +120,9 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Fix the iOS 27 simulator startup crash by enabling Expo scene lifecycle support in tracked build configuration; regenerate/build/install iOS and verify the welcome screen. TypeScript and offline dependency checks pass. Physical iPhone and authenticated callback verification remain pending.
 
 - [x] Return to the opening welcome/splash screen when signing out from Settings, clearing the session and allowing guest re-entry. TypeScript and all six simulated-provider browser tests pass; native sign-out was not tested.
+
+- [x] Make the main header’s home-country text, flag, and cog one Settings touch target.
+
+- [x] Automatically group numeric inputs while typing, preserving locale decimals and exact calculation strings. TypeScript and all 103 unit/integration tests pass; native typing was not device-tested.
+
+- [x] Automatically format Your savings amounts, percentages, and rate details with grouped digits and locale decimals while preserving saved precision. TypeScript, 103 tests, and formatting spot checks pass; native display was not device-tested.
