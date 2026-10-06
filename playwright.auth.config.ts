@@ -8,6 +8,7 @@ export default defineConfig({
     command: 'npx expo export --platform web --clear --output-dir dist-auth-web && python3 -m http.server 4174 --bind 127.0.0.1 --directory dist-auth-web',
     env: {
       NODE_ENV: 'production', EXPO_PUBLIC_APP_ENV: 'development',
+      EXPO_PUBLIC_FX_API_URL: 'https://savly-api.example.test',
       EXPO_PUBLIC_COGNITO_AUTHORITY: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_MncSdF1r0',
       EXPO_PUBLIC_COGNITO_CLIENT_ID: '35vicii2qq71r09bcd0val80lm',
       EXPO_PUBLIC_COGNITO_DOMAIN: 'https://savly-test.auth.us-east-1.amazoncognito.com',

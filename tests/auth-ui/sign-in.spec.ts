@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { expect, test, type BrowserContext } from '@playwright/test';
+import { SAMPLE_RESPONSES, type ReferencePath } from '../../src/data/transport';
 
 const authority = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_MncSdF1r0';
 const domain = 'https://savly-test.auth.us-east-1.amazoncognito.com';
@@ -8,6 +9,15 @@ const callback = 'http://localhost:4174';
 async function provider(context: BrowserContext, options: { offline?: boolean; badState?: boolean; rejectedToken?: boolean; holdBrowser?: boolean } = {}) {
   let challenge = '';
   let exchanges = 0;
+  await context.route('https://savly-api.example.test/v1/*', async route => {
+    const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization' };
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ headers }); return;
+    }
+    expect(route.request().headers().authorization).toBe('Bearer test-access-token');
+    const path = new URL(route.request().url()).pathname as ReferencePath;
+    await route.fulfill({ headers, json: SAMPLE_RESPONSES[path] });
+  });
   await context.route(`${authority}/.well-known/openid-configuration`, route => options.offline ? route.abort() : route.fulfill({
     json: { issuer: authority }, headers: { 'Access-Control-Allow-Origin': '*' },
   }));
@@ -73,6 +83,12 @@ test('PKCE browser return signs in, stays out of storage, and signs out in Setti
   const disk = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
   expect(disk).not.toContain('test-access-token');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Get started', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Not signed in', { exact: true })).toBeVisible();
 });
 

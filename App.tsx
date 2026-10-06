@@ -12,12 +12,12 @@ export default function App() {
 
 function AppContent() {
   const [started, setStarted] = useState(false);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   useEffect(() => { if (user) setStarted(true); }, [user]);
   return (
     <>
       <StatusBar style={started ? "dark" : "light"} />
-      {started ? <CompareScreen /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}
+      {started ? <CompareScreen onSignOut={() => { signOut(); setStarted(false); }} /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}
     </>
   );
 }

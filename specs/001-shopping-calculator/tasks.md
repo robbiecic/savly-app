@@ -118,3 +118,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Build and install the Android development app on the emulator; verify startup and Cognito browser opening after repairing generated Expo log-box artifacts.
 
 - [x] Fix the iOS 27 simulator startup crash by enabling Expo scene lifecycle support in tracked build configuration; regenerate/build/install iOS and verify the welcome screen. TypeScript and offline dependency checks pass. Physical iPhone and authenticated callback verification remain pending.
+
+- [x] Return to the opening welcome/splash screen when signing out from Settings, clearing the session and allowing guest re-entry. TypeScript and all six simulated-provider browser tests pass; native sign-out was not tested.

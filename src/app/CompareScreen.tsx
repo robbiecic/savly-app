@@ -15,7 +15,7 @@ import { countryFlag, countryName } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
 
 
-export function CompareScreen() {
+export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const wide = useWideLayout();
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
@@ -59,7 +59,7 @@ export function CompareScreen() {
           <Action label="Retry loading settings" onPress={state.retryStartup} />
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
           {page === 'settings' ? <SettingsScreen country={form.residence} currency={form.homeCurrency} locale={state.locale}
-            onChange={(country) => state.edit('residence', country)} onBack={goBack} storageError={state.storageError} /> : <>
+            onChange={(country) => state.edit('residence', country)} onBack={goBack} onSignOut={onSignOut} storageError={state.storageError} /> : <>
           {snapshot && <View style={{ gap: 8 }}>
             <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>
 

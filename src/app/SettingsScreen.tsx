@@ -4,11 +4,11 @@ import { Text } from 'react-native';
 import { Action, Card, Select, ui } from '../components/controls';
 import { residenceOptions } from '../features/comparison/countries';
 
-export function SettingsScreen({ country, currency, locale, onChange, onBack, storageError }: {
+export function SettingsScreen({ country, currency, locale, onChange, onBack, onSignOut, storageError }: {
   country: string; currency: string; locale: string; onChange: (country: string) => void;
-  onBack: () => void; storageError: boolean;
+  onBack: () => void; onSignOut: () => void; storageError: boolean;
 }) {
-  const { user, openSignIn, signOut } = useAuth();
+  const { user, openSignIn } = useAuth();
   const options = useMemo(() => residenceOptions(locale), [locale]);
   return <Card>
     <Text accessibilityRole="header" style={ui.title}>Settings</Text>
@@ -21,7 +21,7 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, st
     <Text style={ui.label}>Account</Text>
     <Text style={ui.text}>{user ? `Signed in${user.email ? ` as ${user.email}` : ''}` : 'Not signed in'}</Text>
     <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>
-    <Action label={user ? 'Sign out' : 'Sign in'} secondary onPress={user ? signOut : openSignIn} />
+    <Action label={user ? 'Sign out' : 'Sign in'} secondary onPress={user ? onSignOut : openSignIn} />
     <Action label="Back to calculator" onPress={onBack} />
   </Card>;
 }

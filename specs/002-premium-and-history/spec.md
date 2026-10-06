@@ -71,7 +71,7 @@ Take photo and Add photo use the same outlined action style as Save and Share, s
 
 ## Cognito sign-in milestone
 
-Welcome and Settings offer real Cognito sign-in, separate from billing, calculator access, and future history sync. Get started continues without an account. The sign-in sheet prepares a browser authorization request; Continue to sign in opens Cognito. On success, Welcome advances to Calculate and Settings shows the signed-in identity. Sign out clears the in-memory session. Saved comparisons remain device-local guest data; sign-in never uploads or reassigns them and does not claim cloud retention.
+Welcome and Settings offer real Cognito sign-in, separate from billing, calculator access, and future history sync. Get started continues without an account. The sign-in sheet prepares a browser authorization request; Continue to sign in opens Cognito. On success, Welcome advances to Calculate and Settings shows the signed-in identity. Settings shows Sign out for signed-in users. Sign out clears the in-memory session and returns to the opening welcome/splash screen, with Get started and Sign in available. Returning as a guest starts a fresh calculator draft and keeps saved comparisons and preferences. Saved comparisons remain device-local guest data; sign-in never uploads or reassigns them and does not claim cloud retention.
 
 For local/development, use issuer `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_MncSdF1r0` and public app client `35vicii2qq71r09bcd0val80lm`, with authorization code, S256 PKCE, random state, and scopes `aws.cognito.signin.user.admin email openid phone profile`. No client secret belongs in the app. Release builds require explicit configuration and must not automatically use development IDs.
 

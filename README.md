@@ -129,7 +129,7 @@ Current refund policy: numeric VAT means an assumed refund of all VAT included i
 
 ## Cognito sign-in
 
-Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Sign out clears the app session; tokens stay in memory and are never written to local storage. Restart or token expiry requires signing in again. Saved comparisons remain on-device; this does not implement cloud history or billing.
+Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Sign out in Settings clears the app session and returns to the opening welcome screen; tokens stay in memory and are never written to local storage. Restart or token expiry requires signing in again. Saved comparisons remain on-device; this does not implement cloud history or billing.
 
 Local/native development now defaults to the owner's issuer, client `35vicii2qq71r09bcd0val80lm`, managed-login domain `https://savly.auth.us-east-1.amazoncognito.com`, and registered callback `savly://auth/callback`.
 
