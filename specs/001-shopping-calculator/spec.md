@@ -107,6 +107,8 @@ Card-fee inputs and zero-fee rows are removed from new calculator results and sh
 
 ## Responsive layout and rotation
 
+Native iOS builds must use Expo's scene lifecycle so Savly launches on iOS 27 when built with Xcode 27. Keep this in the tracked Expo configuration (`expo-build-properties`, `ios.enableSceneSupport`) so regenerated native projects preserve it. Native startup, foreground/background events, and incoming sign-in URLs use Expo's scene forwarding.
+
 Allow portrait and landscape on phones. Reflow live without resetting the active tab, form values, submitted result, or draft photo. Use two columns when safe-area width allows at least 680 points at the current text scale: calculator purchase/settings beside home-price/item/assumptions, result details beside save/photo/share controls, and a two-column Saved list. Narrow windows and larger accessibility text retain a readable single column. Width, rather than reduced keyboard height, selects the form layout. Content remains vertically scrollable without horizontal scrolling.
 
 Welcome uses a compact side-by-side layout on wider screens and removes its portrait spacer on short screens. Country selection and full-screen photo modals support rotation; the full photo fits within the available space without cropping. Respect notches and safe areas in either orientation. Existing native builds must be rebuilt to remove the portrait orientation lock.

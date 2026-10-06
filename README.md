@@ -160,3 +160,11 @@ npm run android             # Build and install on the emulator
 For a physical Android phone, enable USB debugging, connect it, and append `-- --device`. For iPhone, use `npm run ios -- --device` with Xcode signing configured. These are local builds; no paid Expo build service is required. Rebuild after native dependencies or URL schemes change; ordinary TypeScript edits only need Metro reloads.
 
 Native development verification (2026-10-04): Java 17 auto-detection passed; the Android debug APK built and installed on the Pixel_10_Pro emulator. Savly startup and opening the Cognito browser were observed. The first APK had a missing generated Expo log-box class; cleaning that module’s build artifacts and rebuilding repaired it. Full authenticated-account verification, physical-phone installation, and iOS builds remain unverified. TypeScript, nine auth unit tests, and six simulated browser sign-in tests passed after the development-client setup.
+
+### iOS simulator startup
+
+The iOS build enables `ios.enableSceneSupport` through `expo-build-properties` in `app.json`, following [Expo's SDK 57 scene lifecycle guidance](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md#staying-on-sdk-57-with-xcode-27). This fixes the immediate native startup crash on iOS 27 (`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). Keep the plugin configuration when regenerating native files.
+
+After pulling this configuration change, run `npm ci`, `NODE_ENV=development npx expo prebuild --platform ios`, then `npm run ios`. This requires rebuilding the installed native app; a JavaScript reload alone cannot apply it. The hosted development API configuration remains in place.
+
+Verification (2026-10-05): regenerated iOS configuration, successful Xcode simulator build/install, and visible Savly welcome screen on the iPhone 18 Pro simulator running iOS 27. TypeScript and offline Expo dependency compatibility checks passed. Physical iPhone and authenticated callback checks remain pending.

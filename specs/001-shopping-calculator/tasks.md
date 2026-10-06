@@ -116,3 +116,5 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Add the Savly development client and native app identifiers for Cognito callback support; explain Expo Go’s limitation instead of reporting a network error.
 - [x] Make the Android build command locate Java 17 and the Android SDK automatically, without changing shell settings.
 - [x] Build and install the Android development app on the emulator; verify startup and Cognito browser opening after repairing generated Expo log-box artifacts.
+
+- [x] Fix the iOS 27 simulator startup crash by enabling Expo scene lifecycle support in tracked build configuration; regenerate/build/install iOS and verify the welcome screen. TypeScript and offline dependency checks pass. Physical iPhone and authenticated callback verification remain pending.
