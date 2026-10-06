@@ -1,6 +1,6 @@
 # fxService integration and four-hour cache
 
-Status: reference-data validation, HTTP/mock transports, persistent cache, and native storage/lifecycle adapters implemented. Calculator UI wiring and FX orientation are implemented; production authentication and device validation remain pending. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
+Status: reference-data validation, HTTP/mock transports, persistent cache, and native storage/lifecycle adapters implemented. Calculator UI wiring and FX orientation are implemented; hosted development authentication is connected; device validation remains pending. The backend and canonical wire contracts live in the sibling `../../../fxService` repository:
 
 - [Backend setup and local API](../../../fxService/README.md)
 - [Canonical API contract](../../../fxService/specs/requirements/03-api-contract.md)
@@ -52,11 +52,13 @@ Use a fake clock and per-endpoint request counters: first use makes two requests
 
 The data layer has 23 automated tests in `tests/reference-data.test.ts`, using fake time, storage, lifecycle scheduling, and HTTP responses. These verify country membership, exact four-hour expiry, restart cache reuse, shared refresh, offline states, validation, partial failures, immutable snapshots, retry backoff, clock rollback, and request boundaries. Native persistence and actual foreground/background behavior still require device testing. The calculator activates the shared store and subscribes to updates; stale data is exposed immediately when a refresh begins.
 
-## Local development connection
+## Hosted development connection
 
-Native development builds first use the local fxService API: iOS at `http://127.0.0.1:3000`, Android emulator at `http://10.0.2.2:3000`. `EXPO_PUBLIC_FX_API_URL` overrides the development address. Release builds and web previews continue with prototype fixtures by default; the override is ignored in release builds. Web overrides require the API to allow the preview's origin through CORS.
+Development builds on Android, iOS, and web default to `https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com`. `EXPO_PUBLIC_FX_API_URL` configures another base URL (without `/v1`) in development or release builds. `EXPO_PUBLIC_APP_ENV=development` enables the development default in exported previews. Unconfigured release builds retain defaults. There is no automatic local API connection. Restart Expo with a cleared cache after changing configuration; web access requires backend CORS support.
 
-Resolve the source once per app session, allowing two seconds per endpoint. Reuse a validated local cache for four hours. With no local cache and a network/server failure, use clearly labeled built-in defaults; reload after starting the API to select it. If no validated API snapshot is available, start from clearly identified dated defaults, including when API validation, authentication, or storage fails. Once selected, the local store retains ordinary stale-cache/retry behavior and never substitutes fixtures on refresh failure. Local and prototype caches are isolated, and local caches include the URL in their key. Local data stays labeled sample because fxService defaults to mock CityIndex data and the contract does not identify mock versus real upstream mode.
+Signed-in requests send the existing in-memory Cognito access token to both endpoints, with a 15-second timeout. Reject expired tokens before network access. Guests use dated, clearly identified defaults. Sign-in reselects the API store without resetting the calculator draft; sign-out/expiry reselects guest defaults. Authenticated API failures remain unavailable/retryable or retain the last valid API snapshot; they never substitute fixtures. Successful hosted responses use real reference provenance, preserving CityIndex source timestamps, not a live-quote claim. API caches include the URL and real mode, isolating them from former local/sample caches. Keep the four-hour TTL and on-device calculations unchanged.
+
+Verification: TypeScript and 100 unit/integration tests passed, including hosted URL defaults/override, persisted API cache reuse, bearer headers, and authentication failure without sample substitution. A live unauthenticated countries request returned 401. Successful authenticated requests and native device behavior remain unverified.
 
 ## FX age warning (48 hours)
 

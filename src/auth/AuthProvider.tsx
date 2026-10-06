@@ -14,7 +14,7 @@ import { checkLoginPage, completeSignIn, CONNECTION_ERROR, EXPO_GO_ERROR, discov
 WebBrowser.maybeCompleteAuthSession();
 
 type Prepared = { config: CognitoConfig; endpoints: Endpoints; request: AuthRequest };
-type Auth = { user: Session['user'] | null; openSignIn: () => void; signOut: () => void };
+type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; signOut: () => void };
 const AuthContext = createContext<Auth | null>(null);
 
 export function useAuth(): Auth {
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={{
-    user: session?.user ?? null,
+    session, user: session?.user ?? null,
     openSignIn: () => { setVisible(true); void load(); },
     signOut: () => { generation.current++; setSession(null); },
   }}>

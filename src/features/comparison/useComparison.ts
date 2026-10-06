@@ -1,5 +1,6 @@
+import { useAuth } from '../../auth/AuthProvider';
 import { useCurrentTime } from '../../hooks/useCurrentTime';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { activateReferenceData, getReferenceStore } from '../../data/mobile-reference-store';
@@ -9,6 +10,8 @@ import { withHomeCurrency, compare, editForm, newForm, resetOverrides, type Comp
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
+  const { session } = useAuth();
+  const initialized = useRef(false);
   const now = useCurrentTime();
   const localeInfo = getLocales()[0];
   const locale = localeInfo?.languageTag ?? 'en-US';
@@ -27,7 +30,7 @@ export function useComparison() {
     let unsubscribe = () => {};
     let deactivate = () => {};
     const loadReference = async () => {
-      const store = await getReferenceStore();
+      const store = await getReferenceStore(session);
       if (mounted) {
         unsubscribe = store.subscribe((state) => { if (mounted) setReference(state); });
         deactivate = activateReferenceData(store);
@@ -40,7 +43,8 @@ export function useComparison() {
       if (!saved && state.snapshot && !state.snapshot.countries.some((row) => row.country === preferences.country)) {
         preferences.country = state.snapshot.countries[0]?.country ?? '';
       }
-      setForm(newForm(preferences));
+      if (!initialized.current) setForm(newForm(preferences));
+      initialized.current = true;
       setReference(state); setReady(true);
     }).catch((error: unknown) => {
       if (!mounted) return;
@@ -48,7 +52,7 @@ export function useComparison() {
       setStartupError(true);
     });
     return () => { mounted = false; unsubscribe(); deactivate(); };
-  }, [startupAttempt]);
+  }, [startupAttempt, session]);
   useEffect(() => {
     if (!ready) return;
     let current = true;
@@ -68,6 +72,6 @@ export function useComparison() {
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
     edit: (field: keyof ComparisonForm, value: string) => setForm(current => withHomeCurrency(editForm(current, field, value), reference?.snapshot ?? null)),
     reset: () => setForm(current => resetOverrides(current)),
-    retry: async () => { setRetrying(true); try { setReference(await (await getReferenceStore()).retry()); } finally { setRetrying(false); } },
+    retry: async () => { setRetrying(true); try { setReference(await (await getReferenceStore(session)).retry()); } finally { setRetrying(false); } },
   };
 }

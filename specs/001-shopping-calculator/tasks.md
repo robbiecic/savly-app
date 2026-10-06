@@ -75,7 +75,7 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Verify WhatsApp text/link delivery and installed/uninstalled routing (SH1–SH6).
 - [ ] Complete device testing and store preparation.
 
-- [x] Select the local fxService API in native development with emulator-aware addresses, isolated cache, and labeled sample fallback when unavailable.
+- [x] Replace the former local API connection with a configurable hosted development URL on every platform, existing Cognito bearer tokens, and isolated four-hour real-data caching. Guests retain labeled defaults; authenticated failures stay retryable. TypeScript and 100 tests pass; authenticated native-device verification remains pending.
 - [x] Add Android keyboard resizing and iOS avoidance to calculator, savings details, and country search. Native keyboard verification remains pending.
 
 - [x] Fix Android keyboard overlap with explicit height avoidance and focused-input scrolling; verify the lower item-name input with the soft keyboard in Android Expo Go.
