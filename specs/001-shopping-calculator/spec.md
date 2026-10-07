@@ -58,6 +58,8 @@ Use decimal arithmetic, retain precision in intermediate values, and round displ
 
 ## Result summary
 
+Place the item name or name field above Take photo / Add photo, followed by Save / Share on Your savings. Below these actions, an “Expand details” button reveals the cost breakdown, FX provenance, and refund assumptions; details start collapsed and can be hidden again. Keep the savings summary and rate badge visible.
+
 Your savings uses the same clickable home-country, flag, and Settings cog as Calculate and Saved. Tapping any part opens the existing Settings page.
 
 On Your savings, savings and extra-cost summary amounts use the home currency symbol before the localized number (for example, “You could save $25.00” or “Costs €25.00 more”). Apply this to the before-refund summary too. Preserve exact stored digits and use the currency code as a fallback when a symbol is unavailable.

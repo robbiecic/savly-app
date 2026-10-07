@@ -1,5 +1,7 @@
 # Task checklist
 
+- [x] Move item name, photo actions, and Save/Share ahead of a collapsed Expand details section on Your savings.
+
 - [x] Replace the stale-rate badge on Your savings with “FX rates are stale. Login to get accurate rates.” and remove the duplicate warning.
 
 - [x] Share the clickable home-country and Settings cog control across Your savings and the other main pages.

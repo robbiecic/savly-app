@@ -98,12 +98,39 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
         : 'Go back to Calculate and enter the price at home to compare savings.'}</Text>
     </View>}
 
-    {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
-    <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
     <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Login to get accurate rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
-    <View style={wide ? responsive.columns : responsive.stack}>
-    <View style={[responsive.stack, wide && responsive.column]}>
+    {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
+    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
+
+    {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
+    {!saved && <View style={{ gap: 12 }}>
+      <Text style={ui.label}>Item photo (optional)</Text>
+      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      <ResultAction icon="camera" label="Take photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
+      <ResultAction icon="image" label="Add photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
+      </View>
+      {!!photoUri && <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />}
+      {photoBusy && <Text style={ui.muted}>Preparing photo…</Text>}
+      {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
+    </View>}
+
+    {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
+    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      <ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
+        accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
+        disabled={saved || saving || photoBusy} onPress={() => { void save(); }} />
+      <ResultAction icon="share" label={sharing ? 'Sharing…' : 'Share'}
+        accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
+        disabled={sharing} onPress={() => { void share(); }} />
+    </View>
+    {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
+    <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
+    <Action label={details ? 'Hide details' : 'Expand details'} secondary expanded={details} onPress={() => setDetails(!details)} />
+    {details && <View style={responsive.stack}>
     <View style={{ gap: 16 }}>
+      <View style={styles.row}><Text style={ui.text}>Shopping in</Text><Text style={ui.text}>{entry.form.country}</Text></View>
+      <View style={styles.row}><Text style={ui.text}>Home Country</Text><Text style={ui.text}>{entry.form.residence}</Text></View>
+      <View style={styles.row}><Text style={ui.text}>Date calculated</Text><Text style={ui.text}>{new Date(entry.savedAt).toLocaleDateString()}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {number(comparison.price)}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
       {new D(r.cardFee).gt(0) && <View style={styles.row}><Text style={ui.text}>Card fee (saved estimate)</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>}
@@ -121,43 +148,16 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
       {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
       {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
     </View>
-    <Action label={details ? 'Hide rate details' : 'Rate details & assumptions'} secondary expanded={details} onPress={() => setDetails(!details)} />
-    {details && <View style={{ gap: 10 }}>
+    <View style={{ gap: 10 }}>
       <Text selectable style={ui.text}>{fxLabel(r.fx, number)}</Text>
       {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate timestamp' : comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
       {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
       <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
-    </View>}
     </View>
-    <View style={[responsive.stack, wide && responsive.column]}>
-    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
-
-    {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
-    {!saved && <View style={{ gap: 12 }}>
-      <Text style={ui.label}>Item photo (optional)</Text>
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
-      <ResultAction icon="camera" label="Take photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
-      <ResultAction icon="image" label="Add photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
-      </View>
-      {!!photoUri && <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />}
-      {photoBusy && <Text style={ui.muted}>Preparing photo…</Text>}
-      {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
     </View>}
-
-    {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
-    <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
-    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
-      <ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
-        accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
-        disabled={saved || saving || photoBusy} onPress={() => { void save(); }} />
-      <ResultAction icon="share" label={sharing ? 'Sharing…' : 'Share'}
-        accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
-        disabled={sharing} onPress={() => { void share(); }} />
-    </View>
-    {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
-  </View></View></Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
+  </Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({
