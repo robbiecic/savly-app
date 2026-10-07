@@ -38,7 +38,7 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     fxLabel(r.fx),
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),
     ...(new D(r.bankFee).gt(0) ? [`Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`] : []),
-    ...(r.refund.kind === 'vat-assumption' ? ['Assumes all included VAT is refundable, with no provider fee.'] : []),
+    ...(r.refund.kind === 'vat-assumption' ? ['Assumes included VAT is refundable; any modeled fee is shown above.'] : []),
     ...(comparison.refundAssessment ? [comparison.refundAssessment.reason] : []),
     'Refund subject to eligibility. Excludes customs/import taxes.',
     ...(link.demo ? ['Demo link only; app open/download routing is not available.'] : []),

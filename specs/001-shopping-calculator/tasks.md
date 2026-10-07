@@ -148,3 +148,13 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Retain country rules and assessment in saved/shared comparisons without changing historic totals.
 - [x] Verify TypeScript, all 110 unit/integration tests, two focused Chromium navigation tests, and Android/iOS/web production exports. Visually review the rules screen and result page. Native checks remain below.
 - [ ] Verify native navigation, source-link opening and accessibility on Android/iOS devices.
+
+## Refund fee and calculation regression milestone
+
+- [x] Confirm the owner's UK/Australia example uses included GST: GBP 27.88 savings, GBP 16.74 gross refund and GBP 4.69 fee.
+- [x] Deduct an assumed 28% from all new automatic/manual gross refund estimates, before computing savings; preserve legacy saved totals and sample-rule compatibility.
+- [x] Label manual amounts before fees and retain the gross/fee/net breakdown in results, sharing and saved snapshots.
+- [x] Add the UK/Australia regression, reverse-rate and manual-bound cases; update affected existing expectations and specs.
+- [x] Gate standard Android/iOS build and mobile/web export npm commands on TypeScript and all unit/integration/example tests. Document the gate required before direct native-tool invocations.
+- [x] Verify TypeScript, all 113 unit/integration tests, two focused Chromium refund-rules tests (including displayed 28% deduction), and Android/iOS/web JavaScript exports.
+- [ ] Verify the revised fee presentation on physical Android/iOS devices.

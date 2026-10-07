@@ -149,7 +149,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
       {r.refundHome !== null && r.withRefund !== null ? <>
         <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
         <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
-        <Text style={ui.muted}>{r.refund.kind === 'vat-assumption' ? 'Assumes all included VAT is refundable, with no provider fee. Eligibility is not verified' : 'Estimated refund, subject to eligibility'}{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
+        <Text style={ui.muted}>{r.refund.kind === 'vat-assumption' ? 'Assumes included VAT is refundable; any modeled fee is shown above. Eligibility is not verified' : 'Estimated refund, subject to eligibility'}{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
       </> : <Text style={ui.muted}>{r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable: no VAT rate supplied. The comparison uses the overseas price without a refund.' : 'Refund estimate unavailable. This comparison excludes a refund; you can enter a known amount under Edit assumptions.'}</Text>}
       {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
       {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}

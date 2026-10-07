@@ -14,17 +14,19 @@ Generate the message entirely on-device from the displayed result snapshot. Do n
 
 ## Example message
 
-Using calculator AC12, with an optional item name:
+Using a qualifying EUR 120 purchase with 20% included VAT, EURUSD 1.10 and the standard 28% refund fee:
 
 ```text
-I could save USD 34.50 (23.0%) with Savly!
+I could save USD 33.84 (22.6%) with Savly!
 
 Item: Travel bag
 Shopping price: EUR 120.00
 Home price: USD 150.00
 Without VAT refund: USD 132.00
-Estimated VAT refund: USD 16.50
-With VAT refund: USD 115.50
+VAT refund before fee (estimate): USD 22.00
+Refund fee (28% assumed): -USD 6.16
+Estimated VAT refund: USD 15.84
+With VAT refund: USD 116.16
 
 Sample estimate · Refund subject to eligibility.
 Open or download Savly: {SAVLY_APP_LINK}
@@ -52,7 +54,7 @@ Domain and store listing URLs are not yet supplied. Keep these configurable. In 
 
 ## Acceptance criteria
 
-- **SH1:** From AC12, share text shows USD 34.50 savings (23.0%), USD 132.00 without refund, USD 16.50 refund, and USD 115.50 with refund, plus the configured app link. No data API calls occur during sharing.
+- **SH1:** From AC12, share text shows USD 34.50 savings (23.0%), USD 132.00 without refund, USD 16.50 refund, and USD 116.16 with refund, plus the configured app link. No data API calls occur during sharing.
 - **SH2:** A paying guest can share without Savly login. Native sharing offers available destinations; verify the received text and clickable link in WhatsApp on Android and iOS where installed. WhatsApp absence does not prevent sharing elsewhere.
 - **SH3:** Missing, equal, or unfavorable home-price comparisons use accurate alternate wording. Mock, manual, stale, and unavailable-refund states retain their qualifications.
 - **SH4:** Canceling sharing leaves the comparison unchanged. Failures allow retry. Do not show “Message delivered” merely because the share sheet opened or closed; the app cannot verify recipient delivery.

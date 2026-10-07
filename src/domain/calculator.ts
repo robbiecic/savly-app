@@ -1,6 +1,8 @@
 import { D, decimal, fraction, InputError, money, positive } from './decimal';
 import type { DataMode, RefundSelection } from './refunds';
 
+export const ASSUMED_REFUND_FEE_RATE = '0.28';
+
 export interface Currency {
   code: string;
   minorUnits: number;
@@ -124,6 +126,17 @@ export function calculate(input: CalculationInput): CalculationResult {
     if (amount !== null && (amount.gt(p) || (vat !== null && ((refund.kind === 'sample' || refund.kind === 'vat-assumption' || refund.kind === 'scheme') ? amount.gt(vat) : amount.gt(vat.toDecimalPlaces(shopping.minorUnits)))))) {
       throw new InputError('refund', vat === null ? 'Refund cannot exceed the purchase price.' : `Refund cannot exceed included VAT (${shopping.code} ${money(vat, shopping.minorUnits)}).`);
     }
+    // Legacy sample rules already encode net refunds. New app estimates use a
+    // gross refund (including manual overrides), with the standard fee once.
+    if (amount !== null && refund.kind !== 'sample') {
+      const refundFee = amount.mul(ASSUMED_REFUND_FEE_RATE);
+      refundBreakdown = {
+        grossHome: money(amount.mul(r), home.minorUnits),
+        feeHome: money(refundFee.mul(r), home.minorUnits),
+        feeRate: ASSUMED_REFUND_FEE_RATE,
+      };
+      amount = amount.minus(refundFee);
+    }
     const refundHome = amount === null ? null : amount.mul(r);
     const after = refundHome === null ? null : before.minus(refundHome);
     const comparisonCost = refund.kind === 'vat-unavailable' || (refund.kind === 'scheme' && refund.assessment.status === 'unknown') ? before : after;
@@ -146,8 +159,9 @@ export function calculate(input: CalculationInput): CalculationResult {
       savings, fx: { ...fx }, refund: refund.kind === 'sample' ? { ...refund, assumptions: [...refund.assumptions] } : { ...refund },
       bankFee: f.toString(), assumptions: [
         ...(refund.kind === 'scheme' ? [refund.assessment.reason] : []),
-        ...(refund.kind === 'vat-assumption' ? ['Assumes all VAT included in the price is refundable, with no provider fee. Eligibility is not verified.'] : []),
+        ...(refund.kind === 'vat-assumption' ? ['Assumes all VAT included in the price is refundable, before the assumed refund fee. Eligibility is not verified.'] : []),
         ...(refund.kind === 'vat-unavailable' ? ['VAT refund unavailable: no VAT rate supplied. Comparison excludes any refund.'] : []),
+        ...(refundBreakdown ? [`Assumed refund fee: ${new D(refundBreakdown.feeRate).mul(100).toFixed()}% of the gross potential refund, deducted once. Actual fees may differ.`] : []),
         'Purchase and refund use the same FX rate; actual settlement may differ.',
         ...(f.gt(0) ? ['Card fees apply to the full purchase and are not refunded.'] : []),
         'Customs duties, import taxes, and travel costs are excluded.',

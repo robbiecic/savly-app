@@ -48,5 +48,5 @@ export function assessTouristRefund(country: { vatRate: number | null; touristRe
   if (!(min.comparison === 'gt' ? p.gt(threshold) : p.gte(threshold))) {
     return { status: 'excluded', reason: `This price does not meet the minimum purchase. ${minimumLabel(min)} No automatic refund included; other qualifying purchases are not counted.` };
   }
-  return { status: 'potential', reason: `Purchase value meets the minimum condition. ${minimumLabel(min)} Assumes this purchase meets the grouping conditions and is wholly taxed at the stated standard VAT rate. Residency, goods, paperwork and retailer conditions still apply. Assumes all included VAT is refundable, with no provider fee; actual refunds may be lower or unavailable.` };
+  return { status: 'potential', reason: `Purchase value meets the minimum condition. ${minimumLabel(min)} Assumes this purchase meets the grouping conditions and is wholly taxed at the stated standard VAT rate. Residency, goods, paperwork and retailer conditions still apply. Assumes all included VAT is refundable, before an assumed 28% refund fee; actual refunds may be lower or unavailable.` };
 }

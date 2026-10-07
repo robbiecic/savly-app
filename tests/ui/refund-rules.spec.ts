@@ -29,8 +29,12 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
-  await expect(page.getByText('You could save $40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $33.84', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Purchase minimum met/).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
+  await expect(page.getByText('Refund fee (28% assumed)', { exact: true })).toBeVisible();
+  await expect(page.getByText('−USD 6.16', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 15.84', { exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/refund-result.png', fullPage: true });
   await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Saved bag');
   await page.getByRole('button', { name: 'Save', exact: true }).click();

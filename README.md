@@ -125,7 +125,7 @@ Startup uses available API reference data or clearly identified built-in default
 
 Set your home country by tapping the home-country text, flag, or **Settings** cog in the main header. The calculator automatically uses its currency and no longer offers an inline home-country selector. Your home country and flag stay visible in the header while scrolling. The selection is remembered across app launches; saved comparisons retain their original currencies and amounts.
 
-Current refund policy: [country refund thresholds](specs/001-shopping-calculator/tourist-refunds.md) gate automatic refunds using `/v1/countries` scheme status, strict/inclusive minimums, tax basis and research dates. Passing the value check enables a labeled full-VAT assumption; it does not guarantee eligibility. Missing/overdue metadata or unconfirmed regional rules compare without a refund. **VAT refund rules** on Calculate and Your savings shows thresholds, grouping, notes, sources and review dates. Submitted/saved results retain their original metadata and totals.
+Current refund policy: [country refund thresholds](specs/001-shopping-calculator/tourist-refunds.md) gate automatic refunds using `/v1/countries` scheme status, strict/inclusive minimums, tax basis and research dates. Passing the value check enables a labeled included-VAT assumption less the standard 28% refund fee; it does not guarantee eligibility. Missing/overdue metadata or unconfirmed regional rules compare without a refund. **VAT refund rules** on Calculate and Your savings shows thresholds, grouping, notes, sources and review dates. Submitted/saved results retain their original metadata and totals.
 
 ## Cognito sign-in
 
@@ -170,3 +170,13 @@ After pulling this configuration change, run `npm ci`, `NODE_ENV=development npx
 Verification (2026-10-05): regenerated iOS configuration, successful Xcode simulator build/install, and visible Savly welcome screen on the iPhone 18 Pro simulator running iOS 27. TypeScript and offline Expo dependency compatibility checks passed. Physical iPhone and authenticated callback checks remain pending.
 
 Refund milestone verification (2026-10-07): TypeScript, all 110 unit/integration tests, two focused Chromium rules/navigation checks, and Android/iOS/web production exports pass. The focused browser command is `npx playwright test tests/ui/refund-rules.spec.ts`. Native navigation, source-link opening and accessibility were not device-tested; authenticated live responses were not exercised in this milestone.
+
+## Calculation examples and build gate
+
+All new automatic and manual refund estimates deduct an assumed **28% of the gross potential refund**. Manual refund inputs are before fees. Result details and sharing show the gross refund, fee and net refund; saved historical totals stay unchanged. Refund eligibility and actual provider fees remain unverified.
+
+The [UK/Australia example](specs/001-shopping-calculator/spec.md#ukaustralia-regression-example) compares GBP 200 with tax-inclusive AUD 350 at the fixed example quote GBP/AUD 1.9004: GBP 16.74 gross refund, GBP 4.69 fee, **GBP 27.88 potential savings**. `tests/australia-example.test.ts` protects the totals, FX direction, manual fee, sharing and saving.
+
+The Android/iOS build and mobile/web export npm commands automatically run TypeScript and all `tests/*.test.ts` tests before building, stopping on failure. Add future calculation examples to that directory. Use `npm run check:build` before invoking Expo/Gradle/Xcode directly, since those commands bypass npm hooks.
+
+Refund-fee verification: TypeScript, all 113 unit/integration tests, two focused Chromium refund-rules tests and Android/iOS/web exports passed. Native builds and physical-device tests were not run for this change.

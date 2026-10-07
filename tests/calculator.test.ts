@@ -108,7 +108,7 @@ test('AC12 numeric example: default fee is zero', () => {
   assert.deepEqual(value.savings, { amount: '34.50', percentage: '23.0', outcome: 'save' });
 });
 test('Manual amount overrides fixture; refund bound uses rounded included VAT', () => {
-  assert.equal(result({ refund: { kind: 'manual', amount: '20' } }).refundShopping, '20.00');
+  assert.equal(result({ refund: { kind: 'manual', amount: '20' } }).refundShopping, '14.40');
   assert.equal(calculate({ ...input, price: '1', refund: { kind: 'manual', amount: '0.17' } }).status, 'ok');
   assert.equal(calculate({ ...input, price: '1', refund: { kind: 'manual', amount: '0.18' } }).status, 'invalid');
 });

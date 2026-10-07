@@ -28,8 +28,8 @@ test('Saved snapshot survives reconstruction without mutation or duplicate saves
   snapshot.comparison.result.withRefund = '999.00';
   await writing;
   const loaded = await new SavedComparisonStore(h.storage).list();
-  assert.equal(loaded[0].comparison.result.withRefund, '110.00');
-  assert.equal(loaded[0].comparison.result.savings?.amount, '40.00');
+  assert.equal(loaded[0].comparison.result.withRefund, '116.16');
+  assert.equal(loaded[0].comparison.result.savings?.amount, '33.84');
   assert.equal(loaded[0].comparison.result.fx.source, 'CityIndex');
   await h.store.save(loaded[0]);
   assert.equal((await h.store.list()).length, 1);

@@ -16,14 +16,14 @@ function result(changes = {}, vatRate: number | null = .2, mode: 'real' | 'sampl
   if (view.status !== 'ready') assert.fail(view.message);
   return view.comparison;
 }
-test('Qualifying purchase assumes full VAT, without asserting residency eligibility', () => {
+test('Qualifying purchase deducts 28% from full VAT, without asserting residency eligibility', () => {
   for (const mode of ['sample', 'real'] as const) {
     const c = result({}, .2, mode);
     assert.equal(c.result.refund.kind, 'scheme');
     assert.equal(c.result.includedVat, '20.00');
-    assert.equal(c.result.refundHome, '22.00');
-    assert.equal(c.result.withRefund, '110.00');
-    assert.equal(c.result.savings?.amount, '40.00');
+    assert.equal(c.result.refundHome, '15.84');
+    assert.equal(c.result.withRefund, '116.16');
+    assert.equal(c.result.savings?.amount, '33.84');
     assert.match(shareMessage(c, shareLink()), /Assumes all included VAT/);
   }
 });
@@ -41,10 +41,10 @@ test('Null VAT preserves unavailable refund but compares converted price, includ
 test('Zero VAT is distinct from missing VAT and manual refund overrides remain bounded', () => {
   assert.equal(result({}, 0).result.refundHome, '0.00');
   assert.equal(result({}, 0).result.savings?.amount, '18.00');
-  assert.equal(result({ refundOverride: '10' }).result.refundHome, '11.00');
+  assert.equal(result({ refundOverride: '10' }).result.refundHome, '7.92');
 });
-test('Spain full-VAT assumption replaces the historical 28% provider fee for new results', () => {
+test('New estimates deduct the same 28% fee as the Spain example', () => {
   const r = result({ price: '450', homePrice: '500', fxOverride: '1.125239113311579835' }, .21).result;
-  assert.equal(r.refundBreakdown, undefined);
-  assert.equal(r.refundShopping, '78.10');
+  assert.deepEqual(r.refundBreakdown, { grossHome: '87.88', feeHome: '24.61', feeRate: '0.28' });
+  assert.equal(r.refundShopping, '56.23');
 });

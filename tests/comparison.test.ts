@@ -18,8 +18,8 @@ function ready(changes: Partial<ComparisonForm> = {}, state = reference, locale 
 }
 test('AC12 complete automatic comparison from cached backend-shaped data', () => {
   const { result } = ready();
-  assert.equal(result.withoutRefund, '132.00'); assert.equal(result.withRefund, '110.00');
-  assert.equal(result.refundHome, '22.00'); assert.equal(result.savings?.amount, '40.00');
+  assert.equal(result.withoutRefund, '132.00'); assert.equal(result.withRefund, '116.16');
+  assert.equal(result.refundHome, '15.84'); assert.equal(result.savings?.amount, '33.84');
   assert.equal(result.bankFee, '0'); assert.equal(result.fx.kind, 'sample');
 });
 test('FX direction: direct, inverted, same currency and no triangulation', () => {
@@ -36,8 +36,8 @@ test('Reverse quotes remain calculable when reciprocals repeat beyond 18 decimal
   assert.equal(value.result.fx.originalRate, '1.1'); assert.equal(value.result.fx.inverted, true);
 });
 test('AC13 legacy fees ignored, overrides, automatic reset and context changes', () => {
-  assert.equal(ready({ feePercent: '3' }).result.withRefund, '110.00');
-  assert.equal(ready({ fxOverride: '2', refundOverride: '10' }).result.withRefund, '220.00');
+  assert.equal(ready({ feePercent: '3' }).result.withRefund, '116.16');
+  assert.equal(ready({ fxOverride: '2', refundOverride: '10' }).result.withRefund, '225.60');
   const overridden = { ...form, fxOverride: '2', refundOverride: '10' };
   for (const field of ['price', 'country', 'homeCurrency', 'residence'] as const) {
     const changed = editForm(overridden, field, 'changed');
@@ -45,7 +45,7 @@ test('AC13 legacy fees ignored, overrides, automatic reset and context changes',
   }
   assert.equal(editForm(overridden, 'homePrice', '100').fxOverride, '2');
   assert.equal(compare(resetOverrides(overridden), reference).status, 'ready');
-  assert.equal(ready(resetOverrides(overridden)).result.withRefund, '110.00');
+  assert.equal(ready(resetOverrides(overridden)).result.withRefund, '116.16');
 });
 test('AC14 loading, unavailable, missing pair, invalid, empty and unknown refund states', () => {
   assert.equal(compare(form, null).status, 'loading');
@@ -54,10 +54,10 @@ test('AC14 loading, unavailable, missing pair, invalid, empty and unknown refund
   assert.equal(compare({ ...form, price: '0' }, reference).status, 'invalid');
   assert.equal(compare({ ...form, homeCurrency: 'JPY' }, reference).status, 'invalid');
   assert.equal(ready({ residence: '' }).result.refund.kind, 'scheme');
-  assert.equal(ready({ residence: 'FR' }).result.withRefund, '110.00');
+  assert.equal(ready({ residence: 'FR' }).result.withRefund, '116.16');
 });
 test('AC15 locale normalizes decimal separator without inferring residency from currency', () => {
-  assert.equal(ready({ price: '120,00', feePercent: '3,0' }, reference, 'fr-FR').result.withRefund, '110.00');
+  assert.equal(ready({ price: '120,00', feePercent: '3,0' }, reference, 'fr-FR').result.withRefund, '116.16');
   assert.equal(compare({ ...form, price: '1,200' }, reference, 'en-US').status, 'invalid');
   assert.equal(initialPreferences().homeCurrency, '');
   assert.equal(initialPreferences().residence, '');
@@ -73,7 +73,7 @@ test('AC15 settings persist separately from item inputs and comparison overrides
 test('AC16 removed countries block new estimates; history snapshots retain original values', () => {
   const old = ready();
   const next = { ...reference, snapshot: { ...snapshot, countries: snapshot.countries.filter((row) => row.country !== 'FR') } };
-  assert.equal(compare(form, next).status, 'invalid'); assert.equal(old.result.withRefund, '110.00');
+  assert.equal(compare(form, next).status, 'invalid'); assert.equal(old.result.withRefund, '116.16');
 });
 test('AC17–18 refresh recalculates active result, stale flags survive and edits/sharing make no requests', async () => {
   let now = 1000; let rate = 1.1; let offline = false; const calls: string[] = []; let raw: string | null = null;
@@ -91,15 +91,15 @@ test('AC17–18 refresh recalculates active result, stale flags survive and edit
   const stale = compare(form, await store.get(), 'en-US', Date.parse('2026-10-07T12:00:00Z')); assert.equal(stale.status === 'ready' && stale.comparison.stale, true);
   offline = false; rate = 2;
   const fresh = compare(form, await store.retry(), 'en-US', Date.parse('2026-10-07T12:00:00Z'));
-  assert.equal(fresh.status === 'ready' && fresh.comparison.result.withRefund, '200.00');
-  assert.equal(old.status === 'ready' && old.comparison.result.withRefund, '110.00');
+  assert.equal(fresh.status === 'ready' && fresh.comparison.result.withRefund, '211.20');
+  assert.equal(old.status === 'ready' && old.comparison.result.withRefund, '116.16');
 });
 test('SH1 and SH3: text matches displayed result and preserves qualifications', () => {
   const message = shareMessage(ready({ itemName: 'Travel bag' }), shareLink());
-  for (const text of ['USD 40.00 (26.7%)', 'USD 132.00', 'USD 22.00', 'USD 110.00', 'Item: Travel bag', 'Sample estimate', 'Demo link only', 'https://example.com/app', 'Monthly subscription', 'Excludes customs/import taxes']) assert.ok(message.includes(text), text);
+  for (const text of ['USD 33.84 (22.6%)', 'USD 132.00', 'USD 15.84', 'USD 116.16', 'Item: Travel bag', 'Sample estimate', 'Demo link only', 'https://example.com/app', 'Monthly subscription', 'Excludes customs/import taxes']) assert.ok(message.includes(text), text);
   assert.match(shareMessage(ready({ homePrice: '' }), shareLink()), /overseas shopping estimate/);
-  assert.match(shareMessage(ready({ homePrice: '100' }), shareLink()), /USD 10.00 more/);
-  assert.match(shareMessage(ready({ homePrice: '110.00' }), shareLink()), /Same estimated cost/);
+  assert.match(shareMessage(ready({ homePrice: '100' }), shareLink()), /USD 16.16 more/);
+  assert.match(shareMessage(ready({ homePrice: '116.16' }), shareLink()), /Same estimated cost/);
   assert.match(shareMessage(ready({ residence: 'FR' }), shareLink()), /Assumes all included VAT/);
   const manual = shareMessage({ ...ready({ fxOverride: '1.2', refundOverride: '10' }), stale: true }, shareLink());
   assert.match(manual, /Manual rate/); assert.match(manual, /Manual refund/); assert.doesNotMatch(manual, /Rates out of date/);
@@ -139,7 +139,7 @@ test('Legacy fee preferences cannot charge new comparisons or appear in shares',
   for (const feePercent of ['3', 'invalid']) {
     const comparison = ready({ feePercent });
     assert.equal(comparison.result.cardFee, '0.00');
-    assert.equal(comparison.result.savings?.amount, '40.00');
+    assert.equal(comparison.result.savings?.amount, '33.84');
     assert.doesNotMatch(shareMessage(comparison, shareLink()), /bank fee/i);
   }
 });

@@ -37,9 +37,9 @@ test('Savings exclude blocked refunds and unknown refunds; manual amounts remain
   assert.equal(below.result.withRefund, '110.00');
   assert.equal(below.result.savings?.amount, '390.00');
   const above = comparison('FR', '100.01');
-  assert.equal(above.result.refundShopping, '16.67');
-  assert.equal(comparison('FR', '120.01').result.refundShopping, '20.00');
-  assert.equal(comparison('JP', '5501').result.refundShopping, '500');
+  assert.equal(above.result.refundShopping, '12.00');
+  assert.equal(comparison('FR', '120.01').result.refundShopping, '14.40');
+  assert.equal(comparison('JP', '5501').result.refundShopping, '360');
   assert.equal(comparison('US', '100', now, '50').result.refundHome, '0.00');
   const expired = comparison('FR', '120', Date.parse('2027-01-07'));
   assert.equal(expired.result.refundHome, null);

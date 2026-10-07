@@ -40,12 +40,12 @@ test('AC19 Spain: VAT-inclusive purchase, reverse stale FX, explicit 28% fee and
   const message = shareMessage(c, shareLink());
   for (const label of ['USD 56.92', 'USD 87.88', '-USD 24.61', '28% assumed', 'Rates out of date', 'Sample estimate']) assert.ok(message.includes(label));
 });
-test('AC19 fee is applied once; manual net refunds replace the sample fee model', () => {
+test('AC19 fee is applied once; manual gross refunds also incur the standard fee', () => {
   const view = compare({ ...form, refundOverride: '50' }, { status: 'fresh', snapshot, label: 'Sample rate', error: null });
   if (view.status !== 'ready') assert.fail(view.message);
-  assert.equal(view.comparison.result.refundShopping, '50.00');
-  assert.equal(view.comparison.result.refundBreakdown, undefined);
-  assert.equal(view.comparison.result.savings?.amount, '49.90');
+  assert.equal(view.comparison.result.refundShopping, '36.00');
+  assert.deepEqual(view.comparison.result.refundBreakdown, { grossHome: '56.26', feeHome: '15.75', feeRate: '0.28' });
+  assert.equal(view.comparison.result.savings?.amount, '34.15');
 });
 test('Fee assumptions have bounds, require matching VAT, and never become live refund rules', () => {
   const rule = SAMPLE_REFUND_RULES.find(r => r.country === 'ES')!;

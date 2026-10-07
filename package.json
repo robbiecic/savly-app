@@ -46,7 +46,12 @@
     "export:web": "expo export --platform web --output-dir dist-web",
     "export:icons": "node scripts/export-icons.cjs",
     "test:auth:ui": "playwright test --config playwright.auth.config.ts",
-    "start:dev": "expo start --dev-client --clear"
+    "start:dev": "expo start --dev-client --clear",
+    "check:build": "npm run typecheck && npm test",
+    "preandroid": "npm run check:build",
+    "preios": "npm run check:build",
+    "preexport:mobile": "npm run check:build",
+    "preexport:web": "npm run check:build"
   },
   "private": true
 }

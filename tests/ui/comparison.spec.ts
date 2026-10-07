@@ -28,31 +28,31 @@ async function comparison(page: Page) {
   await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toHaveCount(0);
   await calculate(page);
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
-  await expect(page.getByText('You could save USD 40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
 }
 
 test('AC12–15: submitted result, no card fee, overrides, validation and restart settings', async ({ page }) => {
   await comparison(page);
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
   await expect(page.getByText('1 EUR = 1.1 USD · Default FX rate', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
   await calculate(page);
-  await expect(page.getByText('You could save USD 40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
   await back(page);
-  await page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true }).fill('21');
+  await page.getByRole('textbox', { name: 'Manual refund before fee (EUR)', exact: true }).fill('21');
   await expect(page.getByRole('button', { name: 'Share savings', exact: true })).toHaveCount(0);
   await expect(page.getByText('Refund cannot exceed included VAT (EUR 20.00).').first()).toBeVisible();
   await page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
@@ -67,8 +67,8 @@ test('Share payload matches the display; cancellation leaves it intact', async (
   });
   await comparison(page);
   await page.getByRole('button', { name: 'Share savings', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('USD 40.00 (26.7%)');
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('USD 33.84 (22.6%)');
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await expect(page.getByText('Sharing couldn’t open. Please try again.', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/delivered/i)).toHaveCount(0);
 });
@@ -78,9 +78,9 @@ test('Missing, equal, unfavorable comparisons and context override reset', async
   await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('100');
   await calculate(page);
-  await expect(page.getByText('Costs USD 10.00 more', { exact: true })).toBeVisible();
+  await expect(page.getByText('Costs USD 16.16 more', { exact: true })).toBeVisible();
   await back(page);
-  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('110.00');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('116.16');
   await calculate(page);
   await expect(page.getByText('Same estimated cost', { exact: true })).toBeVisible();
   await back(page);
@@ -91,12 +91,12 @@ test('Missing, equal, unfavorable comparisons and context override reset', async
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   await page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true }).fill('2');
   await calculate(page);
-  await expect(page.getByText('USD 200.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 211.20', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
   await expect(page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true })).toHaveValue('');
   await calculate(page);
-  await expect(page.getByText('USD 91.67', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
 });
 
 test('Small screen layout and demo landing page', async ({ page }) => {
@@ -136,7 +136,7 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   await calculate(page);
   await expect(page.getByText('FX rates are stale. Login to get accurate rates.', { exact: true })).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
@@ -149,7 +149,7 @@ test('Unknown refund and missing FX never invent a total; invalid input hides sh
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await setHomeCountry(page, 'France');
   await calculate(page);
-  await expect(page.getByText('EUR 100.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('EUR 105.60', { exact: true })).toBeVisible();
   await back(page);
   await setHomeCountry(page, 'Japan');
   await expect(page.getByText('Conversion unavailable.', { exact: true }).first()).toBeVisible();
@@ -166,7 +166,7 @@ test('Calculator starts and computes when optional Intl constructors are unavail
     Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', { configurable: true, value: undefined });
   });
   await comparison(page);
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -221,7 +221,7 @@ test('Save persists the displayed snapshot and supports reopening and deletion',
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await page.getByRole('button', { name: 'Open Travel bag', exact: true }).click();
-  await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await page.getByRole('button', { name: 'Delete Travel bag', exact: true }).click();
@@ -279,8 +279,8 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
-  for (const label of ['You could save USD 81.52', 'login to get accurate rates', 'USD -6.36',
-    'Estimated VAT refund', 'USD 87.88', 'USD 418.48']) {
+  for (const label of ['You could save USD 56.92', 'login to get accurate rates', 'USD -6.36',
+    'Net VAT refund (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61', 'USD 63.27', 'USD 443.08']) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
   await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
@@ -317,7 +317,7 @@ test('Item photo can be added, removed, saved and reopened after reload', async 
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Open Photo bag', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
-  await expect(page.getByText('You could save USD 40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
 });
 
 test('Rotation reflows welcome, calculator and savings while retaining the draft', async ({ page }) => {
@@ -343,7 +343,7 @@ test('Rotation reflows welcome, calculator and savings while retaining the draft
   await page.screenshot({ path: 'test-results/savly-calculator-landscape.png' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await calculate(page);
-  await expect(page.getByText('You could save USD 40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Landscape bag');
   await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/savly-result-landscape.png' });
@@ -375,7 +375,7 @@ test('Settings owns home country; fixed flag follows calculations and persists a
   await expect(badge).toBeInViewport();
   await calculate(page);
   await expect(badge).toBeInViewport();
-  await expect(page.getByText('You could save USD 40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await expect(badge).toBeVisible();
@@ -386,7 +386,7 @@ test('Settings owns home country; fixed flag follows calculations and persists a
 
 test('Savings lead the result; VAT is assumed refundable regardless of home country', async ({ page }) => {
   await comparison(page);
-  const savings = page.getByText('You could save USD 40.00', { exact: true });
+  const savings = page.getByText('You could save USD 33.84', { exact: true });
   await expect(savings).toBeInViewport();
   const summaryBounds = await savings.boundingBox();
   const warningBounds = await page.getByText('login to get accurate rates', { exact: true }).boundingBox();
@@ -395,7 +395,7 @@ test('Savings lead the result; VAT is assumed refundable regardless of home coun
   await setHomeCountry(page, 'France');
   await page.getByRole('textbox', { name: 'Home price (EUR)', exact: true }).fill('150');
   await calculate(page);
-  await expect(page.getByText('You could save EUR 50.00', { exact: true })).toBeInViewport();
+  await expect(page.getByText('You could save EUR 44.40', { exact: true })).toBeInViewport();
   await expect(page.getByText('Assumes all included VAT is refundable', { exact: false })).toBeVisible();
 });
 
@@ -434,7 +434,7 @@ test('numeric fields group thousands during typing and retain decimals', async (
   await expect(home).toHaveValue('20,000');
   await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
   const fx = page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true });
-  const refund = page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true });
+  const refund = page.getByRole('textbox', { name: 'Manual refund before fee (EUR)', exact: true });
   await fx.pressSequentially('1234.5678', { delay: 50 });
   await expect(fx).toHaveValue('1,234.5678');
   await refund.click();
