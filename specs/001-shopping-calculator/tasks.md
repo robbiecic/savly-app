@@ -175,3 +175,6 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Bundle the six owner-supplied FX pairs alongside the four existing rates, covering every combination of US, GB, AU, JP, ES and FR.
 - [x] Preserve unknown quote dates and owner provenance; keep stale-rate warnings and strict authenticated API validation. Version the guest cache so existing users receive complete defaults immediately.
 - [x] Verify all 36 home/shopping combinations, direct/reverse rates, a GBP 100 → USD 132 example, retained refund metadata, cache restart and old-cache replacement. TypeScript and all 116 unit/integration tests pass; browser and native device checks were not run for this change.
+
+- [x] Move the shopping-country dropdown below the tab bar and show it only on Calculate, preserving the selected country when switching tabs. TypeScript checks pass; browser and native device checks were not run for this layout change.
+- [x] Show the default/API data-source message directly below Compare a price, only on Calculate. TypeScript checks pass; browser and native device checks were not run for this layout change.

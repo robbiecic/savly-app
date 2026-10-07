@@ -57,14 +57,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
         </Card> : <ActivityIndicator accessibilityLabel="Loading your settings" color={colors.ink} /> : <>
           {page === 'settings' ? <SettingsScreen country={form.residence} currency={form.homeCurrency} locale={state.locale}
             onChange={(country) => state.edit('residence', country)} onBack={goBack} onSignOut={onSignOut} storageError={state.storageError} /> : <>
-          {snapshot && <View style={{ gap: 8 }}>
-            <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>
-
-          </View>}
-          <View style={styles.shoppingPicker}>
-            <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
-          </View>
-
           <View accessibilityRole="tablist" style={styles.tabs}>
             {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
@@ -73,8 +65,12 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             </Pressable>)}
           </View>
           {page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
+          <View style={styles.shoppingPicker}>
+            <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
+          </View>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
+            {snapshot && <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>}
             <View style={wide ? responsive.columns : responsive.stack}>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric locale={state.locale} placeholder="Price overseas, including taxes" error={error('price')} />
