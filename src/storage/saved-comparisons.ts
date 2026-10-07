@@ -1,3 +1,5 @@
+import { validateReferenceData } from '../data/reference-data';
+import type { RefundAssessment } from '../domain/tourist-refunds';
 import type { Storage } from '../data/reference-store';
 import type { ComparisonForm, DisplayedComparison } from '../features/comparison/model';
 
@@ -18,6 +20,12 @@ export function validPhotoUri(uri: unknown): uri is string {
     (uri.length <= 400_000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(uri)));
 }
 const key = 'savly:saved:1';
+function validAssessment(value: RefundAssessment | undefined): boolean {
+  return !!value && ['potential', 'excluded', 'unknown'].includes(value.status) && typeof value.reason === 'string';
+}
+function validRefundCountry(value: unknown): boolean {
+  try { validateReferenceData({ rates: [] }, { countries: [value] }); return true; } catch { return false; }
+}
 function valid(entry: SavedComparison): boolean {
   const c = entry?.comparison;
   const r = c?.result;
@@ -26,6 +34,8 @@ function valid(entry: SavedComparison): boolean {
     Number.isFinite(Date.parse(entry.savedAt)) && (entry.photoUri === undefined || validPhotoUri(entry.photoUri)) &&
     !!entry.form && ['country', 'residence', 'homeCurrency', 'price', 'homePrice', 'feePercent', 'itemName', 'fxOverride', 'refundOverride']
       .every(k => typeof entry.form[k as keyof ComparisonForm] === 'string') &&
+    (c?.refundCountry === undefined || validRefundCountry(c.refundCountry)) &&
+    (c?.refundAssessment === undefined || validAssessment(c.refundAssessment)) &&
     typeof c?.itemName === 'string' && !!c.itemName.trim() && amount(c.price) &&
     (c.homePrice === null || amount(c.homePrice)) && typeof c.sample === 'boolean' && typeof c.stale === 'boolean' &&
     typeof c.snapshotId === 'string' && Number.isFinite(c.fetchedAt) &&
@@ -39,7 +49,8 @@ function valid(entry: SavedComparison): boolean {
     !!r.fx && amount(r.fx.rate) && typeof r.fx.from === 'string' && typeof r.fx.to === 'string' &&
     typeof r.fx.source === 'string' && ['sample', 'reference', 'manual'].includes(r.fx.kind) &&
     (r.fx.asOf === null || typeof r.fx.asOf === 'string') &&
-    !!r.refund && ['sample', 'manual', 'unavailable', 'vat-assumption', 'vat-unavailable'].includes(r.refund.kind) &&
+    !!r.refund && ['sample', 'manual', 'unavailable', 'vat-assumption', 'vat-unavailable', 'scheme'].includes(r.refund.kind) &&
+    (r.refund.kind !== 'scheme' || validAssessment(r.refund.assessment)) &&
     (r.refund.kind !== 'sample' || (Array.isArray(r.refund.assumptions) && r.refund.assumptions.every(v => typeof v === 'string'))) &&
     Array.isArray(r.assumptions) && r.assumptions.every(v => typeof v === 'string');
 }

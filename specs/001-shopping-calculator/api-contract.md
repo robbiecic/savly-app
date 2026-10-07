@@ -10,7 +10,7 @@ These are the source of truth for requests and responses. This document defines 
 
 ## Current integration boundary
 
-Fetch `GET /v1/rates` and `GET /v1/countries` together for one app refresh cycle. Rates contain `pair`, `rate`, `pipSize`, `asOf`, and `source`; countries contain `country`, `currency`, and nullable `vatRate`. The single-pair endpoint `GET /v1/rates/{pair}` exists but is unnecessary for normal cached calculator edits. Send no item inputs, residency, comparison prices, or computed savings to these endpoints. Every calculation runs on-device.
+Fetch `GET /v1/rates` and `GET /v1/countries` together for one app refresh cycle. Rates contain `pair`, `rate`, `pipSize`, `asOf`, and `source`; countries contain `country`, `currency`, nullable `vatRate`, and optional `touristRefund` metadata. The single-pair endpoint `GET /v1/rates/{pair}` exists but is unnecessary for normal cached calculator edits. Send no item inputs, residency, comparison prices, or computed savings to these endpoints. Every calculation runs on-device.
 
 Production requests require `Authorization: Bearer <Cognito JWT>`. The backend’s local API uses `http://127.0.0.1:3000` without authentication and defaults to fixture data. Follow its README to run it; the loopback address is not a physical phone’s host address. Keep backend/provider secrets off the client. Authentication, optional history sync, and store entitlement verification remain separate concerns. Guest calculator access is a product requirement, but obtaining authorized production data without requiring a Savly account is unresolved; resolve it before production integration.
 
@@ -24,13 +24,11 @@ CityIndex rates are stored MID bar closes, not live quotes or Mastercard settlem
 
 Validate the response shapes, country/currency codes, unique countries and pairs, positive finite rates and pip sizes, valid source timestamps, and VAT values from 0 through 1 or null. Null VAT means unknown, not zero. Missing pairs are allowed by the backend. `pipSize` formats FX quotes; it is not currency minor-unit metadata. Use maintained client currency metadata for money rounding and localized country names; supported-country membership still comes from the API.
 
-The backend supplies no schema version, dataset version, country data timestamp, currency minor units, refund eligibility, or net-refund rules. Generate an app snapshot identifier and adapter version locally; do not invent server provenance. Validate both responses before atomically publishing the combined app snapshot; if either fails, retain the previous complete snapshot. This is a client refresh grouping, not a server-guaranteed atomic dataset.
+The backend supplies no schema version, dataset version, country data timestamp, currency minor units, personal refund eligibility, or net-refund amounts. Generate an app snapshot identifier and adapter version locally; do not invent server provenance. Validate both responses before atomically publishing the combined app snapshot; if either fails, retain the previous complete snapshot. This is a client refresh grouping, not a server-guaranteed atomic dataset.
 
 ## Refund estimates
 
-Numeric VAT metadata drives an explicit on-device assumption: all VAT included in the gross price is refundable, with no provider fee. Compute P × v / (1 + v) without intermediate rounding. This policy applies in API and default modes regardless of residency. It is not verified eligibility and must be labeled accordingly. Preserve source data and the assumption in saved results; add no invented API fields.
-
-Null VAT means refund unavailable, not a known zero refund. Compare the converted purchase cost without a refund against the home price and show cheaper/same/more. Numeric zero VAT produces an explicit zero refund. A bounded manual net refund can override automatic VAT only when VAT metadata exists. Legacy sample selections remain readable for historical saved estimates.
+Consume optional `touristRefund` metadata from `/v1/countries` under the canonical backend contract. Preserve nested thresholds, grouping, regional exceptions, source links and research dates through validation/cache/save. Follow [country refund thresholds and rules screen](tourist-refunds.md) for automatic selection, fallback, manual overrides, and acceptance examples. Threshold availability is not personal eligibility or a net refund rate.
 
 ## Cache lifecycle
 
@@ -68,4 +66,4 @@ The four-hour cache TTL remains a refresh policy, not an FX freshness threshold.
 
 ## Current app refund policy
 
-The owner explicitly selected a full-included-VAT refund assumption for numeric API/default VAT metadata, independent of home country. This supersedes the earlier requirement to select local residency rules for new comparisons. No refund API is added. Null VAT remains unavailable (never represented as a known zero refund), while the on-device calculator compares converted cost without refund against the home price. Clearly label full-VAT refunds as assumed, with no provider fee or eligibility verification. Historical saved sample rules remain readable.
+The country refund milestone supersedes the former unconditional full-VAT policy. Only a current available scheme whose minimum is met enables the full-VAT assumption. Known exclusions yield zero; unknown or overdue metadata compares without a refund. Regional rules are informative until purchase region is explicitly known. Historical results retain original assumptions and totals.

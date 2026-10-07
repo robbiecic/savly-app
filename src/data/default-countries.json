@@ -1,0 +1,601 @@
+{
+  "countries": [
+    {
+      "country": "AU",
+      "currency": "AUD",
+      "vatRate": 0.1,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 300,
+          "currency": "AUD",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "same_supplier"
+        },
+        "notes": "Combine invoices with the same ABN; purchases must be within 60 days before departure.",
+        "sources": [
+          {
+            "title": "Australian Border Force",
+            "url": "https://www.abf.gov.au/entering-leaving-australia/Pages/trs/trs.aspx"
+          },
+          {
+            "title": "ABF claim timing and invoices",
+            "url": "https://www.abf.gov.au/entering-and-leaving-australia/tourist-refund-scheme/making-the-claim"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "US",
+      "currency": "USD",
+      "vatRate": null,
+      "touristRefund": {
+        "status": "no_national_scheme",
+        "minimumPurchase": null,
+        "notes": "No federal tourist sales-tax refund or nationwide purchase threshold. State or local arrangements are not modeled.",
+        "sources": [
+          {
+            "title": "US Customs and Border Protection",
+            "url": "https://www.help.cbp.gov/s/article/Article-1410?language=en_US"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "JP",
+      "currency": "JPY",
+      "vatRate": 0.1,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 5000,
+          "currency": "JPY",
+          "comparison": "gte",
+          "taxBasis": "tax_exclusive",
+          "aggregation": "same_store_same_day"
+        },
+        "notes": "Until 2026-10-31: tax exemption at purchase; general goods and consumables have category conditions. Consumables have a JPY 500000 net cap and packaging requirements. From 2026-11-01 Japan changes to a refund after customs confirmation; review before using for those purchases.",
+        "sources": [
+          {
+            "title": "Japan National Tax Agency",
+            "url": "https://www.nta.go.jp/taxes/shiraberu/taxanswer/shohi/6559.htm"
+          },
+          {
+            "title": "Japan refund reform from November 2026",
+            "url": "https://www.nta.go.jp/publication/pamph/shohi/menzei/202506/pdf/0025006-106.pdf"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2026-10-31"
+      }
+    },
+    {
+      "country": "GB",
+      "currency": "GBP",
+      "vatRate": 0.2,
+      "touristRefund": {
+        "status": "regional_only",
+        "minimumPurchase": null,
+        "notes": "No carried-goods tourist VAT refund in England, Scotland or Wales. Northern Ireland has a separate scheme; never apply its threshold to all UK purchases. Direct retailer exports are outside this metadata.",
+        "sources": [
+          {
+            "title": "UK Government",
+            "url": "https://www.gov.uk/tax-on-shopping/taxfree-shopping"
+          },
+          {
+            "title": "HMRC Northern Ireland scheme, section 2.2",
+            "url": "https://www.gov.uk/guidance/retail-export-scheme-northern-ireland"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06",
+        "regionalSchemes": [
+          {
+            "regionCode": "GB-NIR",
+            "minimumPurchase": {
+              "amount": 0,
+              "currency": "GBP",
+              "comparison": "gte",
+              "taxBasis": "tax_inclusive",
+              "aggregation": "no_minimum"
+            },
+            "notes": "Northern Ireland only. No statutory minimum; retailers may set one. Residence, route and export conditions still apply."
+          }
+        ]
+      }
+    },
+    {
+      "country": "AT",
+      "currency": "EUR",
+      "vatRate": 0.2,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 75,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Invoice total must exceed EUR 75.",
+        "sources": [
+          {
+            "title": "Austrian Ministry of Finance",
+            "url": "https://www.bmf.gv.at/en/topics/customs/travellers/vat-refund.html"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "BE",
+      "currency": "EUR",
+      "vatRate": 0.21,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 125,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Invoice total must exceed EUR 125.",
+        "sources": [
+          {
+            "title": "Belgian FPS Finance",
+            "url": "https://finances.belgium.be/fr/node/7485"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "HR",
+      "currency": "EUR",
+      "vatRate": 0.25,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 100,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Invoice total must exceed EUR 100.",
+        "sources": [
+          {
+            "title": "Croatian Customs",
+            "url": "https://carina.gov.hr/pristup-informacijama/propisi-i-sporazumi/carinsko-postupanje/fizicke-osobe-2715/povrat-pdv-a-pri-izvozu-dobara-u-putnickom-prometu/2781"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "CY",
+      "currency": "EUR",
+      "vatRate": 0.19,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Retail export scheme at participating shops; confirm paperwork with the retailer.",
+        "sources": [
+          {
+            "title": "Cyprus Customs and Excise",
+            "url": "https://www.mof.gov.cy/mof/customs/Customs.nsf/All/19A8FF7C7EB2750FC22572C8003770EE"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "EE",
+      "currency": "EUR",
+      "vatRate": 0.24,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 38,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "same_store_same_day"
+        },
+        "notes": "Same seller and point of sale on the same day.",
+        "sources": [
+          {
+            "title": "Estonian Tax and Customs Board",
+            "url": "https://www.emta.ee/en/private-client/consignments-travel-moving/travel/tax-free"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "FI",
+      "currency": "EUR",
+      "vatRate": 0.255,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 40,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Same retailer and customer on one receipt; special restrictions apply to residents of Norway.",
+        "sources": [
+          {
+            "title": "Finnish Tax Administration",
+            "url": "https://www.vero.fi/en/detailed-guidance/guidance/48464/tax-free-sales-to-travellers-in--finland/"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "FR",
+      "currency": "EUR",
+      "vatRate": 0.2,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 100,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "same_retailer_three_days"
+        },
+        "notes": "Purchases from the same retailer or retailer group over at most three consecutive days.",
+        "sources": [
+          {
+            "title": "French Customs",
+            "url": "https://www.douane.gouv.fr/demarche/vous-achetez-des-marchandises-en-detaxe"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "DE",
+      "currency": "EUR",
+      "vatRate": 0.19,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Minimum qualifying invoice total is EUR 50.01.",
+        "sources": [
+          {
+            "title": "German Federal Administration",
+            "url": "https://verwaltung.bund.de/leistungsverzeichnis/de/leistung/99122021001000"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "GR",
+      "currency": "EUR",
+      "vatRate": 0.24,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Each retail receipt must exceed EUR 50 including VAT.",
+        "sources": [
+          {
+            "title": "Greek Independent Authority for Public Revenue",
+            "url": "https://www.aade.gr/sites/default/files/2026-01/EGXEIRIDIO_Q-A_TELWNEIA.pdf"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "IE",
+      "currency": "EUR",
+      "vatRate": 0.23,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 75,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "export_voucher"
+        },
+        "notes": "Each supply must have an export voucher of at least EUR 75; additional conditions apply to Great Britain residents.",
+        "sources": [
+          {
+            "title": "Irish Revenue",
+            "url": "https://www.revenue.ie/en/vat/retail-export-scheme/on-what-purchases-can-you-reclaim-VAT.aspx"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "IT",
+      "currency": "EUR",
+      "vatRate": 0.22,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 70,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Minimum qualifying invoice total is EUR 70.01; electronic tax-free invoice required.",
+        "sources": [
+          {
+            "title": "Italian Customs and Monopolies Agency",
+            "url": "https://www.adm.gov.it/portale/-/the-procedure"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "LV",
+      "currency": "EUR",
+      "vatRate": 0.21,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 35,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_exclusive",
+          "aggregation": "same_store_same_day"
+        },
+        "notes": "Statutory threshold excludes VAT; retailers or refund operators may impose higher minimums.",
+        "sources": [
+          {
+            "title": "Latvian VAT Law, section 49(3)(1)",
+            "url": "https://m.likumi.lv/ta/id/253451"
+          },
+          {
+            "title": "Latvian Cabinet Regulation 17, paragraph 91.1",
+            "url": "https://likumi.lv/ta/id/254172"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "LT",
+      "currency": "EUR",
+      "vatRate": 0.21,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 40,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "same_store_same_day"
+        },
+        "notes": "At least EUR 40 including VAT; electronic tax-free declaration required.",
+        "sources": [
+          {
+            "title": "Lithuanian State Tax Inspectorate",
+            "url": "https://www.vmi.lt/evmi/documents/20142/390965/PVM%C4%AE%2Bkomentaras%2B%28aktuali%2Bredakcija%2B2026-04-29%29.pdf/f6d2b91a-2a6b-19fe-8606-8a163daddb36?t=1777548799222"
+          },
+          {
+            "title": "Digital Tax Free Lithuania purchase grouping",
+            "url": "https://digitaltaxfree.com/en/lithuania/"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "LU",
+      "currency": "EUR",
+      "vatRate": 0.17,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 74,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "same_store"
+        },
+        "notes": "Purchases from the same shop must total at least EUR 74 including VAT.",
+        "sources": [
+          {
+            "title": "Luxembourg Customs",
+            "url": "https://douanes.public.lu/fr/voyages-demenagement/franchises/transport-prive.html"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "MT",
+      "currency": "EUR",
+      "vatRate": 0.18,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "At least EUR 50 on a single fiscal receipt from one establishment.",
+        "sources": [
+          {
+            "title": "Malta Commissioner for Revenue",
+            "url": "https://cfr.gov.mt/en/vat/guidelines_to_certain_VAT_Procedures/Documents/Guidelines%20-%20Refunds%20to%20non-EU%20travelers%20%28final%20-%20CFR%20approved%29.pdf"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "NL",
+      "currency": "EUR",
+      "vatRate": 0.21,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "At least EUR 50 including VAT; Dutch export validation is digital from 2026.",
+        "sources": [
+          {
+            "title": "Dutch Customs",
+            "url": "https://www.douane.nl/en/themes/travel-and-holiday/reclaiming-vat-on-export/"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "PT",
+      "currency": "EUR",
+      "vatRate": 0.23,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_exclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "EUR 50 excluding VAT per invoice; use actual item VAT rates, including regional rates, when deriving the net amount.",
+        "sources": [
+          {
+            "title": "Portuguese Tax and Customs Authority",
+            "url": "https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/questoes_frequentes/Pages/faqs-00628.aspx"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "SK",
+      "currency": "EUR",
+      "vatRate": 0.23,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 100,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Purchase document total must exceed EUR 100 including VAT.",
+        "sources": [
+          {
+            "title": "Slovak Financial Administration",
+            "url": "https://www.financnasprava.sk/_img/pfsedit/Dokumenty_PFS/Zverejnovanie_dok/Sprievodca/Sprievodca_danami/2020/2020.02.11_1_DPH_2020_SD.pdf"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "SI",
+      "currency": "EUR",
+      "vatRate": 0.22,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 50,
+          "currency": "EUR",
+          "comparison": "gt",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "single_invoice"
+        },
+        "notes": "Same seller and customer on one invoice; total must exceed EUR 50.",
+        "sources": [
+          {
+            "title": "Slovenian Financial Administration",
+            "url": "https://www.fu.gov.si/en/zivljenjski_dogodki_prebivalci/vat_refund_in_respect_of_passenger_transport/"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    },
+    {
+      "country": "ES",
+      "currency": "EUR",
+      "vatRate": 0.21,
+      "touristRefund": {
+        "status": "available",
+        "minimumPurchase": {
+          "amount": 0,
+          "currency": "EUR",
+          "comparison": "gte",
+          "taxBasis": "tax_inclusive",
+          "aggregation": "no_minimum"
+        },
+        "notes": "No statutory minimum for mainland Spain and the Balearic Islands. Canary Islands, Ceuta and Melilla have different taxes and are outside this VAT scheme.",
+        "sources": [
+          {
+            "title": "Spain official tourism portal",
+            "url": "https://www.spain.info/en/tax-free/"
+          }
+        ],
+        "reviewedOn": "2026-10-06",
+        "reviewAfter": "2027-01-06"
+      }
+    }
+  ]
+}

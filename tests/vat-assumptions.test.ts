@@ -7,19 +7,19 @@ import { shareMessage, shareLink } from '../src/features/comparison/sharing';
 
 function result(changes = {}, vatRate: number | null = .2, mode: 'real' | 'sample' = 'real') {
   const data = validateReferenceData(SAMPLE_RESPONSES['/v1/rates'], { countries: [
-    { country: 'FR', currency: 'EUR', vatRate }, { country: 'AU', currency: 'AUD', vatRate: .1 },
+    { ...SAMPLE_RESPONSES['/v1/countries'].countries.find(c => c.country === 'FR'), vatRate }, { country: 'AU', currency: 'AUD', vatRate: .1 },
   ] });
   const view = compare({ ...newForm(), residence: 'AU', price: '120', homePrice: '150', ...changes }, {
     status: 'fresh', label: 'Reference rate', error: null,
     snapshot: { ...data, adapterVersion: 1, mode, environment: 'api', id: 'test', fetchedAt: Date.now() },
-  });
+  }, 'en-US', Date.parse('2026-10-07T12:00:00Z'));
   if (view.status !== 'ready') assert.fail(view.message);
   return view.comparison;
 }
-test('Full included VAT is assumed refundable for any residence in API and default modes', () => {
+test('Qualifying purchase assumes full VAT, without asserting residency eligibility', () => {
   for (const mode of ['sample', 'real'] as const) {
     const c = result({}, .2, mode);
-    assert.equal(c.result.refund.kind, 'vat-assumption');
+    assert.equal(c.result.refund.kind, 'scheme');
     assert.equal(c.result.includedVat, '20.00');
     assert.equal(c.result.refundHome, '22.00');
     assert.equal(c.result.withRefund, '110.00');

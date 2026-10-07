@@ -78,7 +78,7 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Verify premium/history criteria PH1–PH9 and account deletion/recovery.
 
 - [ ] Integrate existing fxService endpoints; confirm deployment URL, CityIndex usage rights, pair coverage, and Cognito access for guests.
-- [ ] Define launch markets and a real refund-data contract; current fxService provides VAT metadata only.
+- [x] Consume the fxService tourist-refund scheme and minimum-purchase contract; complete personal eligibility/provider-fee modeling remains outside this milestone.
 - [ ] Configure sharing domain, fallback page, live store links, and Universal/App Links.
 - [ ] Verify WhatsApp text/link delivery and installed/uninstalled routing (SH1–SH6).
 - [ ] Complete device testing and store preparation.
@@ -135,6 +135,16 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 - [x] Automatically format Your savings amounts, percentages, and rate details with grouped digits and locale decimals while preserving saved precision. TypeScript, 103 tests, and formatting spot checks pass; native display was not device-tested.
 
-- [x] Keep Sign out visible in Settings for guests as well as signed-in users, returning both to the welcome/splash screen. TypeScript and all six simulated-provider browser tests pass; native interaction was not tested.
+- [x] Show Sign out in Settings only when signed in, and Sign in only when signed out. Sign-out returns to the welcome/splash screen; native interaction remains unverified.
 
 - [x] Verify comma grouping during browser typing in all four numeric fields, decimal entry, deletion, and return from results. Prevent browser scrolling from interrupting focused input. Focused Chromium test, web export, and TypeScript pass; native typing remains unverified.
+
+## Country refund milestone
+
+- [x] Specify scheme/minimum-spend handling and country rules navigation in [tourist-refunds.md](tourist-refunds.md).
+- [x] Validate and persist nested refund metadata without changing four-hour caching or API endpoints.
+- [x] Gate automatic estimates on scheme status, exact gross/net thresholds and research review dates; preserve unknown versus zero and explicit manual overrides.
+- [x] Add the rules screen from Calculate and Your savings with notes, grouping, regions, sources, research dates and preserved drafts.
+- [x] Retain country rules and assessment in saved/shared comparisons without changing historic totals.
+- [x] Verify TypeScript, all 110 unit/integration tests, two focused Chromium navigation tests, and Android/iOS/web production exports. Visually review the rules screen and result page. Native checks remain below.
+- [ ] Verify native navigation, source-link opening and accessibility on Android/iOS devices.

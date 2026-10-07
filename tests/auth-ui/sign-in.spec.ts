@@ -57,7 +57,7 @@ async function provider(context: BrowserContext, options: { offline?: boolean; b
   return { exchanges: () => exchanges };
 }
 
-test('failed connection allows retry, guest entry, and guest sign-out to Welcome', async ({ page, context }) => {
+test('failed connection allows retry and guest Settings offers only sign-in', async ({ page, context }) => {
   const options = { offline: true };
   await provider(context, options);
   await page.goto('/');
@@ -71,10 +71,8 @@ test('failed connection allows retry, guest entry, and guest sign-out to Welcome
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Not signed in', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Get started', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
 });
 
 test('PKCE browser return signs in, stays out of storage, and signs out in Settings', async ({ page, context }) => {
@@ -85,6 +83,7 @@ test('PKCE browser return signs in, stays out of storage, and signs out in Setti
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0);
   expect(mock.exchanges()).toBe(1);
   const disk = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
   expect(disk).not.toContain('test-access-token');
@@ -96,6 +95,8 @@ test('PKCE browser return signs in, stays out of storage, and signs out in Setti
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Not signed in', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
 });
 
 test('Settings sign-in returns to the same form and restart drops the session', async ({ page, context }) => {
@@ -113,6 +114,8 @@ test('Settings sign-in returns to the same form and restart drops the session', 
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Not signed in', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
 });
 
 for (const failure of ['badState', 'rejectedToken'] as const) {

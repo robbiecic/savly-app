@@ -39,6 +39,7 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),
     ...(new D(r.bankFee).gt(0) ? [`Additional bank fee: ${new D(r.bankFee).mul(100).toFixed()}%`] : []),
     ...(r.refund.kind === 'vat-assumption' ? ['Assumes all included VAT is refundable, with no provider fee.'] : []),
+    ...(comparison.refundAssessment ? [comparison.refundAssessment.reason] : []),
     'Refund subject to eligibility. Excludes customs/import taxes.',
     ...(link.demo ? ['Demo link only; app open/download routing is not available.'] : []),
     `Open or download Savly: ${link.url}`,

@@ -1,4 +1,5 @@
-import { DataError } from './reference-data';
+import defaultCountries from './default-countries.json';
+import { DataError, validateReferenceData } from './reference-data';
 
 export type ReferencePath = '/v1/rates' | '/v1/countries';
 export interface ReferenceTransport {
@@ -46,6 +47,8 @@ export function createHttpTransport(options: {
   };
 }
 
+// Dated response snapshot from fxService, not an independently maintained rules engine.
+const bundledCountries = validateReferenceData({ rates: [] }, defaultCountries).countries;
 export const SAMPLE_RESPONSES = {
   '/v1/rates': { rates: [
     { pair: 'EURUSD', rate: 1.1, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
@@ -53,14 +56,7 @@ export const SAMPLE_RESPONSES = {
     { pair: 'AUDUSD', rate: 0.65, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
     { pair: 'EURGBP', rate: 0.85, pipSize: 0.0001, asOf: '2026-09-26T12:00:00Z', source: 'CityIndex' },
   ] },
-  '/v1/countries': { countries: [
-    { country: 'FR', currency: 'EUR', vatRate: 0.2 },
-    { country: 'ES', currency: 'EUR', vatRate: 0.21 },
-    { country: 'US', currency: 'USD', vatRate: null },
-    { country: 'JP', currency: 'JPY', vatRate: 0.1 },
-    { country: 'GB', currency: 'GBP', vatRate: 0.2 },
-    { country: 'AU', currency: 'AUD', vatRate: 0.1 },
-  ] },
+  '/v1/countries': { countries: ['FR', 'ES', 'US', 'JP', 'GB', 'AU'].map(code => bundledCountries.find(country => country.country === code)!) },
 };
 
 // Async fixture transport uses the backend wire shape, never claims live rates.

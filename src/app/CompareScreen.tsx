@@ -1,3 +1,4 @@
+import { RefundRulesScreen } from './RefundRulesScreen';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
 import { SettingsScreen } from './SettingsScreen';
@@ -17,6 +18,7 @@ import { colors } from '../theme/colors';
 
 export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const wide = useWideLayout();
+  const [rules, setRules] = useState(false);
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
   const [entry, setEntry] = useState<SavedComparison | null>(null);
@@ -43,6 +45,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const openSettings = () => { Keyboard.dismiss(); setPage('settings'); };
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={openSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
+    {rules && shopping && <RefundRulesScreen country={shopping} locale={state.locale} defaults={snapshot?.environment === 'prototype'} onClose={() => setRules(false)} />}
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
       <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} onPress={openSettings} />
@@ -62,6 +65,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
+          {shopping && <Action label="VAT refund rules" secondary onPress={() => { Keyboard.dismiss(); setRules(true); }} />}
           <View accessibilityRole="tablist" style={styles.tabs}>
             {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}

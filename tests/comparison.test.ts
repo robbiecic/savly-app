@@ -12,7 +12,7 @@ const snapshot: Snapshot = { ...validateReferenceData(SAMPLE_RESPONSES['/v1/rate
 const reference = { status: 'fresh' as const, snapshot, label: 'Sample rate' as const, error: null };
 const form: ComparisonForm = { ...newForm(), price: '120', homePrice: '150', residence: 'US' };
 function ready(changes: Partial<ComparisonForm> = {}, state = reference, locale = 'en-US') {
-  const view = compare({ ...form, ...changes }, state, locale);
+  const view = compare({ ...form, ...changes }, state, locale, Date.parse('2026-10-07T12:00:00Z'));
   if (view.status !== 'ready') assert.fail(view.message);
   return view.comparison;
 }
@@ -53,7 +53,7 @@ test('AC14 loading, unavailable, missing pair, invalid, empty and unknown refund
   assert.equal(compare({ ...form, price: '' }, reference).status, 'empty');
   assert.equal(compare({ ...form, price: '0' }, reference).status, 'invalid');
   assert.equal(compare({ ...form, homeCurrency: 'JPY' }, reference).status, 'invalid');
-  assert.equal(ready({ residence: '' }).result.refund.kind, 'vat-assumption');
+  assert.equal(ready({ residence: '' }).result.refund.kind, 'scheme');
   assert.equal(ready({ residence: 'FR' }).result.withRefund, '110.00');
 });
 test('AC15 locale normalizes decimal separator without inferring residency from currency', () => {
@@ -84,13 +84,13 @@ test('AC17–18 refresh recalculates active result, stale flags survive and edit
     return path === '/v1/rates' ? { rates: [{ ...snapshot.rates[0], rate }] } : SAMPLE_RESPONSES[path];
   }) });
   const first = await store.get();
-  const old = compare(form, first); assert.equal(old.status, 'ready');
+  const old = compare(form, first, 'en-US', Date.parse('2026-10-07T12:00:00Z')); assert.equal(old.status, 'ready');
   for (const price of ['120', '200']) { const view = compare({ ...form, price }, await store.get()); if (view.status === 'ready') shareMessage(view.comparison, shareLink()); }
   assert.equal(calls.length, 2);
   now += 14_400_000; offline = true;
-  const stale = compare(form, await store.get()); assert.equal(stale.status === 'ready' && stale.comparison.stale, true);
+  const stale = compare(form, await store.get(), 'en-US', Date.parse('2026-10-07T12:00:00Z')); assert.equal(stale.status === 'ready' && stale.comparison.stale, true);
   offline = false; rate = 2;
-  const fresh = compare(form, await store.retry());
+  const fresh = compare(form, await store.retry(), 'en-US', Date.parse('2026-10-07T12:00:00Z'));
   assert.equal(fresh.status === 'ready' && fresh.comparison.result.withRefund, '200.00');
   assert.equal(old.status === 'ready' && old.comparison.result.withRefund, '110.00');
 });

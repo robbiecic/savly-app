@@ -1,3 +1,4 @@
+import type { MinimumPurchase, TouristRefund } from '../domain/tourist-refunds';
 import type { DataMode } from '../domain/refunds';
 
 export interface Rate {
@@ -11,6 +12,7 @@ export interface Country {
   readonly country: string;
   readonly currency: string;
   readonly vatRate: number | null;
+  readonly touristRefund?: TouristRefund;
 }
 export interface ReferenceData {
   readonly rates: readonly Rate[];
@@ -47,6 +49,53 @@ function unique<T>(rows: T[], key: (row: T) => string): readonly T[] {
   return Object.freeze(rows);
 }
 
+function text(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) throw invalid();
+  return value;
+}
+function date(value: unknown): string {
+  const result = text(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(result) || !Number.isFinite(Date.parse(result)) || new Date(result).toISOString().slice(0, 10) !== result) throw invalid();
+  return result;
+}
+function minimum(value: unknown, currency: string): MinimumPurchase {
+  const row = record(value);
+  if (typeof row.amount !== 'number' || !Number.isFinite(row.amount) || row.amount < 0 || row.amount > Number.MAX_SAFE_INTEGER ||
+      row.currency !== currency || !['gt', 'gte'].includes(String(row.comparison)) ||
+      !['tax_inclusive', 'tax_exclusive'].includes(String(row.taxBasis)) ||
+      !['single_invoice', 'same_supplier', 'same_store', 'same_store_same_day', 'same_retailer_three_days', 'export_voucher', 'no_minimum'].includes(String(row.aggregation)) ||
+      (row.amount === 0 && (row.aggregation !== 'no_minimum' || row.comparison !== 'gte')) ||
+      (row.aggregation === 'no_minimum' && row.amount !== 0)) throw invalid();
+  return Object.freeze({ amount: row.amount, currency, comparison: row.comparison, taxBasis: row.taxBasis, aggregation: row.aggregation }) as MinimumPurchase;
+}
+export function validateTouristRefund(value: unknown, currency: string): TouristRefund {
+  const row = record(value);
+  if (!['available', 'no_national_scheme', 'regional_only'].includes(String(row.status)) || !Array.isArray(row.sources) || !row.sources.length) throw invalid();
+  const minimumPurchase = row.minimumPurchase === null ? null : minimum(row.minimumPurchase, currency);
+  if ((row.status === 'available') !== (minimumPurchase !== null)) throw invalid();
+  const reviewedOn = date(row.reviewedOn), reviewAfter = date(row.reviewAfter);
+  if (reviewAfter < reviewedOn) throw invalid();
+  const sources = Object.freeze(row.sources.map(value => {
+    const source = record(value);
+    let url: URL;
+    try { url = new URL(text(source.url)); } catch { throw invalid(); }
+    if (url.protocol !== 'https:' || url.username || url.password) throw invalid();
+    return Object.freeze({ title: text(source.title), url: url.toString() });
+  }));
+  let regionalSchemes: TouristRefund['regionalSchemes'];
+  if (row.regionalSchemes !== undefined) {
+    if (!Array.isArray(row.regionalSchemes)) throw invalid();
+    regionalSchemes = unique(row.regionalSchemes.map(value => {
+      const region = record(value), regionCode = text(region.regionCode);
+      if (!/^[A-Z]{2}-[A-Z0-9]{1,3}$/.test(regionCode)) throw invalid();
+      return Object.freeze({ regionCode, minimumPurchase: minimum(region.minimumPurchase, currency), notes: text(region.notes) });
+    }), region => region.regionCode);
+  }
+  if (row.status === 'regional_only' && !regionalSchemes?.length) throw invalid();
+  return Object.freeze({ status: row.status, minimumPurchase, notes: text(row.notes), sources, reviewedOn, reviewAfter,
+    ...(regionalSchemes ? { regionalSchemes } : {}) }) as TouristRefund;
+}
+
 // Rebuild from allowed fields, then freeze: callers cannot change cached/history data.
 export function validateReferenceData(ratesResponse: unknown, countriesResponse: unknown): ReferenceData {
   const rates = record(ratesResponse).rates;
@@ -66,7 +115,8 @@ export function validateReferenceData(ratesResponse: unknown, countriesResponse:
     countries: unique(countries.map((value): Country => {
       const row = record(value);
       if (row.vatRate !== null && (typeof row.vatRate !== 'number' || !Number.isFinite(row.vatRate) || row.vatRate < 0 || row.vatRate > 1)) throw invalid();
-      return Object.freeze({ country: code(row.country, 2), currency: code(row.currency, 3), vatRate: row.vatRate as number | null });
+      return Object.freeze({ country: code(row.country, 2), currency: code(row.currency, 3), vatRate: row.vatRate as number | null,
+        ...(row.touristRefund === undefined ? {} : { touristRefund: validateTouristRefund(row.touristRefund, code(row.currency, 3)) }) });
     }), (row) => row.country),
   });
 }

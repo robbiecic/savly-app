@@ -1,0 +1,55 @@
+import { test, expect, type Page } from '@playwright/test';
+async function start(page: Page) {
+  await page.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: /^Home country:/ }).click();
+  await page.getByRole('textbox', { name: 'Search home country', exact: true }).fill('United States');
+  await page.getByRole('button', { name: 'United States', exact: true }).click();
+  await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
+}
+test('Rules navigation preserves the draft and result; strict minimum changes savings', async ({ page }) => {
+  await start(page);
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
+  await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'VAT refund rules · France' })).toBeVisible();
+  await expect(page.getByText(/^More than EUR 100 including VAT/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open source: French Customs' })).toBeVisible();
+  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('100');
+  await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
+  await expect(page.getByText('You could save $40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('Compared without a VAT refund.', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Bag');
+  await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
+  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await expect(page.getByRole('textbox', { name: 'Name for saved comparison' })).toHaveValue('Bag');
+  await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
+  await expect(page.getByText('You could save $40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Purchase minimum met/).first()).toBeVisible();
+  await page.screenshot({ path: 'test-results/refund-result.png', fullPage: true });
+  await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Saved bag');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible();
+  await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
+  await expect(page.getByText('Rules retained with this comparison; they may have changed.')).toBeVisible();
+  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible();
+});
+test('UK rules disclose the Northern Ireland exception and review dates', async ({ page }) => {
+  await start(page);
+  await page.getByRole('button', { name: /^Shopping country:/ }).click();
+  await page.getByRole('textbox', { name: 'Search shopping country', exact: true }).fill('United Kingdom');
+  await page.getByRole('button', { name: /United Kingdom · GBP/ }).click();
+  await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Regional schemes only' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Northern Ireland (GB-NIR)' })).toBeVisible();
+  await expect(page.getByText('No statutory minimum purchase.', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Sources checked: 2026-10-06/)).toBeVisible();
+  await page.waitForTimeout(500); // Let native-style modal slide animations settle for the screenshot.
+  await page.screenshot({ path: 'test-results/refund-rules.png', fullPage: true });
+});

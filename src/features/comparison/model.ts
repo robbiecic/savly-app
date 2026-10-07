@@ -1,3 +1,5 @@
+import { assessTouristRefund } from '../../domain/tourist-refunds';
+import type { Country } from '../../data/reference-data';
 import { isFxStale } from '../../data/fx-freshness';
 import { decimalSeparator } from './locale';
 import { calculate, type Calculation, type FxQuote } from '../../domain/calculator';
@@ -68,6 +70,8 @@ export const SAMPLE_REFUND_RULES: readonly RefundRule[] = [{
   assumptions: ['Illustrative Spain/US scenario, not current tax guidance.', 'Assumes all included VAT is eligible before an illustrative 28% provider fee; not a provider quote.'],
 }];
 export interface DisplayedComparison {
+  refundCountry?: Country;
+  refundAssessment?: import('../../domain/tourist-refunds').RefundAssessment;
   result: Calculation; itemName: string; price: string; homePrice: string | null;
   sample: boolean; stale: boolean; snapshotId: string; fetchedAt: number;
 }
@@ -94,15 +98,17 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
       fx = { from: country.currency, to: form.homeCurrency, rate: normalizeDecimal(form.fxOverride, locale), kind: 'manual', source: 'Manual rate', asOf: null };
     }
     const homePrice = form.homePrice.trim() ? normalizeDecimal(form.homePrice, locale) : undefined;
+    const refundAssessment = assessTouristRefund(country, price, now);
     const calculation = calculate({
       mode: snapshot.mode, shoppingCurrency, homeCurrency, price, homePrice,
       bankFee: '0', vatRate: country.vatRate === null ? null : new D(country.vatRate).toFixed(), fx,
-      refund: country.vatRate === null ? { kind: 'vat-unavailable' } : form.refundOverride.trim() ? { kind: 'manual', amount: normalizeDecimal(form.refundOverride, locale) }
-        : { kind: 'vat-assumption' },
+      refund: country.vatRate !== null && form.refundOverride.trim() ? { kind: 'manual', amount: normalizeDecimal(form.refundOverride, locale) }
+        : country.vatRate === null && refundAssessment.status !== 'excluded' ? { kind: 'vat-unavailable' }
+        : { kind: 'scheme', assessment: refundAssessment },
     });
     if (calculation.status !== 'ok') return { ...calculation, status: 'invalid', field: calculation.field === 'refund' ? 'refundOverride' : calculation.field === 'fx' ? 'fxOverride' : calculation.field };
     return { status: 'ready', comparison: {
-      result: calculation.value, itemName: form.itemName.trim(), price: new D(price).toFixed(shoppingCurrency.minorUnits),
+      refundCountry: country, refundAssessment, result: calculation.value, itemName: form.itemName.trim(), price: new D(price).toFixed(shoppingCurrency.minorUnits),
       homePrice: homePrice ? new D(homePrice).toFixed(homeCurrency.minorUnits) : null,
       sample: snapshot.mode === 'sample', stale: isFxStale(calculation.value.fx, now), snapshotId: snapshot.id, fetchedAt: snapshot.fetchedAt,
     } };

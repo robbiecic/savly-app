@@ -1,3 +1,4 @@
+import { RefundRulesScreen } from './RefundRulesScreen';
 import { formatResultNumber, formatSummaryMoney } from '../features/comparison/number-display';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
@@ -23,6 +24,7 @@ import type { SavedComparison } from '../storage/saved-comparisons';
 
 export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; onSettings: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
   const wide = useWideLayout();
+  const [rules, setRules] = useState(false);
   const now = useCurrentTime();
   const comparison = entry.comparison;
   const [name, setName] = useState(comparison.itemName);
@@ -66,6 +68,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     setShareError(outcome === 'failed'); setSharing(false);
   };
   return <SafeAreaView style={styles.screen}>
+    {rules && <RefundRulesScreen country={comparison.refundCountry ?? { country: entry.form.country, currency: r.shoppingCurrency, vatRate: null }} locale={locale} saved onClose={() => setRules(false)} />}
     <View style={[styles.brandHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
       <HomeSettingsButton country={homeCountry} locale={locale} onPress={onSettings} />
@@ -85,7 +88,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     <Card>
       {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
-        {r.refund.kind === 'vat-unavailable' && <Text style={ui.text}>Compared without a VAT refund.</Text>}
+        {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
         {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings ? number(r.savings.percentage.replace('-', '')) : ''}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
     {!summary && <View style={styles.summary}>
@@ -99,6 +102,9 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     </View>}
 
     <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Login to get accurate rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
+    {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
+    {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
+    <Action label="VAT refund rules" secondary onPress={() => setRules(true)} />
     {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
     {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
 
@@ -144,7 +150,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
         <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
         <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
         <Text style={ui.muted}>{r.refund.kind === 'vat-assumption' ? 'Assumes all included VAT is refundable, with no provider fee. Eligibility is not verified' : 'Estimated refund, subject to eligibility'}{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
-      </> : <Text style={ui.muted}>{r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable: no VAT rate supplied. The comparison uses the overseas price without a refund.' : 'Refund estimate unavailable. Add a known refund under Edit assumptions, or compare the cost before a refund.'}</Text>}
+      </> : <Text style={ui.muted}>{r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable: no VAT rate supplied. The comparison uses the overseas price without a refund.' : 'Refund estimate unavailable. This comparison excludes a refund; you can enter a known amount under Edit assumptions.'}</Text>}
       {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
       {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
     </View>
