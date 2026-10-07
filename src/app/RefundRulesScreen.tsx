@@ -3,7 +3,7 @@ import { Linking, Modal, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Country } from '../data/reference-data';
 import { minimumLabel, needsRefundReview } from '../domain/tourist-refunds';
-import { countryName } from '../features/comparison/countries';
+import { countryFlag, countryName } from '../features/comparison/countries';
 import { useCurrentTime } from '../hooks/useCurrentTime';
 import { Action, Card, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
@@ -27,10 +27,10 @@ export function RefundRulesScreen({ country, locale, onClose, saved = false, def
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ padding: 20, gap: 16, width: '100%', maxWidth: 760, alignSelf: 'center' }}>
         <SavlyLogo />
-        <Action label="Back from refund rules" secondary onPress={onClose} />
+        <Action label="Back" onPress={onClose} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 20, width: '100%', maxWidth: 760, alignSelf: 'center' }}>
-        <Text accessibilityRole="header" style={ui.title}>VAT refund rules · {countryName(country.country, locale)}</Text>
+        <Text accessibilityRole="header" style={ui.title}>VAT refund rules · <Text accessible={false} aria-hidden>{countryFlag(country.country)} </Text>{countryName(country.country, locale)}</Text>
         <Text style={ui.muted}>{saved ? 'Rules retained with this comparison; they may have changed.' : defaults ? 'Bundled reference rules, reviewed on the dates below.' : 'Reference rules from the countries API.'}</Text>
         {!rule ? <Card><Text style={ui.text}>Refund rules are unavailable for this country. A VAT rate alone does not establish refund eligibility.</Text></Card> : <>
           <Card>

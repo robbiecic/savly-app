@@ -65,7 +65,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>
-          {shopping && <Action label="VAT refund rules" secondary onPress={() => { Keyboard.dismiss(); setRules(true); }} />}
+
           <View accessibilityRole="tablist" style={styles.tabs}>
             {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
@@ -83,6 +83,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             </View>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric locale={state.locale} placeholder="Price at home, including taxes" error={error('homePrice')} />
+            <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
             <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
             {(assumptions || error('fxOverride') || error('refundOverride')) && <View style={{ gap: 16 }}>
               <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
@@ -91,7 +92,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
               <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
             </View>}
             </View></View>
-            <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
+            {shopping && <Action label="VAT refund rules" flag={countryFlag(shopping.country)} secondary onPress={() => { Keyboard.dismiss(); setRules(true); }} />}
           </Card>
           {state.storageError && <Text accessibilityRole="alert" style={ui.error}>Settings couldn’t be saved on this device.</Text>}
           {(reference?.status === 'stale' || reference?.status === 'unavailable') && <Card>

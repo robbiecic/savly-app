@@ -23,6 +23,8 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await expect(page.getByText('You could save $40.00', { exact: true })).toBeVisible();
   await expect(page.getByText('Compared without a VAT refund.', { exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Bag');
+  await expect(page.getByRole('button', { name: 'VAT refund rules', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
   await page.getByRole('button', { name: 'Back from refund rules' }).click();
   await expect(page.getByRole('textbox', { name: 'Name for saved comparison' })).toHaveValue('Bag');

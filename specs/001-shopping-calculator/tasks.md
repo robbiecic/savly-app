@@ -158,3 +158,8 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Gate standard Android/iOS build and mobile/web export npm commands on TypeScript and all unit/integration/example tests. Document the gate required before direct native-tool invocations.
 - [x] Verify TypeScript, all 113 unit/integration tests, two focused Chromium refund-rules tests (including displayed 28% deduction), and Android/iOS/web JavaScript exports.
 - [ ] Verify the revised fee presentation on physical Android/iOS devices.
+
+- [x] Move Your savings’ VAT refund rules button inside Expand details. TypeScript, 113 unit/integration tests, web export and two focused browser navigation tests pass; native interaction was not tested.
+
+- [x] Show the selected shopping country's flag inside Calculate’s VAT refund rules button, updating with the country selection. TypeScript checks pass; browser and native display were not tested for this change.
+- [x] Show the country's flag beside its name in the refund rules popup title, including retained comparison rules. TypeScript checks pass; browser and native display were not tested for this change.

@@ -104,7 +104,6 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Login to get accurate rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
-    <Action label="VAT refund rules" secondary onPress={() => setRules(true)} />
     {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
     {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
 
@@ -158,6 +157,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
       <Text selectable style={ui.text}>{fxLabel(r.fx, number)}</Text>
       {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate timestamp' : comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
       {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
+      <Action label="VAT refund rules" secondary onPress={() => setRules(true)} />
       <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}

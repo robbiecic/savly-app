@@ -19,10 +19,10 @@ export const ui = StyleSheet.create({
   buttonText: { color: '#FFFFFF', fontWeight: '600', fontSize: 16 },
 });
 export function Card({ children }: { children: ReactNode }) { return <View style={ui.card}>{children}</View>; }
-export function Action({ label, onPress, secondary = false, disabled = false, expanded }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean; expanded?: boolean }) {
+export function Action({ label, onPress, secondary = false, disabled = false, expanded, flag }: { label: string; onPress: () => void; secondary?: boolean; disabled?: boolean; expanded?: boolean; flag?: string }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled, expanded }} disabled={disabled} onPress={onPress}
     style={({ pressed }) => [ui.button, secondary && { backgroundColor: '#EDEFF5' }, (pressed || disabled) && { opacity: 0.65 }]}>
-    <Text style={[ui.buttonText, secondary && { color: colors.ink }]}>{label}</Text>
+    <Text style={[ui.buttonText, secondary && { color: colors.ink }]}>{flag && <Text accessible={false} aria-hidden>{flag} </Text>}{label}</Text>
   </Pressable>;
 }
 export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder, locale = 'en-US' }: { locale?: string; label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string }) {
