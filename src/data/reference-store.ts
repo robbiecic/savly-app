@@ -18,6 +18,7 @@ export interface ReferenceState {
 }
 export interface StoreOptions {
   environment: string;
+  cacheRevision?: string;
   mode: DataMode;
   transport: ReferenceTransport;
   storage: Storage;
@@ -43,7 +44,7 @@ export class ReferenceStore {
   private scheduler: Scheduler;
 
   constructor(private readonly options: StoreOptions) {
-    this.key = `savly:reference:1:${encodeURIComponent(options.environment)}:${options.mode}`;
+    this.key = `savly:reference:1:${encodeURIComponent(options.environment)}:${options.mode}${options.cacheRevision ? ':' + options.cacheRevision : ''}`;
     this.clock = options.clock ?? { now: () => Date.now(), monotonic: () => performance.now() };
     this.scheduler = options.scheduler ?? { schedule(callback, delay) {
       const timer = setTimeout(callback, delay);
@@ -120,7 +121,7 @@ export class ReferenceStore {
       const [rates, countries] = results;
       if (rates.status === 'rejected') throw rates.reason;
       if (countries.status === 'rejected') throw countries.reason;
-      const data = validateReferenceData(rates.value, countries.value);
+      const data = validateReferenceData(rates.value, countries.value, this.options.mode === 'sample');
       const fetchedAt = this.clock.now();
       const next: Snapshot = Object.freeze({
         ...data, adapterVersion: 1, environment: this.options.environment, mode: this.options.mode,

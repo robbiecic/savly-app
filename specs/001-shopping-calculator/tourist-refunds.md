@@ -20,7 +20,7 @@ A **VAT refund rules** button below **Calculate savings** on Calculate shows the
 
 Show the country's flag beside its name in the rules screen title. Show scheme availability, strict/inclusive minimum with its currency and tax basis, grouping, notes, regional exceptions, source links, reviewed-on and review-after dates, and a warning when research needs confirmation. Clearly identify bundled defaults, API data, and retained comparison data. Old results and old caches with no refund metadata show an unavailable explanation. Source links accept HTTPS only and report opening failures. Refreshing reference data must not rewrite submitted or saved comparisons.
 
-Bundled defaults use a dated response snapshot from the canonical backend dataset (`src/data/default-countries.json`, checked 2026-10-07), preserving original research dates. The existing six-country guest selector and dated sample FX remain unchanged. The pasted attachment ends partway through Spain's record; the complete canonical backend record supplies its missing provenance. This is a static response fixture, not a second rules engine.
+Bundled defaults use a dated response snapshot from the canonical backend dataset (`src/data/default-countries.json`, checked 2026-10-07), preserving original research dates. The six-country guest selector is retained. Guest FX includes all 10 pairs across its five currencies, including six undated owner-provided defaults; refund metadata and its review deadlines are unchanged. The pasted attachment ends partway through Spain's record; the complete canonical backend record supplies its missing provenance. This is a static response fixture, not a second rules engine.
 
 ## Acceptance examples
 

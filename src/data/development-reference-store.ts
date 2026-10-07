@@ -1,5 +1,5 @@
 import { ReferenceStore, type Storage } from './reference-store';
-import { createHttpTransport, createMockTransport } from './transport';
+import { createHttpTransport, createGuestTransport } from './transport';
 
 export const DEVELOPMENT_API_URL = 'https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com';
 
@@ -24,6 +24,6 @@ export async function selectReferenceStore(options: {
     if (state.snapshot || options.getToken) return api;
   }
   return new ReferenceStore({
-    environment: 'prototype', mode: 'sample', storage: options.storage, transport: createMockTransport(),
+    environment: 'prototype', mode: 'sample', cacheRevision: 'guest-2', storage: options.storage, transport: createGuestTransport(),
   });
 }

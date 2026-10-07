@@ -164,3 +164,9 @@ The owner confirmed included GST. The initially supplied GBP 18.42 refund, GBP 5
 Keep the italic Savly wordmark and airplane motif from the welcome screen visible at the top left, outside scrolling content, on Welcome, Calculate, Saved, Settings, Your savings, country selection, and the full-screen photo viewer. Use navy on light backgrounds and white on dark backgrounds, respecting safe areas. Keep home-country and navigation controls available beside or below the branding. System-owned camera, library, and share screens retain their platform UI.
 
 Your savings automatically groups displayed amounts, percentages, and FX rates using the same separator convention as numeric inputs. Preserve stored decimal precision, currency trailing zeroes, signs, and saved calculation values.
+
+## Complete guest FX coverage
+
+Guests can calculate every combination of US, GB, AU, JP, ES and FR using ten bundled pairs (USD, GBP, AUD, JPY and EUR). Preserve the original EURUSD, USDJPY, AUDUSD and EURGBP values. Add the owner-provided 2026-10-07 values: GBPUSD 1.32, GBPJPY 208.8, GBPAUD 1.90, EURJPY 176.9, EURAUD 1.61 and AUDJPY 110.0. Each pair means one unit of its first currency buys the supplied amount of its second currency. Use direct quotes or their inverse, without triangulation.
+
+The six additions have unknown quote dates and owner-provided provenance; never attribute them to CityIndex or treat their receipt date as market freshness. Accept undated owner defaults only in sample-mode reference data, retaining strict API validation. Keep four-hour caching and existing VAT/refund metadata. A new guest cache revision must prevent a still-fresh old four-pair cache from hiding the additional pairs. Saved results and authenticated caches retain their existing data.

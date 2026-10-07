@@ -169,3 +169,9 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Remove Edit assumptions, manual FX/refund fields and reset controls from Calculate; keep country-specific VAT rules available.
 - [x] Clear legacy overrides before new UI calculations, restrict editable form fields and remove the result-page instruction to enter a manual refund. Preserve historical saved totals and provenance.
 - [x] Update requirements and browser checks. TypeScript, all 113 unit/integration tests, web export and three focused Chromium tests pass. Native device checks were not run.
+
+## Complete guest currency coverage
+
+- [x] Bundle the six owner-supplied FX pairs alongside the four existing rates, covering every combination of US, GB, AU, JP, ES and FR.
+- [x] Preserve unknown quote dates and owner provenance; keep stale-rate warnings and strict authenticated API validation. Version the guest cache so existing users receive complete defaults immediately.
+- [x] Verify all 36 home/shopping combinations, direct/reverse rates, a GBP 100 → USD 132 example, retained refund metadata, cache restart and old-cache replacement. TypeScript and all 116 unit/integration tests pass; browser and native device checks were not run for this change.

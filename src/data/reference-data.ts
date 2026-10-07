@@ -5,8 +5,8 @@ export interface Rate {
   readonly pair: string;
   readonly rate: number;
   readonly pipSize: number;
-  readonly asOf: string;
-  readonly source: 'CityIndex';
+  readonly asOf: string | null;
+  readonly source: 'CityIndex' | 'Owner-provided defaults';
 }
 export interface Country {
   readonly country: string;
@@ -97,7 +97,7 @@ export function validateTouristRefund(value: unknown, currency: string): Tourist
 }
 
 // Rebuild from allowed fields, then freeze: callers cannot change cached/history data.
-export function validateReferenceData(ratesResponse: unknown, countriesResponse: unknown): ReferenceData {
+export function validateReferenceData(ratesResponse: unknown, countriesResponse: unknown, allowDefaults = false): ReferenceData {
   const rates = record(ratesResponse).rates;
   const countries = record(countriesResponse).countries;
   if (!Array.isArray(rates) || !Array.isArray(countries)) throw invalid();
@@ -106,11 +106,12 @@ export function validateReferenceData(ratesResponse: unknown, countriesResponse:
       const row = record(value);
       const pair = code(row.pair, 6);
       if (pair.slice(0, 3) === pair.slice(3)) throw invalid();
-      if (row.source !== 'CityIndex' || typeof row.asOf !== 'string' ||
+      const ownerDefault = allowDefaults && row.source === 'Owner-provided defaults' && row.asOf === null;
+      if (!ownerDefault && (row.source !== 'CityIndex' || typeof row.asOf !== 'string' ||
           !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(row.asOf) ||
           !Number.isFinite(Date.parse(row.asOf)) ||
-          new Date(row.asOf).toISOString() !== (row.asOf.includes('.') ? row.asOf : row.asOf.replace('Z', '.000Z'))) throw invalid();
-      return Object.freeze({ pair, rate: positive(row.rate), pipSize: positive(row.pipSize), asOf: row.asOf, source: row.source });
+          new Date(row.asOf).toISOString() !== (row.asOf.includes('.') ? row.asOf : row.asOf.replace('Z', '.000Z')))) throw invalid();
+      return Object.freeze({ pair, rate: positive(row.rate), pipSize: positive(row.pipSize), asOf: row.asOf, source: row.source }) as Rate;
     }), (row) => row.pair),
     countries: unique(countries.map((value): Country => {
       const row = record(value);
@@ -126,7 +127,7 @@ export function parseSnapshot(raw: string, environment: string, mode: DataMode):
   if (value.adapterVersion !== 1 || value.environment !== environment || value.mode !== mode ||
       typeof value.id !== 'string' || !value.id || typeof value.fetchedAt !== 'number' ||
       !Number.isSafeInteger(value.fetchedAt) || value.fetchedAt < 0) throw invalid();
-  return Object.freeze({ ...validateReferenceData(value, value), adapterVersion: 1, environment, mode, id: value.id, fetchedAt: value.fetchedAt });
+  return Object.freeze({ ...validateReferenceData(value, value, mode === 'sample'), adapterVersion: 1, environment, mode, id: value.id, fetchedAt: value.fetchedAt });
 }
 
 // Membership comes only from the current snapshot, including after country removal.

@@ -117,7 +117,7 @@ test('Small screen layout and demo landing page', async ({ page }) => {
 test('Refreshing the cache does not make dated default FX fresh', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'FR', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
-    localStorage.setItem('savly:reference:1:prototype:sample', JSON.stringify({
+    localStorage.setItem('savly:reference:1:prototype:sample:guest-2', JSON.stringify({
       adapterVersion: 1, environment: 'prototype', mode: 'sample', id: 'old', fetchedAt: Date.now() - 14_400_001,
       rates: [{ pair: 'EURUSD', rate: 1.1, pipSize: 0.0001, source: 'CityIndex', asOf: '2026-09-26T12:00:00Z' }],
       countries: [{ country: 'FR', currency: 'EUR', vatRate: 0.2 }, { country: 'US', currency: 'USD', vatRate: null }],
@@ -262,7 +262,7 @@ test('Country dropdown precedes tabs; tab switching preserves the calculator dra
 test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund and savings', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'ES', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
-    localStorage.setItem('savly:reference:1:prototype:sample', JSON.stringify({
+    localStorage.setItem('savly:reference:1:prototype:sample:guest-2', JSON.stringify({
       adapterVersion: 1, environment: 'prototype', mode: 'sample', id: 'spain-example', fetchedAt: Date.now() - 14_400_001,
       rates: [{ pair: 'USDEUR', rate: 0.8887, pipSize: 0.0001, source: 'CityIndex', asOf: '2026-09-26T12:00:00Z' }],
       countries: [{ country: 'ES', currency: 'EUR', vatRate: 0.21 }, { country: 'US', currency: 'USD', vatRate: null }],

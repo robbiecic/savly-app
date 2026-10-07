@@ -65,3 +65,24 @@ export function createMockTransport(
 ): ReferenceTransport {
   return { async get(path) { return JSON.parse(JSON.stringify(await respond(path))); } };
 }
+
+// Owner supplied these static rates on 2026-10-07 without a quote timestamp.
+// Keep them undated and distinct from CityIndex API responses.
+export const GUEST_RESPONSES = {
+  ...SAMPLE_RESPONSES,
+  '/v1/rates': { rates: [
+    ...SAMPLE_RESPONSES['/v1/rates'].rates,
+    ...[
+      { pair: 'GBPUSD', rate: 1.32, pipSize: 0.0001 },
+      { pair: 'GBPJPY', rate: 208.8, pipSize: 0.01 },
+      { pair: 'GBPAUD', rate: 1.90, pipSize: 0.0001 },
+      { pair: 'EURJPY', rate: 176.9, pipSize: 0.01 },
+      { pair: 'EURAUD', rate: 1.61, pipSize: 0.0001 },
+      { pair: 'AUDJPY', rate: 110.0, pipSize: 0.01 },
+    ].map(rate => ({ ...rate, source: 'Owner-provided defaults' as const, asOf: null })),
+  ] },
+};
+
+export function createGuestTransport(): ReferenceTransport {
+  return createMockTransport(path => GUEST_RESPONSES[path]);
+}

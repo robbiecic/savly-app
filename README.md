@@ -180,3 +180,5 @@ The [UK/Australia example](specs/001-shopping-calculator/spec.md#ukaustralia-reg
 The Android/iOS build and mobile/web export npm commands automatically run TypeScript and all `tests/*.test.ts` tests before building, stopping on failure. Add future calculation examples to that directory. Use `npm run check:build` before invoking Expo/Gradle/Xcode directly, since those commands bypass npm hooks.
 
 Refund-fee verification: TypeScript, all 113 unit/integration tests, two focused Chromium refund-rules tests and Android/iOS/web exports passed. Native builds and physical-device tests were not run for this change.
+
+Guest defaults cover every home/shopping combination among the United States, United Kingdom, Australia, Japan, Spain and France (10 currency pairs). Six additional rates supplied by the owner on 2026-10-07 are static defaults with unknown quote dates, not CityIndex quotes; they retain stale-rate warnings. The four original dated rates and bundled VAT/refund metadata remain in use. Guest cache revision `guest-2` replaces the incomplete earlier defaults without changing the four-hour lifetime or authenticated API cache.
