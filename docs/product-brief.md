@@ -20,7 +20,7 @@ Enter an item and its overseas price. See an estimated home-currency cost, an un
 - Automatically fetch supported shopping countries, FX rates, and VAT metadata from fxService; persist validated responses for four hours before refreshing on next active use. Prototype refund rules are separate illustrative local fixtures.
 - Calculate all fees, refund amounts, and savings on-device. Price edits and country changes reuse cached data without additional API calls.
 - If refresh fails, use the last validated dataset with a clear out-of-date label; first launch without data shows unavailable.
-- Show the configured FX source with an editable 0% additional bank-fee assumption. Keep rate, fee, and refund overrides under “Edit assumptions.” No rate entry is required in the normal flow.
+- Use the configured FX source and automatic refund assessment, with no additional bank fee. Do not offer manual FX, refund or fee editing.
 - Show **Without VAT refund**, **Estimated VAT refund**, and **With VAT refund** in home currency, including card fees in both cost totals.
 - Show savings against the home price when supplied. Otherwise show cost estimates only.
 - Share a savings/comparison summary through the native share sheet (including WhatsApp when installed), with a link to open Savly or download it from the relevant store. Sharing requires no Savly login.
@@ -45,7 +45,7 @@ Premium shopping and travel companion: white and cool pale-gray surfaces, deep n
 
 Proposed screens:
 
-1. **Compare:** price-first entry, remembered country/currency settings, automatic results, and a secondary “Edit assumptions” action.
+1. **Compare:** price-first entry, remembered country/currency settings, automatic results, and a country-specific VAT refund rules button.
 2. **Result:** cost with and without the estimated VAT refund; optional home-price savings, an expandable breakdown, and a Share savings/comparison action.
 3. **History / Saved:** recent comparisons and saved items, plus an unobtrusive optional sign-in action.
 4. **Premium access and account:** monthly/lifetime purchase choices, restore access, store subscription management, and optional login.

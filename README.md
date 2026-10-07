@@ -2,7 +2,7 @@
 
 A mobile shopping companion that answers: **“What will this cost me in my home currency, and how much could I save?”**
 
-Status: the calculator foundation and interactive sample prototype are implemented, including submitted estimates, editable assumptions, remembered settings, local saved comparisons, and sharing. Automatic recent history, billing, complete eligibility/provider-fee data and production API access remain future work.
+Status: the calculator foundation and interactive sample prototype are implemented, including submitted estimates, automatic assumptions, remembered settings, local saved comparisons, and sharing. Automatic recent history, billing, complete eligibility/provider-fee data and production API access remain future work.
 
 ## Start here
 
@@ -103,7 +103,7 @@ The backend lives in the sibling [fxService repository](../fxService/README.md).
 
 ## Working assumptions
 
-The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with editable assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Cognito login is available; cloud history and prototype billing remain future work. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. The backend now supplies tourist-refund scheme and threshold metadata; it does not supply personal eligibility or provider refund amounts. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
+The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with automatic assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Cognito login is available; cloud history and prototype billing remain future work. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. The backend now supplies tourist-refund scheme and threshold metadata; it does not supply personal eligibility or provider refund amounts. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
 
 ## Development API and keyboard behavior
 
@@ -173,7 +173,7 @@ Refund milestone verification (2026-10-07): TypeScript, all 110 unit/integration
 
 ## Calculation examples and build gate
 
-All new automatic and manual refund estimates deduct an assumed **28% of the gross potential refund**. Manual refund inputs are before fees. Result details and sharing show the gross refund, fee and net refund; saved historical totals stay unchanged. Refund eligibility and actual provider fees remain unverified.
+All new refund estimates use reference data automatically and deduct an assumed **28% of the gross potential refund**. Calculate has no manual FX, refund or fee editing. Built-in defaults and validated cached/API data retain their provenance and stale-rate notices. Result details and sharing show the gross refund, fee and net refund; saved historical totals stay unchanged. Refund eligibility and actual provider fees remain unverified.
 
 The [UK/Australia example](specs/001-shopping-calculator/spec.md#ukaustralia-regression-example) compares GBP 200 with tax-inclusive AUD 350 at the fixed example quote GBP/AUD 1.9004: GBP 16.74 gross refund, GBP 4.69 fee, **GBP 27.88 potential savings**. `tests/australia-example.test.ts` protects the totals, FX direction, manual fee, sharing and saving.
 

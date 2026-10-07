@@ -13,7 +13,7 @@ Run `npm start` on a configured Android/iOS environment, or `npm run web` for a 
 - With VAT refund: **USD 115.50**.
 - Potential savings: **USD 34.50 (23.0%)**.
 
-Use **Back to calculator**, then **Edit assumptions** to enter a 3% bank fee; tap Calculate savings again to see a net cost of USD 119.46. A EUR 21 manual refund produces a validation error. **Reset FX and refund to automatic** clears only comparison overrides, retaining the bank-fee preference. Changing shopping country, residency, or shopping price clears comparison overrides. Changing the automatically derived home currency also clears the home price. Saved legacy currency choices are reconciled on startup; missing country/currency metadata blocks totals with an explanation. Country/residency, home currency, and valid bank fees persist; item details and comparison overrides do not.
+Current Calculate uses automatic FX/refund assumptions from built-in defaults or validated cached/API data. Manual FX/refund editing and reset controls have been removed. Country/home settings persist; prices do not. Historical override checks below describe earlier versions only.
 
 Sample country/currency options include Spain/EUR, France/EUR, US/USD, Japan/JPY, UK/GBP, and Australia/AUD. Membership still comes from the reference snapshot, so an existing fresh cache gains new fixture countries at its next refresh. Illustrative automatic refund rules cover general goods in France and Spain for US residents; Spain assumes full included VAT before an assumed 28% provider fee. Other combinations display refund unavailable unless a manual amount is supplied. Residency choices remain independent of shopping-country support.
 

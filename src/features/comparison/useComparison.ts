@@ -66,12 +66,12 @@ export function useComparison() {
     return () => clearTimeout(timer);
   }, [form]);
   const pending = settledForm !== form;
-  const view = useMemo(() => compare(withHomeCurrency(settledForm, reference?.snapshot ?? null), ready ? reference : null, locale, now), [settledForm, reference, ready, locale, now]);
+  // New calculations always use reference data; manual support remains for legacy snapshots.
+  const view = useMemo(() => compare(resetOverrides(withHomeCurrency(settledForm, reference?.snapshot ?? null)), ready ? reference : null, locale, now), [settledForm, reference, ready, locale, now]);
   return {
     form, reference, ready, view, pending, now, storageError, retrying, locale, startupError,
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
-    edit: (field: keyof ComparisonForm, value: string) => setForm(current => withHomeCurrency(editForm(current, field, value), reference?.snapshot ?? null)),
-    reset: () => setForm(current => resetOverrides(current)),
+    edit: (field: Exclude<keyof ComparisonForm, 'fxOverride' | 'refundOverride' | 'feePercent'>, value: string) => setForm(current => withHomeCurrency(editForm(current, field, value), reference?.snapshot ?? null)),
     retry: async () => { setRetrying(true); try { setReference(await (await getReferenceStore(session)).retry()); } finally { setRetrying(false); } },
   };
 }

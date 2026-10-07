@@ -163,3 +163,9 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 - [x] Show the selected shopping country's flag inside Calculate’s VAT refund rules button, updating with the country selection. TypeScript checks pass; browser and native display were not tested for this change.
 - [x] Show the country's flag beside its name in the refund rules popup title, including retained comparison rules. TypeScript checks pass; browser and native display were not tested for this change.
+
+## Automatic assumptions only
+
+- [x] Remove Edit assumptions, manual FX/refund fields and reset controls from Calculate; keep country-specific VAT rules available.
+- [x] Clear legacy overrides before new UI calculations, restrict editable form fields and remove the result-page instruction to enter a manual refund. Preserve historical saved totals and provenance.
+- [x] Update requirements and browser checks. TypeScript, all 113 unit/integration tests, web export and three focused Chromium tests pass. Native device checks were not run.

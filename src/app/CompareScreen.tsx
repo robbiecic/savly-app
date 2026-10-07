@@ -29,7 +29,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
     return () => subscription.remove();
   }, [page, resultOrigin]);
-  const [assumptions, setAssumptions] = useState(false);
   const { form, view, reference } = state;
   const snapshot = reference?.snapshot;
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
@@ -84,13 +83,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric locale={state.locale} placeholder="Price at home, including taxes" error={error('homePrice')} />
             <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
-            <Action label={assumptions ? 'Close assumptions' : 'Edit assumptions'} secondary expanded={assumptions} onPress={() => setAssumptions(!assumptions)} />
-            {(assumptions || error('fxOverride') || error('refundOverride')) && <View style={{ gap: 16 }}>
-              <Text style={ui.muted}>Leave FX and refund blank to use automatic values. Manual values apply only to this comparison.</Text>
-              {shopping?.currency !== form.homeCurrency && <Field label={`Manual FX (${form.homeCurrency || 'home currency'} per ${shopping?.currency ?? 'shopping unit'})`} value={form.fxOverride} onChange={(v) => state.edit('fxOverride', v)} numeric locale={state.locale} placeholder="Automatic rate" error={error('fxOverride')} />}
-              {shopping?.vatRate != null && <Field label={`Manual refund before fee (${shopping?.currency ?? 'shopping currency'})`} value={form.refundOverride} onChange={(v) => state.edit('refundOverride', v)} numeric locale={state.locale} placeholder="Automatic estimate, if available" error={error('refundOverride')} />}
-              <Action label="Reset FX and refund to automatic" secondary onPress={state.reset} />
-            </View>}
             </View></View>
             {shopping && <Action label="VAT refund rules" flag={countryFlag(shopping.country)} secondary onPress={() => { Keyboard.dismiss(); setRules(true); }} />}
           </Card>

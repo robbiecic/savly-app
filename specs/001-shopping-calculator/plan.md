@@ -26,7 +26,7 @@ Scaffold the project, add decimal arithmetic, implement typed input validation a
 
 ## Milestone 2 — Polished interactive prototype
 
-Build Compare and Result screens using the visual direction. Fetch mocked fxService FX/VAT responses and apply separately labeled local refund fixtures automatically. Show the FX source, remember country/currency settings, and hide overrides under “Edit assumptions.” Show costs with and without refunds. Include empty, invalid, favorable, unfavorable, and equal-price states. Add native sharing of a client-generated summary and configurable app link per ../003-sharing/spec.md; cover SH1–SH4. Validate AC1–AC9 and AC11–AC18 through the interface. Output: a runnable prototype with launch instructions and screenshots where tools permit.
+Build Compare and Result screens using the visual direction. Fetch mocked fxService FX/VAT responses and apply separately labeled local refund fixtures automatically. Show the FX source, remember country/currency settings, and use automatic assumptions without manual FX/refund editing. Show costs with and without refunds. Include empty, invalid, favorable, unfavorable, and equal-price states. Add native sharing of a client-generated summary and configurable app link per ../003-sharing/spec.md; cover SH1–SH4. Validate AC1–AC9 and AC11–AC18 through the interface. Output: a runnable prototype with launch instructions and screenshots where tools permit.
 
 ## Milestone 3 — History, premium access, and optional accounts
 
