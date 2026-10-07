@@ -1,5 +1,5 @@
 import { SavlyLogo } from '../components/SavlyLogo';
-import { HomeCountryBadge } from '../components/HomeCountryBadge';
+import { HomeSettingsButton } from '../components/HomeSettingsButton';
 import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
@@ -40,19 +40,12 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
       form: { ...form }, comparison: JSON.parse(JSON.stringify(view.comparison)) });
     setResultOrigin('calculator'); setPage('result');
   };
-  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} homeCountry={form.residence} locale={state.locale} />;
+  const openSettings = () => { Keyboard.dismiss(); setPage('settings'); };
+  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={openSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
-      <Pressable accessibilityRole="button" accessibilityLabel="Settings" disabled={!state.ready}
-        accessibilityHint="Change your home country"
-        onPress={() => { Keyboard.dismiss(); setPage('settings'); }}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minHeight: 48 }}>
-        <HomeCountryBadge country={form.residence} locale={state.locale} />
-        <View style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 24, color: colors.ink }}>⚙</Text>
-        </View>
-      </Pressable>
+      <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} onPress={openSettings} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>

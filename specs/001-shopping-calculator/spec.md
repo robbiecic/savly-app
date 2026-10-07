@@ -58,6 +58,10 @@ Use decimal arithmetic, retain precision in intermediate values, and round displ
 
 ## Result summary
 
+Your savings uses the same clickable home-country, flag, and Settings cog as Calculate and Saved. Tapping any part opens the existing Settings page.
+
+On Your savings, savings and extra-cost summary amounts use the home currency symbol before the localized number (for example, “You could save $25.00” or “Costs €25.00 more”). Apply this to the before-refund summary too. Preserve exact stored digits and use the currency code as a fallback when a symbol is unavailable.
+
 Show “Without VAT refund,” “Estimated VAT refund,” and “With VAT refund” in home currency. Both cost totals include the same card fee. “With VAT refund” is the estimated net cost used in savings comparisons; the refund is not a removal of all VAT. Keep detailed FX, VAT, provider assumptions, in an expandable breakdown. Built-in default FX is identified as “Default FX rate”; illustrative refund assumptions remain labeled. API fixture estimates remain labeled sample.
 
 ## Estimate assumptions visible to the shopper
@@ -82,7 +86,7 @@ Refund eligibility is not verified by this version. Real schemes have conditions
 
 - **AC12:** With remembered home/trip settings, entering EUR 120 uses a cached mock dataset (fetched only if missing or expired): r = 1.10, v = 0.20, q = 0.20 / 1.20 under the full-included-VAT assumption, bank fee 0%. Show without refund USD 132.00, estimated refund USD 22.00, and with refund USD 110.00 without requiring any rate entry. With home price USD 150, savings are USD 40.00 (26.7%).
 - **AC13:** New comparisons always exclude card fees, including after loading legacy nonzero preferences. An FX/refund override is labeled “Manual”; resetting restores automatic values or the refund-unavailable state. Changing comparison context clears comparison-specific overrides and recalculates locally using the cached dataset. Older refresh responses cannot overwrite newer data.
-- **AC14:** Without valid cached data, loading or unavailable FX shows no converted total. After a failed refresh, expired but previously validated cached data may support estimates with a refresh-failure message and source timestamp; show “Rates out of date” if the applied source FX is over 48 hours old. Show Retry. When FX is valid but VAT is null, show the without-refund cost and its savings or extra cost against the home price, labeled as excluding a refund. An explicit zero refund is distinct and shows equal before/after costs.
+- **AC14:** Without valid cached data, loading or unavailable FX shows no converted total. After a failed refresh, expired but previously validated cached data may support estimates with a refresh-failure message and source timestamp; show one badge reading “FX rates are stale. Login to get accurate rates.” if the applied source FX is over 48 hours old; omit the separate stale-rate alert on Your savings. Show Retry. When FX is valid but VAT is null, show the without-refund cost and its savings or extra cost against the home price, labeled as excluding a refund. An explicit zero refund is distinct and shows equal before/after costs.
 - **AC15:** Persist home/trip settings across app restarts. Defaults appear already populated. Shopping country and residency remain separate client-side inputs; neither is required in the reference-data API request; mock assumptions remain visible as estimates, never verified eligibility or genuine Mastercard rates.
 
 - **AC16:** All supported-country options come from the fetched dataset. Adding/removing a country in a refreshed fixture updates the selector without code changes; removed selections cannot generate new estimates.
@@ -101,7 +105,7 @@ Use the existing fxService backend and canonical contract. Confirm deployment UR
 
 ## Keyboard layout
 
-The calculator, savings-name field, and country search remain usable with the soft keyboard open. Android uses native resizing plus explicit height avoidance and scrolls the focused input into the visible viewport after keyboard/layout changes. iOS uses padding avoidance. Forms and country options scroll within the remaining space. Form scrolling dismisses the keyboard, and action/selection taps remain available while it is open. Verify on native devices with small screens and enlarged text before release.
+The calculator, savings-name field, and country search remain usable with the soft keyboard open. Android uses native resizing plus explicit height avoidance and scrolls the focused input into the visible viewport after keyboard/layout changes. iOS uses padding avoidance. Forms and country options scroll within the remaining space. Native form scrolling dismisses the keyboard; browser scrolling preserves input focus so typing into lower fields is not interrupted, and action/selection taps remain available while it is open. Verify on native devices with small screens and enlarged text before release.
 
 Card-fee inputs and zero-fee rows are removed from new calculator results and shares. Previously saved comparisons retain their original totals and show any nonzero card fee as a saved-estimate detail. VAT refund provider fees remain separate and unchanged.
 

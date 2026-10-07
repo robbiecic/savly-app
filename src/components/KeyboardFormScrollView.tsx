@@ -36,7 +36,7 @@ export function KeyboardFormScrollView(props: ScrollViewProps) {
   useEffect(() => () => { if (frame.current !== null) cancelAnimationFrame(frame.current); }, []);
   const focus = useCallback((input: TextInput | null) => { focused.current = input; reveal(); }, [reveal]);
   return <RevealInputContext.Provider value={focus}>
-    <ScrollView {...props} ref={scroll} scrollEventThrottle={16}
+    <ScrollView {...props} keyboardDismissMode={Platform.OS === 'web' ? 'none' : props.keyboardDismissMode} ref={scroll} scrollEventThrottle={16}
       onScroll={(event) => { offset.current = event.nativeEvent.contentOffset.y; props.onScroll?.(event); }} onLayout={(event) => { props.onLayout?.(event); reveal(); }} />
   </RevealInputContext.Provider>;
 }

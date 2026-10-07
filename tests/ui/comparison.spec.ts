@@ -134,14 +134,14 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('Estimate · Default rates · Rates out of date', { exact: true })).toBeVisible();
-  await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. Login to get accurate rates.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
   await expect(page.getByText('USD 110.00', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('Estimate · Default rates · Rates out of date', { exact: true })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. Login to get accurate rates.', { exact: true })).toBeVisible();
 });
 
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
@@ -279,7 +279,7 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
-  for (const label of ['You could save USD 81.52', 'Estimate · Default rates · Rates out of date', 'USD -6.36',
+  for (const label of ['You could save USD 81.52', 'login to get accurate rates', 'USD -6.36',
     'Estimated VAT refund', 'USD 87.88', 'USD 418.48']) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
@@ -389,7 +389,7 @@ test('Savings lead the result; VAT is assumed refundable regardless of home coun
   const savings = page.getByText('You could save USD 40.00', { exact: true });
   await expect(savings).toBeInViewport();
   const summaryBounds = await savings.boundingBox();
-  const warningBounds = await page.getByRole('alert').filter({ hasText: 'FX rate is stale' }).boundingBox();
+  const warningBounds = await page.getByText('login to get accurate rates', { exact: true }).boundingBox();
   expect(summaryBounds!.y).toBeLessThan(warningBounds!.y);
   await back(page);
   await setHomeCountry(page, 'France');
@@ -418,4 +418,31 @@ test('Null VAT still shows cheaper and more expensive overseas comparisons', asy
   await page.getByRole('textbox', { name: 'Home price (EUR)', exact: true }).fill('80');
   await calculate(page);
   await expect(page.getByText('Costs EUR 20.00 more', { exact: true })).toBeVisible();
+});
+
+test('numeric fields group thousands during typing and retain decimals', async ({ page }) => {
+  await openCompare(page);
+  await setHomeCountry(page, 'United States');
+  const shopping = page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true });
+  const home = page.getByRole('textbox', { name: 'Home price (USD)', exact: true });
+  await shopping.fill('');
+  await shopping.pressSequentially('12345.67', { delay: 50 });
+  await expect(shopping).toHaveValue('12,345.67');
+  await shopping.press('Backspace');
+  await expect(shopping).toHaveValue('12,345.6');
+  await home.pressSequentially('20000', { delay: 50 });
+  await expect(home).toHaveValue('20,000');
+  await page.getByRole('button', { name: 'Edit assumptions', exact: true }).click();
+  const fx = page.getByRole('textbox', { name: 'Manual FX (USD per EUR)', exact: true });
+  const refund = page.getByRole('textbox', { name: 'Manual refund (EUR)', exact: true });
+  await fx.pressSequentially('1234.5678', { delay: 50 });
+  await expect(fx).toHaveValue('1,234.5678');
+  await refund.click();
+  await refund.pressSequentially('1000', { delay: 50 });
+  await expect(refund).toHaveValue('1,000');
+  await fx.fill('1');
+  await calculate(page);
+  await back(page);
+  await expect(shopping).toHaveValue('12,345.6');
+  await expect(home).toHaveValue('20,000');
 });

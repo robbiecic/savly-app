@@ -116,10 +116,11 @@ export function fxLabel(fx: FxQuote, format: (value: string) => string = (value)
   const label = fx.kind === 'manual' ? 'Manual rate' : fx.source === 'Built-in defaults' ? 'Default FX rate' : fx.kind === 'sample' ? 'Sample rate' : fx.source;
   return `1 ${fx.from} = ${format(displayed)} ${fx.to} · ${label}`;
 }
-export function savingsLabel(value: Calculation, format: (value: string) => string = (value) => value): string | null {
+export function savingsLabel(value: Calculation, format: (value: string) => string = (value) => value,
+  formatMoney: (amount: string) => string = amount => `${value.homeCurrency} ${format(amount)}`): string | null {
   const savings = value.savings;
   if (!savings) return null;
   if (savings.outcome === 'same') return 'Same estimated cost';
-  const amount = `${value.homeCurrency} ${format(savings.amount.replace('-', ''))}`;
+  const amount = formatMoney(savings.amount.replace('-', ''));
   return savings.outcome === 'save' ? `You could save ${amount}` : `Costs ${amount} more`;
 }

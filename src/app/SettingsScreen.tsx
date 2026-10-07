@@ -21,7 +21,8 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, on
     <Text style={ui.label}>Account</Text>
     <Text style={ui.text}>{user ? `Signed in${user.email ? ` as ${user.email}` : ''}` : 'Not signed in'}</Text>
     <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>
-    <Action label={user ? 'Sign out' : 'Sign in'} secondary onPress={user ? onSignOut : openSignIn} />
+    {!user && <Action label="Sign in" secondary onPress={openSignIn} />}
+    <Action label="Sign out" secondary onPress={onSignOut} />
     <Action label="Back to calculator" onPress={onBack} />
   </Card>;
 }

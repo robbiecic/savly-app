@@ -1,5 +1,11 @@
 # Task checklist
 
+- [x] Replace the stale-rate badge on Your savings with “FX rates are stale. Login to get accurate rates.” and remove the duplicate warning.
+
+- [x] Share the clickable home-country and Settings cog control across Your savings and the other main pages.
+
+- [x] Show a currency symbol before savings/extra-cost amounts on Your savings, including before-refund summaries, while preserving localized digits and saved precision.
+
 ## Foundation
 
 - [x] Write product brief and visual direction.
@@ -126,3 +132,7 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Automatically group numeric inputs while typing, preserving locale decimals and exact calculation strings. TypeScript and all 103 unit/integration tests pass; native typing was not device-tested.
 
 - [x] Automatically format Your savings amounts, percentages, and rate details with grouped digits and locale decimals while preserving saved precision. TypeScript, 103 tests, and formatting spot checks pass; native display was not device-tested.
+
+- [x] Keep Sign out visible in Settings for guests as well as signed-in users, returning both to the welcome/splash screen. TypeScript and all six simulated-provider browser tests pass; native interaction was not tested.
+
+- [x] Verify comma grouping during browser typing in all four numeric fields, decimal entry, deletion, and return from results. Prevent browser scrolling from interrupting focused input. Focused Chromium test, web export, and TypeScript pass; native typing remains unverified.

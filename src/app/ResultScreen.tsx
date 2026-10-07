@@ -1,6 +1,6 @@
-import { formatResultNumber } from '../features/comparison/number-display';
+import { formatResultNumber, formatSummaryMoney } from '../features/comparison/number-display';
 import { SavlyLogo } from '../components/SavlyLogo';
-import { HomeCountryBadge } from '../components/HomeCountryBadge';
+import { HomeSettingsButton } from '../components/HomeSettingsButton';
 import { isFxStale } from '../data/fx-freshness';
 import { useCurrentTime } from '../hooks/useCurrentTime';
 import { responsive, useWideLayout } from '../components/responsive';
@@ -21,7 +21,7 @@ import { colors } from '../theme/colors';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
-export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
+export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; onSettings: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
   const wide = useWideLayout();
   const now = useCurrentTime();
   const comparison = entry.comparison;
@@ -54,7 +54,8 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
   const [shareError, setShareError] = useState(false);
   const r = comparison.result;
   const number = (value: string) => formatResultNumber(value, locale);
-  const summary = savingsLabel(r, number);
+  const summaryMoney = (value: string) => formatSummaryMoney(value, r.homeCurrency, locale);
+  const summary = savingsLabel(r, number, summaryMoney);
   const favorable = r.savings?.outcome === 'save';
   const money = (value: string) => `${r.homeCurrency} ${number(value)}`;
   const share = async () => {
@@ -67,7 +68,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
   return <SafeAreaView style={styles.screen}>
     <View style={[styles.brandHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
-      <HomeCountryBadge country={homeCountry} locale={locale} />
+      <HomeSettingsButton country={homeCountry} locale={locale} onPress={onSettings} />
     </View>
     <View style={[styles.header, wide && responsive.wideContent]}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back to calculator" onPress={onBack}
@@ -90,7 +91,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null
         ? new D(r.priceDifference).isZero() ? 'Same price before VAT refund'
-          : `${money(r.priceDifference.replace('-', ''))} ${new D(r.priceDifference).gt(0) ? 'less' : 'more'} before VAT refund`
+          : `${summaryMoney(r.priceDifference.replace('-', ''))} ${new D(r.priceDifference).gt(0) ? 'less' : 'more'} before VAT refund`
         : comparison.homePrice ? 'Final savings unavailable' : 'Add a home price to see savings'}</Text>
       <Text style={ui.text}>{comparison.homePrice
         ? 'Final savings are unavailable because the VAT refund is unknown. Any price difference shown excludes a VAT refund.'
@@ -99,8 +100,7 @@ export function ResultScreen({ entry, onBack, fromSaved, homeCountry, locale }: 
 
     {!!comparison.itemName && <Text style={ui.title}>{comparison.itemName}</Text>}
     <Text style={ui.muted}>{entry.form.country} → {entry.form.residence} · {new Date(entry.savedAt).toLocaleDateString()}</Text>
-    <Text style={styles.badge}>{r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}{isFxStale(r.fx, now) ? ' · Rates out of date' : ''}</Text>
-    {isFxStale(r.fx, now) && <Text accessibilityRole="alert" style={{ backgroundColor: '#FFF2D6', color: '#714300', padding: 14, borderRadius: 12 }}>FX rate is stale (over 48 hours old or its date cannot be verified). This estimate may differ from current prices.</Text>}
+    <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Login to get accurate rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
     <View style={wide ? responsive.columns : responsive.stack}>
     <View style={[responsive.stack, wide && responsive.column]}>
     <View style={{ gap: 16 }}>
