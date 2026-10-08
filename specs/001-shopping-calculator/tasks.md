@@ -29,6 +29,8 @@
 
 ## Milestone 2
 
+- [x] Present both country selectors as iPhone sheets with modal-local safe areas to keep the logo below the notch/status bar. TypeScript checks pass; native portrait/landscape and keyboard verification remain pending.
+
 - [x] Create Savly app icons, Android adaptive/themed layers, favicon, and thumbnail exports from the approved icon concept; native launcher verification remains.
 
 - [x] Hide Scan navigation and its placeholder until scanning is implemented.

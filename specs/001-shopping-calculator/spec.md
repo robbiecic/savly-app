@@ -161,6 +161,8 @@ The owner confirmed included GST. The initially supplied GBP 18.42 refund, GBP 5
 
 ## Persistent branding
 
+Shopping-country and home-country selection open as native sheets on iPhone, below the camera notch and status bar. Measure safe areas within each modal so branding and controls remain unobstructed in portrait and landscape; keep the country list scrollable and search keyboard avoidance enabled.
+
 Keep the italic Savly wordmark and airplane motif from the welcome screen visible at the top left, outside scrolling content, on Welcome, Calculate, Saved, Settings, Your savings, country selection, and the full-screen photo viewer. Use navy on light backgrounds and white on dark backgrounds, respecting safe areas. Keep home-country and navigation controls available beside or below the branding. System-owned camera, library, and share screens retain their platform UI.
 
 Your savings automatically groups displayed amounts, percentages, and FX rates using the same separator convention as numeric inputs. Preserve stored decimal precision, currency trailing zeroes, signs, and saved calculation values.

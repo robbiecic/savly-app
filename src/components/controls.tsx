@@ -4,7 +4,7 @@ import { useWideLayout } from './responsive';
 import { RevealInputContext } from './KeyboardFormScrollView';
 import { useContext, useRef, useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 
 export const ui = StyleSheet.create({
@@ -56,7 +56,8 @@ export function Select({ label, value, options, onChange, error, compact = false
       <OptionLabel label={chosen} flag={selectedOption?.flag} /><Text style={ui.text}>⌄</Text>
     </Pressable>
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
-    <RevealInputContext.Provider value={null}><Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+    <RevealInputContext.Provider value={null}><Modal supportedOrientations={['portrait', 'landscape-left', 'landscape-right']} visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
+      <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingHorizontal: 24, paddingVertical: 8 }}><SavlyLogo /></View>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} style={{ padding: wide ? 16 : 24, gap: 16, flex: 1, width: '100%', maxWidth: 1080, alignSelf: 'center' }}>
@@ -74,6 +75,7 @@ export function Select({ label, value, options, onChange, error, compact = false
           <Action label="Close selection" secondary onPress={() => setOpen(false)} />
         </KeyboardAvoidingView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal></RevealInputContext.Provider>
   </View>;
 }
