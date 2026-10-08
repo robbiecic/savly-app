@@ -84,3 +84,5 @@ On Android and iOS, retain the validated session and refresh token in Expo Secur
 Use device-only keychain accessibility on iOS and SecureStore's encrypted Android storage with its backup exclusion. Rebuild native apps after adding SecureStore. Verify sign-in, force-quit/reopen, token renewal, offline retry and sign-out/reopen on physical devices before release.
 
 Older native builds without ExpoSecureStore must not crash during startup. Check module availability before loading the storage package, show an app-update message, and allow guest use. Block sign-in until a compatible native build is installed; never silently fall back to insecure token storage or claim that sign-in was retained.
+
+On launch, display the photo-led splash without Get started or Sign in while restoring the saved session. Returning signed-in users go directly to Calculate after three seconds of splash display, waiting longer only if restoration/renewal is still pending. Do not briefly show welcome buttons before Calculate. Guests receive the normal welcome controls as soon as restoration finishes. Interactive sign-in does not add this launch delay.

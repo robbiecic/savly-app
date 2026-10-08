@@ -11,8 +11,8 @@ export default function App() {
 }
 
 function AppContent() {
-  const [started, setStarted] = useState(false);
   const { user, signOut } = useAuth();
+  const [started, setStarted] = useState(() => !!user);
   useEffect(() => { if (user) setStarted(true); }, [user]);
   return (
     <>

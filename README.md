@@ -185,6 +185,8 @@ Guest defaults cover every home/shopping combination among the United States, Un
 
 ## Remembered device sign-in
 
+Returning signed-in users see the splash page without buttons for three seconds, then go straight to Calculate. Session restoration can extend the wait if renewal is needed. Guests keep the normal welcome buttons, and interactive sign-in opens Calculate immediately.
+
 Android/iOS now save sign-in in Expo SecureStore and restore it on launch. Run `npm install`, then rebuild with `npm run ios` or `npm run android` to include the native secure-storage module. Sign in once after this update; earlier versions discarded their sessions. Sign out deletes the saved session. Saved comparisons remain local.
 
 If an older installation reports `Cannot find native module 'ExpoSecureStore'`, rebuild and reinstall it: use `npm run ios -- --device` for a connected iPhone, `npm run ios` for the simulator, or `npm run android -- --device` for Android. A Metro reload cannot add native modules. The app now checks for secure storage before importing it; older builds show an update message and allow guest use, while sign-in requires the rebuilt app.

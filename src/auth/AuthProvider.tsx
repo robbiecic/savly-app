@@ -1,3 +1,4 @@
+import { SplashScreen } from '../app/WelcomeContent';
 import { SessionStore } from './session-store';
 import { checkSessionStorage, SECURE_STORAGE_BUILD_ERROR, SecureStorageBuildError, sessionStorage } from './session-storage';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -53,6 +54,12 @@ async function prepare(): Promise<Prepared> {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [restoring, setRestoring] = useState(true);
+  const [returningUser, setReturningUser] = useState(false);
+  const [splashElapsed, setSplashElapsed] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSplashElapsed(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
   const [sessionError, setSessionError] = useState(false);
   const [needsUpdate, setNeedsUpdate] = useState(false);
   const store = useRef<SessionStore | null>(null);
@@ -77,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           previous => refreshSession(config, previous), setSession);
       }
       await store.current.restore();
+      setReturningUser(!!store.current.session);
     } catch (error) {
       setNeedsUpdate(error instanceof SecureStorageBuildError);
       setSessionError(true);
@@ -171,9 +179,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     openSignIn: () => { setVisible(true); void load(); },
     signOut,
   }}>
-    {restoring ? <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.background }}>
-      <ActivityIndicator accessibilityLabel="Restoring sign-in" color={colors.ink} />
-    </View> : sessionError && !session ? <SafeAreaView style={{ flex: 1, padding: 24, gap: 16 }}>
+    {restoring || (returningUser && !splashElapsed) ? <>
+      <StatusBar style="light" />
+      <SplashScreen />
+    </> : sessionError && !session ? <SafeAreaView style={{ flex: 1, padding: 24, gap: 16 }}>
       <Text accessibilityRole="alert" style={ui.text}>{needsUpdate ? SECURE_STORAGE_BUILD_ERROR : "Can't restore sign-in right now. Your saved sign-in has been kept."}</Text>
       {needsUpdate ? <Action label="Continue as guest" onPress={() => setSessionError(false)} /> : <>
         <Action label="Try again" onPress={() => { void restore(); }} />
