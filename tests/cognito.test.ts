@@ -63,11 +63,11 @@ test('code exchange sends PKCE and identical callback, then validates identity t
   const fetcher = (async (url: string, init?: RequestInit) => {
     calls.push({ url, init });
     return calls.length === 1
-      ? json({ access_token: 'access-token', refresh_token: 'never-persisted', token_type: 'Bearer', expires_in: 3600 })
+      ? json({ access_token: 'access-token', refresh_token: 'refresh-token', token_type: 'Bearer', expires_in: 3600 })
       : json({ sub: 'user-id', email: 'traveler@example.test' });
   }) as typeof fetch;
   const session = await completeSignIn({ ...options, fetcher });
-  assert.deepEqual(session, { accessToken: 'access-token', expiresAt: 3601000,
+  assert.deepEqual(session, { accessToken: 'access-token', refreshToken: 'refresh-token', expiresAt: 3601000,
     user: { sub: 'user-id', email: 'traveler@example.test' } });
   assert.equal(calls[0].url, endpoints.tokenEndpoint);
   assert.equal(calls[0].init?.method, 'POST');

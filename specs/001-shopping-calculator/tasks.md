@@ -118,6 +118,9 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [x] Reuse the welcome wordmark and airplane in fixed top-left headers across app screens and app-owned modals.
 
 - [x] Enable Cognito browser sign-in from Welcome/Settings with code + PKCE, session-only identity, sign-out, and the requested connection error.
+- [x] Retain native sign-in across app closure using Expo SecureStore; restore sessions, refresh Cognito tokens, preserve credentials on connection failure, and remove them on explicit sign-out or rejected refresh. TypeScript, all 128 unit/integration tests, six simulated-provider browser tests, and Android/iOS JavaScript exports pass.
+- [ ] Rebuild native apps for SecureStore and verify real-account sign-in, force-quit/reopen, expiry/renewal, offline retry, and sign-out/reopen on Android/iOS devices.
+- [x] Prevent startup crashes on older builds missing ExpoSecureStore: check availability before importing, offer guest use with an update message, and block sign-in until rebuilt. TypeScript, 131 tests (including missing-module regressions), and Android/iOS JavaScript exports pass; native installation remains pending.
 - [x] Configure the owner-confirmed development Cognito domain and registered native callback.
 - [x] Recheck the owner’s Cognito login-page fix: HTTP 200 with email/password form using the configured native authorization request.
 - [ ] Register a web callback if needed and verify real account sign-in and return on Android/iOS and web.

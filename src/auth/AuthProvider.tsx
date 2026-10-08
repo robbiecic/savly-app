@@ -1,3 +1,5 @@
+import { SessionStore } from './session-store';
+import { checkSessionStorage, SECURE_STORAGE_BUILD_ERROR, SecureStorageBuildError, sessionStorage } from './session-storage';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, AppState, Modal, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,13 +10,13 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Action, Card, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { colors } from '../theme/colors';
-import { checkLoginPage, completeSignIn, CONNECTION_ERROR, EXPO_GO_ERROR, discover, resolveCognitoConfig, validateAuthRuntime, validateRedirect,
+import { refreshSession, checkLoginPage, completeSignIn, CONNECTION_ERROR, EXPO_GO_ERROR, discover, resolveCognitoConfig, validateAuthRuntime, validateRedirect,
   type CognitoConfig, type Endpoints, type Session } from './cognito';
 
 WebBrowser.maybeCompleteAuthSession();
 
 type Prepared = { config: CognitoConfig; endpoints: Endpoints; request: AuthRequest };
-type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; signOut: () => void };
+type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; signOut: () => Promise<boolean> };
 const AuthContext = createContext<Auth | null>(null);
 
 export function useAuth(): Auth {
@@ -23,15 +25,20 @@ export function useAuth(): Auth {
   return auth;
 }
 
-async function prepare(): Promise<Prepared> {
-  validateAuthRuntime(Platform.OS, Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
-  const config = resolveCognitoConfig({
+function configuration(): CognitoConfig {
+  return resolveCognitoConfig({
     development: __DEV__ || ['local', 'development'].includes(process.env.EXPO_PUBLIC_APP_ENV ?? ''),
     authority: process.env.EXPO_PUBLIC_COGNITO_AUTHORITY,
     clientId: process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID,
     domain: process.env.EXPO_PUBLIC_COGNITO_DOMAIN,
     redirectUri: process.env.EXPO_PUBLIC_COGNITO_REDIRECT_URI,
   });
+}
+
+async function prepare(): Promise<Prepared> {
+  validateAuthRuntime(Platform.OS, Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
+  checkSessionStorage();
+  const config = configuration();
   const endpoints = await discover(config);
   validateRedirect(config.redirectUri, Platform.OS, Platform.OS === 'web' ? window.location.origin : undefined);
   const request = new AuthRequest({
@@ -45,7 +52,10 @@ async function prepare(): Promise<Prepared> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Session-only by design: never put Cognito tokens in AsyncStorage or browser localStorage.
+  const [restoring, setRestoring] = useState(true);
+  const [sessionError, setSessionError] = useState(false);
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const store = useRef<SessionStore | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [visible, setVisible] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'browser' | 'error'>('loading');
@@ -54,14 +64,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const generation = useRef(0);
   const inFlight = useRef(false);
 
+  const restore = async () => {
+    setRestoring(true);
+    setSessionError(false);
+    setNeedsUpdate(false);
+    try {
+      if (!store.current) {
+        let config: CognitoConfig;
+        try { config = configuration(); } catch { return; } // Unconfigured releases still allow guest use.
+        store.current = new SessionStore(sessionStorage,
+          JSON.stringify([config.authority, config.clientId, config.domain ?? '']),
+          previous => refreshSession(config, previous), setSession);
+      }
+      await store.current.restore();
+    } catch (error) {
+      setNeedsUpdate(error instanceof SecureStorageBuildError);
+      setSessionError(true);
+    }
+    finally { setRestoring(false); }
+  };
+  useEffect(() => { void restore(); }, []);
   useEffect(() => {
     if (!session) return;
-    const expire = () => { if (session.expiresAt <= Date.now()) setSession(null); };
-    const timer = setTimeout(expire, Math.min(Math.max(0, session.expiresAt - Date.now()), 2147483647));
-    const subscription = AppState.addEventListener('change', state => { if (state === 'active') expire(); });
-    return () => { clearTimeout(timer); subscription.remove(); };
+    let active = true;
+    let timer: ReturnType<typeof setTimeout>;
+    const renew = async () => {
+      try { await store.current?.refresh(); if (active) setSessionError(false); }
+      catch {
+        if (active) {
+          setSessionError(true);
+          timer = setTimeout(() => { void renew(); }, 60000);
+        }
+      }
+    };
+    timer = setTimeout(() => { void renew(); }, Math.min(Math.max(0, session.expiresAt - Date.now() - 60000), 2147483647));
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active' && session.expiresAt <= Date.now() + 60000) {
+        clearTimeout(timer); void renew();
+      }
+    });
+    return () => { active = false; clearTimeout(timer); subscription.remove(); };
   }, [session]);
   useEffect(() => () => { generation.current++; }, []);
+
+  const signOut = async () => {
+    generation.current++;
+    try {
+      await store.current?.signOut();
+      setSessionError(false);
+      return true;
+    } catch { setSessionError(true); return false; }
+  };
 
   const load = async () => {
     const current = ++generation.current;
@@ -75,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPhase('ready');
     } catch (error) {
       if (generation.current === current) {
-        setFailureMessage(error instanceof Error && error.message === EXPO_GO_ERROR ? EXPO_GO_ERROR : CONNECTION_ERROR);
+        setFailureMessage(error instanceof SecureStorageBuildError ? SECURE_STORAGE_BUILD_ERROR : error instanceof Error && error.message === EXPO_GO_ERROR ? EXPO_GO_ERROR : CONNECTION_ERROR);
         setPhase('error');
       }
     }
@@ -103,7 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const next = await completeSignIn({ ...pending, expectedState: pending.request.state,
         codeVerifier: pending.request.codeVerifier ?? '', result });
       if (generation.current !== current) return;
-      if (next) setSession(next);
+      if (next) {
+        if (!store.current || (Platform.OS !== 'web' && !next.refreshToken)) throw new Error(CONNECTION_ERROR);
+        await store.current.accept(next);
+        setSessionError(false);
+      }
       close(); // Closing the browser voluntarily leaves the user signed out without an error.
     } catch { if (generation.current === current) setPhase('error'); }
     finally { if (generation.current === current) inFlight.current = false; }
@@ -112,9 +169,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={{
     session, user: session?.user ?? null,
     openSignIn: () => { setVisible(true); void load(); },
-    signOut: () => { generation.current++; setSession(null); },
+    signOut,
   }}>
-    {children}
+    {restoring ? <View style={{ flex: 1, justifyContent: 'center', backgroundColor: colors.background }}>
+      <ActivityIndicator accessibilityLabel="Restoring sign-in" color={colors.ink} />
+    </View> : sessionError && !session ? <SafeAreaView style={{ flex: 1, padding: 24, gap: 16 }}>
+      <Text accessibilityRole="alert" style={ui.text}>{needsUpdate ? SECURE_STORAGE_BUILD_ERROR : "Can't restore sign-in right now. Your saved sign-in has been kept."}</Text>
+      {needsUpdate ? <Action label="Continue as guest" onPress={() => setSessionError(false)} /> : <>
+        <Action label="Try again" onPress={() => { void restore(); }} />
+        <Action label="Sign out on this device" secondary onPress={() => { void signOut(); }} />
+      </>}
+    </SafeAreaView> : <>
+      {sessionError && <SafeAreaView edges={['top']}><Text accessibilityRole="alert" style={ui.error}>Can't update sign-in right now. Check your connection and try again.</Text>
+        <Action label="Retry sign-in connection" onPress={() => { void store.current?.refresh().then(() => setSessionError(false)).catch(() => setSessionError(true)); }} />
+      </SafeAreaView>}
+      {children}
+    </>}
     <Modal visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       onRequestClose={close}>
       {visible && <StatusBar style="dark" />}
@@ -130,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             </>}
             {phase === 'error' && <>
               <Text accessibilityRole="alert" style={ui.error}>{failureMessage}</Text>
-              {failureMessage !== EXPO_GO_ERROR && <Action label="Try again" onPress={() => { void load(); }} />}
+              {failureMessage !== EXPO_GO_ERROR && failureMessage !== SECURE_STORAGE_BUILD_ERROR && <Action label="Try again" onPress={() => { void load(); }} />}
             </>}
             {phase === 'ready' && <Action label="Continue to sign in" onPress={() => { void signIn(); }} />}
             <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>

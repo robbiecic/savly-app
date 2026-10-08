@@ -23,6 +23,7 @@
     },
     "plugins": [
       "expo-localization",
+      "expo-secure-store",
       [
         "expo-image-picker",
         {

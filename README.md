@@ -107,7 +107,7 @@ The owner selected travelers from any country and a polished prototype with samp
 
 ## Development API and keyboard behavior
 
-Development builds use `https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com` on Android, iOS, and web. No local API server or port forwarding is needed. Sign in with Cognito to fetch rates and countries; requests use the in-memory access token. Guests keep clearly identified built-in defaults. API failures after sign-in remain unavailable/retryable or retain a validated cache, without substituting sample rates.
+Development builds use `https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com` on Android, iOS, and web. No local API server or port forwarding is needed. Sign in with Cognito to fetch rates and countries; requests use the current access token. Guests keep clearly identified built-in defaults. API failures after sign-in remain unavailable/retryable or retain a validated cache, without substituting sample rates.
 
 To change the server, put `EXPO_PUBLIC_FX_API_URL=https://your-api-host` in `.env.local` (omit `/v1`), then restart with `npm run start:dev`. The override also applies to release builds; unconfigured release builds keep defaults. Production-mode development previews can set `EXPO_PUBLIC_APP_ENV=development`. Web access requires the backend to allow the preview origin through CORS. Validated API data is cached for four hours, isolated by URL and from the old local sample cache. Changing the URL requires restarting Expo/rebuilding exported bundles.
 
@@ -129,7 +129,7 @@ Current refund policy: [country refund thresholds](specs/001-shopping-calculator
 
 ## Cognito sign-in
 
-Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Settings shows Sign in for guests and Sign out for signed-in users. Sign out clears the app session before returning to the opening welcome screen; tokens stay in memory and are never written to local storage. Restart or token expiry requires signing in again. Saved comparisons remain on-device; this does not implement cloud history or billing.
+Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Settings shows Sign in for guests and Sign out for signed-in users. Sign out removes the securely saved session before returning to the opening welcome screen. Android/iOS sessions survive app closure in Expo SecureStore, with automatic Cognito token renewal. Browser previews remain memory-only. Expired or revoked refresh credentials require sign-in again; temporary connection failures preserve credentials for retry. Saved comparisons remain on-device; this does not implement cloud history or billing.
 
 Local/native development now defaults to the owner's issuer, client `35vicii2qq71r09bcd0val80lm`, managed-login domain `https://savly.auth.us-east-1.amazoncognito.com`, and registered callback `savly://auth/callback`.
 
@@ -182,3 +182,11 @@ The Android/iOS build and mobile/web export npm commands automatically run TypeS
 Refund-fee verification: TypeScript, all 113 unit/integration tests, two focused Chromium refund-rules tests and Android/iOS/web exports passed. Native builds and physical-device tests were not run for this change.
 
 Guest defaults cover every home/shopping combination among the United States, United Kingdom, Australia, Japan, Spain and France (10 currency pairs). Six additional rates supplied by the owner on 2026-10-07 are static defaults with unknown quote dates, not CityIndex quotes; they retain stale-rate warnings. The four original dated rates and bundled VAT/refund metadata remain in use. Guest cache revision `guest-2` replaces the incomplete earlier defaults without changing the four-hour lifetime or authenticated API cache.
+
+## Remembered device sign-in
+
+Android/iOS now save sign-in in Expo SecureStore and restore it on launch. Run `npm install`, then rebuild with `npm run ios` or `npm run android` to include the native secure-storage module. Sign in once after this update; earlier versions discarded their sessions. Sign out deletes the saved session. Saved comparisons remain local.
+
+If an older installation reports `Cannot find native module 'ExpoSecureStore'`, rebuild and reinstall it: use `npm run ios -- --device` for a connected iPhone, `npm run ios` for the simulator, or `npm run android -- --device` for Android. A Metro reload cannot add native modules. The app now checks for secure storage before importing it; older builds show an update message and allow guest use, while sign-in requires the rebuilt app.
+
+Implementation follows [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/) and [Cognito refresh tokens](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-refresh-token.html). Native force-quit/reopen and real-account renewal still need device verification.

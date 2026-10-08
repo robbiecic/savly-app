@@ -19,7 +19,7 @@ export type CognitoConfig = {
   authority: string; clientId: string; redirectUri: string; scopes: string[]; domain?: string;
 };
 export type Endpoints = { authorizationEndpoint: string; tokenEndpoint: string; userInfoEndpoint: string };
-export type Session = { accessToken: string; expiresAt: number; user: { sub: string; email?: string } };
+export type Session = { accessToken: string; refreshToken?: string; expiresAt: number; user: { sub: string; email?: string } };
 type Json = Record<string, unknown>;
 
 function object(value: unknown): Json {
@@ -74,7 +74,8 @@ async function connectionRequest<T>(work: (signal: AbortSignal) => Promise<T>, t
         timer = setTimeout(() => { controller.abort(); reject(new Error(CONNECTION_ERROR)); }, timeoutMs);
       }),
     ]);
-  } catch {
+  } catch (error) {
+    if (error instanceof SessionExpiredError) throw error;
     // Do not expose tokens, callback codes, provider responses, or network details in the UI/logs.
     throw new Error(CONNECTION_ERROR);
   } finally { clearTimeout(timer); }
@@ -137,6 +138,10 @@ export async function completeSignIn(options: {
     body: new URLSearchParams({ grant_type: 'authorization_code', client_id: config.clientId,
       redirect_uri: config.redirectUri, code: result.params.code, code_verifier: codeVerifier }).toString(),
   }, fetcher);
+  return sessionFromTokens(tokens, endpoints, fetcher, issuedAt, now);
+}
+
+async function sessionFromTokens(tokens: Json, endpoints: Endpoints, fetcher: typeof fetch, issuedAt: number, now: () => number): Promise<Session> {
   if (typeof tokens.access_token !== 'string' || !tokens.access_token || tokens.token_type !== 'Bearer' ||
     typeof tokens.expires_in !== 'number' || !Number.isFinite(tokens.expires_in) || tokens.expires_in <= 0) {
     throw new Error(CONNECTION_ERROR);
@@ -147,7 +152,34 @@ export async function completeSignIn(options: {
   }, fetcher);
   const expiresAt = issuedAt + tokens.expires_in * 1000;
   if (typeof user.sub !== 'string' || !user.sub || expiresAt <= now()) throw new Error(CONNECTION_ERROR);
-  return { accessToken: tokens.access_token, expiresAt, user: {
+  return { accessToken: tokens.access_token, expiresAt,
+    ...(typeof tokens.refresh_token === 'string' && tokens.refresh_token ? { refreshToken: tokens.refresh_token } : {}), user: {
     sub: user.sub, ...(typeof user.email === 'string' ? { email: user.email } : {}),
   } };
+}
+
+export class SessionExpiredError extends Error {
+  constructor() { super('Please sign in again'); }
+}
+
+export async function refreshSession(config: CognitoConfig, previous: Session, fetcher: typeof fetch = fetch, now = Date.now): Promise<Session> {
+  if (!previous.refreshToken) throw new SessionExpiredError();
+  const endpoints = await discover(config, fetcher);
+  const issuedAt = now();
+  const tokens = await connectionRequest(async signal => {
+    const response = await fetcher(endpoints.tokenEndpoint, {
+      method: 'POST', signal, headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token', client_id: config.clientId,
+        refresh_token: previous.refreshToken! }).toString(),
+    });
+    const body = object(await response.json());
+    if (!response.ok) {
+      if (body.error === 'invalid_grant') throw new SessionExpiredError();
+      throw new Error(CONNECTION_ERROR);
+    }
+    return body;
+  }, 10000);
+  const next = await sessionFromTokens(tokens, endpoints, fetcher, issuedAt, now);
+  if (next.user.sub !== previous.user.sub) throw new SessionExpiredError();
+  return { ...next, refreshToken: next.refreshToken ?? previous.refreshToken };
 }

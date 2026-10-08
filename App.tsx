@@ -17,7 +17,7 @@ function AppContent() {
   return (
     <>
       <StatusBar style={started ? "dark" : "light"} />
-      {started ? <CompareScreen onSignOut={() => { signOut(); setStarted(false); }} /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}
+      {started ? <CompareScreen onSignOut={() => { void signOut().then(success => { if (success) setStarted(false); }); }} /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}
     </>
   );
 }
