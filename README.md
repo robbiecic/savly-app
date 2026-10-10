@@ -36,7 +36,7 @@ npm ci
 npm start
 ```
 
-Use a Savly development build for sign-in: `npm run android` builds and installs it on an Android emulator; `npm run ios` does the same for an iOS simulator (Xcode required). Add `-- --device` to select a USB-connected phone; an iPhone also needs developer mode and configured Apple signing. After installing the build, use `npm run start:dev` for code reloads. A physical phone must be able to reach the development server. Expo Go can still preview the guest calculator via `npx expo start --go`, but cannot complete Cognito sign-in. For a browser preview, run `npm run web`.
+Use a Savly development build for sign-in: `npm run android` builds and installs it on an Android emulator; `npm run ios` does the same for an iOS simulator (Xcode required). Add `-- --device` to select a USB-connected phone; an iPhone also needs developer mode and configured Apple signing. After installing the build, use `npm run start:dev` for code reloads. A physical phone must be able to reach the development server. Expo Go can still preview the guest calculator via `npx expo start --go`, and can use in-app sign-in when its SDK includes SecureStore and Expo Crypto. For a browser preview, run `npm run web`.
 
 Checks:
 
@@ -77,7 +77,7 @@ Verified with `npm test`: 52 tests total, including 23 data-layer tests for exac
 
 ## Try the prototype
 
-The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** opens Cognito sign-in (configuration requirements below).
+The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** opens the in-app account forms (configuration requirements below).
 
 See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. Current scheme availability and minimum purchases gate automatic refund estimates; passing the amount check does not verify personal eligibility. Null VAT means no available refund estimate; the app still compares the converted overseas cost against the home price.
 
@@ -129,26 +129,23 @@ Current refund policy: [country refund thresholds](specs/001-shopping-calculator
 
 ## Cognito sign-in
 
-Welcome and Settings offer browser sign-in using the development Cognito pool/client supplied by the owner. Sign-in uses authorization code + PKCE; errors show **Can't connect right now** with retry. Successful sign-in opens Calculate and displays the account in Settings. Get started still works without signing in. Settings shows Sign in for guests and Sign out for signed-in users. Sign out removes the securely saved session before returning to the opening welcome screen. Android/iOS sessions survive app closure in Expo SecureStore, with automatic Cognito token renewal. Browser previews remain memory-only. Expired or revoked refresh credentials require sign-in again; temporary connection failures preserve credentials for retry. Saved comparisons remain on-device; this does not implement cloud history or billing.
+Welcome and Settings open in-app forms for email/password sign-in, account creation, email verification (including resending codes), and password reset. SMS/authenticator verification and forced new-password prompts also stay inside Savly. No browser or callback registration is needed for new sign-ins. Guest access and device-local saved comparisons are unchanged; cloud history and billing remain separate future work.
 
-Local/native development now defaults to the owner's issuer, client `35vicii2qq71r09bcd0val80lm`, managed-login domain `https://savly.auth.us-east-1.amazoncognito.com`, and registered callback `savly://auth/callback`.
+The app uses the AWS Cognito identity SDK's SRP flow, already enabled in the sibling backend's infrastructure. Its cache is disabled: passwords and verification codes stay in memory, native session tokens use Expo SecureStore, and web sessions remain memory-only. Expo Crypto supplies secure random values for native SRP. GetUser validates identity before accepting a session. Native sessions renew with GetTokensFromRefreshToken, preserving rotated tokens and checking account identity; previously saved browser sessions retain their legacy renewal path. Temporary connection failures preserve saved credentials for retry. Sign out removes the local session and returns to Welcome.
 
-- Rebuild the native development app to install the `savly` URL scheme and auth modules. Expo Go cannot complete this callback flow.
-- For web development, register the actual localhost URL (for example `http://localhost:8081`) in Cognito, set `EXPO_PUBLIC_COGNITO_REDIRECT_URI` to that URL, and open that same origin. For a local production-mode export, set `EXPO_PUBLIC_APP_ENV=development` explicitly.
-- Release builds require their own `EXPO_PUBLIC_COGNITO_AUTHORITY` and `EXPO_PUBLIC_COGNITO_CLIENT_ID`; configure their domain and callback as needed. Never put a client secret in the app. See `.env.example`.
-- The app client must permit the authorization code grant and requested scopes, and have managed login enabled. Live endpoint recheck on 2026-10-04 returned HTTP 200 and the email/password sign-in form using Savly’s client, requested scopes, PKCE, and registered native callback. The previous “Login pages unavailable” error is resolved. No credentials were submitted; successful account authentication and return to the native app remain unverified.
+Development uses the owner's existing public issuer and client `35vicii2qq71r09bcd0val80lm`. Release builds require `EXPO_PUBLIC_COGNITO_AUTHORITY` and `EXPO_PUBLIC_COGNITO_CLIENT_ID`; never add a client secret. Domain configuration is retained only for legacy browser-session renewal. See `.env.example`. No backend deployment is required by this implementation. Live pool settings and actual email delivery still need real-account verification.
 
-The hosted reference API uses the current Cognito access token. Signing in switches from guest defaults to API data; signing out or token expiry returns to guest defaults. Sign-in does not change the four-hour cache duration or implement account history sync.
+Restart Metro with `npm run start:dev` after this update so it loads the new Cognito/Expo Crypto resolver. Native builds must include the existing SecureStore and Expo Crypto modules. Older builds missing SecureStore show an update message and allow guest use.
 
-Run `npm run test:auth:ui` for isolated browser checks using a simulated Cognito provider. That command creates an ignored `dist-auth-web/` build with test-only configuration; never deploy it. Run normal Expo builds with `--clear` when switching environment configuration to avoid reusing cached values.
+The backend infrastructure configures email self-registration and SRP. Optional custom authentication, MFA enrollment/selection, and email MFA are not part of this configuration; the app reports unsupported challenges safely. Add their forms before enabling those pool features.
 
-Implementation references: [Expo AuthSession](https://docs.expo.dev/versions/latest/sdk/auth-session/), [Expo authentication setup](https://docs.expo.dev/guides/authentication/), and [Cognito authorization endpoint](https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html).
+TypeScript, 136 unit/integration tests, eight simulated-Cognito Chromium form tests, and Android/iOS/web exports pass. Expo dependency compatibility passed against the offline bundled map. Verification for the in-app forms is recorded in [tasks](specs/001-shopping-calculator/tasks.md). Real email delivery, real-account sign-in, native keyboards, force-quit/reopen, and device renewal must still be checked on Android/iOS before release.
 
-Sign-in verification: TypeScript, 98 unit/integration tests, six simulated-provider browser tests, all 20 existing browser tests, and Android/iOS/web exports passed. Expo’s bundled dependency compatibility check passed in offline mode. Real credentials, native browser return, and device sign-in were not tested.
+Run `npm run test:auth:ui` for isolated form checks with a simulated Cognito provider. Its `dist-auth-web/` export contains test-only configuration; do not deploy it. Restart Expo with `--clear` when switching environment configuration.
 
 ### Testing sign-in on phones
 
-Install and open the **Savly** development app, rather than opening the project inside Expo Go. The native app owns `savly://auth/callback`; Expo Go cannot receive that URL. Both Android and iOS use application identifier `com.savly.app` for local builds. The app now explains this setup requirement when opened in Expo Go, while actual connection errors still say **Can't connect right now**.
+Use the Savly development app for native checks. Both Android and iOS use application identifier `com.savly.app` for local builds. In-app account forms require SecureStore and Expo Crypto; no callback URL is needed.
 
 `npm run android` automatically finds an installed Java 17 (including Gradle's JDK cache) and the Android SDK. It sets their locations only for the build process, without changing your shell configuration. Android Studio's bundled Java 25 is not used because it fails this project's native compiler setup. If no Java 17 is available, install JDK 17 or point `JAVA_HOME` to it.
 
@@ -192,3 +189,5 @@ Android/iOS now save sign-in in Expo SecureStore and restore it on launch. Run `
 If an older installation reports `Cannot find native module 'ExpoSecureStore'`, rebuild and reinstall it: use `npm run ios -- --device` for a connected iPhone, `npm run ios` for the simulator, or `npm run android -- --device` for Android. A Metro reload cannot add native modules. The app now checks for secure storage before importing it; older builds show an update message and allow guest use, while sign-in requires the rebuilt app.
 
 Implementation follows [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/) and [Cognito refresh tokens](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-refresh-token.html). Native force-quit/reopen and real-account renewal still need device verification.
+
+Account implementation references: [Cognito SRP authentication](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-authentication-flow-methods.html) and [Cognito token renewal](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_GetTokensFromRefreshToken.html).

@@ -11,6 +11,7 @@ function decode(raw: string, scope: string): Session | null {
     const value = JSON.parse(raw);
     const s = value.session;
     if (value.scope !== scope || !s || typeof s.accessToken !== 'string' || !s.accessToken ||
+      (s.authMethod !== undefined && s.authMethod !== 'native') ||
       !Number.isFinite(s.expiresAt) || typeof s.user?.sub !== 'string' || !s.user.sub ||
       (s.user.email !== undefined && typeof s.user.email !== 'string') ||
       (s.refreshToken !== undefined && (typeof s.refreshToken !== 'string' || !s.refreshToken))) return null;

@@ -2,21 +2,16 @@ import { SplashScreen } from '../app/WelcomeContent';
 import { SessionStore } from './session-store';
 import { checkSessionStorage, SECURE_STORAGE_BUILD_ERROR, SecureStorageBuildError, sessionStorage } from './session-storage';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, AppState, Modal, Platform, ScrollView, Text, View } from 'react-native';
+import { AppState, Modal, Platform, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { AuthRequest, CodeChallengeMethod, Prompt, ResponseType } from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { Action, Card, ui } from '../components/controls';
+import { Action, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { colors } from '../theme/colors';
-import { refreshSession, checkLoginPage, completeSignIn, CONNECTION_ERROR, EXPO_GO_ERROR, discover, resolveCognitoConfig, validateAuthRuntime, validateRedirect,
-  type CognitoConfig, type Endpoints, type Session } from './cognito';
+import { refreshSession, resolveCognitoConfig, type CognitoConfig, type Session } from './cognito';
+import { refreshNativeSession } from './native-cognito';
+import { AccountForm } from './AccountForm';
 
-WebBrowser.maybeCompleteAuthSession();
-
-type Prepared = { config: CognitoConfig; endpoints: Endpoints; request: AuthRequest };
 type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; signOut: () => Promise<boolean> };
 const AuthContext = createContext<Auth | null>(null);
 
@@ -36,22 +31,6 @@ function configuration(): CognitoConfig {
   });
 }
 
-async function prepare(): Promise<Prepared> {
-  validateAuthRuntime(Platform.OS, Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
-  checkSessionStorage();
-  const config = configuration();
-  const endpoints = await discover(config);
-  validateRedirect(config.redirectUri, Platform.OS, Platform.OS === 'web' ? window.location.origin : undefined);
-  const request = new AuthRequest({
-    clientId: config.clientId, redirectUri: config.redirectUri, scopes: config.scopes,
-    responseType: ResponseType.Code, usePKCE: true, codeChallengeMethod: CodeChallengeMethod.S256,
-    prompt: Prompt.Login,
-  });
-  const url = await request.makeAuthUrlAsync(endpoints);
-  if (Platform.OS !== 'web') await checkLoginPage(url);
-  return { config, endpoints, request };
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [restoring, setRestoring] = useState(true);
   const [returningUser, setReturningUser] = useState(false);
@@ -65,11 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const store = useRef<SessionStore | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [visible, setVisible] = useState(false);
-  const [phase, setPhase] = useState<'loading' | 'ready' | 'browser' | 'error'>('loading');
-  const [failureMessage, setFailureMessage] = useState(CONNECTION_ERROR);
-  const prepared = useRef<Prepared | null>(null);
-  const generation = useRef(0);
-  const inFlight = useRef(false);
 
   const restore = async () => {
     setRestoring(true);
@@ -81,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try { config = configuration(); } catch { return; } // Unconfigured releases still allow guest use.
         store.current = new SessionStore(sessionStorage,
           JSON.stringify([config.authority, config.clientId, config.domain ?? '']),
-          previous => refreshSession(config, previous), setSession);
+          previous => previous.authMethod === 'native' ? refreshNativeSession(config, previous) : refreshSession(config, previous), setSession);
       }
       await store.current.restore();
       setReturningUser(!!store.current.session);
@@ -113,10 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => { active = false; clearTimeout(timer); subscription.remove(); };
   }, [session]);
-  useEffect(() => () => { generation.current++; }, []);
 
   const signOut = async () => {
-    generation.current++;
     try {
       await store.current?.signOut();
       setSessionError(false);
@@ -124,59 +96,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch { setSessionError(true); return false; }
   };
 
-  const load = async () => {
-    const current = ++generation.current;
-    prepared.current = null;
-    setFailureMessage(CONNECTION_ERROR);
-    setPhase('loading');
-    try {
-      const next = await prepare();
-      if (generation.current !== current) return;
-      prepared.current = next;
-      setPhase('ready');
-    } catch (error) {
-      if (generation.current === current) {
-        setFailureMessage(error instanceof SecureStorageBuildError ? SECURE_STORAGE_BUILD_ERROR : error instanceof Error && error.message === EXPO_GO_ERROR ? EXPO_GO_ERROR : CONNECTION_ERROR);
-        setPhase('error');
-      }
-    }
-  };
-  const close = () => {
-    generation.current++;
-    prepared.current = null;
-    if (inFlight.current) {
-      try { WebBrowser.dismissAuthSession(); } catch { /* Already closed or unavailable. */ }
-    }
-    inFlight.current = false;
-    setVisible(false);
-  };
-  const signIn = async () => {
-    const pending = prepared.current;
-    if (!pending || inFlight.current) return;
-    inFlight.current = true;
-    prepared.current = null; // Each attempt consumes its own state and PKCE verifier.
-    const current = generation.current;
-    setPhase('browser');
-    try {
-      // The URL is prepared before this user gesture, so web popups are not blocked by discovery.
-      const result = await pending.request.promptAsync(pending.endpoints, { preferEphemeralSession: true });
-      if (generation.current !== current) return;
-      const next = await completeSignIn({ ...pending, expectedState: pending.request.state,
-        codeVerifier: pending.request.codeVerifier ?? '', result });
-      if (generation.current !== current) return;
-      if (next) {
-        if (!store.current || (Platform.OS !== 'web' && !next.refreshToken)) throw new Error(CONNECTION_ERROR);
-        await store.current.accept(next);
-        setSessionError(false);
-      }
-      close(); // Closing the browser voluntarily leaves the user signed out without an error.
-    } catch { if (generation.current === current) setPhase('error'); }
-    finally { if (generation.current === current) inFlight.current = false; }
+  const close = () => setVisible(false);
+  const accept = async (next: Session) => {
+    if (!store.current || (Platform.OS !== 'web' && !next.refreshToken)) throw new Error("Can't connect right now");
+    await store.current.accept(next);
+    setSessionError(false);
+    close();
   };
 
   return <AuthContext.Provider value={{
     session, user: session?.user ?? null,
-    openSignIn: () => { setVisible(true); void load(); },
+    openSignIn: () => setVisible(true),
     signOut,
   }}>
     {restoring || (returningUser && !splashElapsed) ? <>
@@ -199,23 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {visible && <StatusBar style="dark" />}
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SavlyLogo /></View>
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 20, width: '100%', maxWidth: 620, alignSelf: 'center' }}>
-          <Card>
-            <Text accessibilityRole="header" style={ui.title}>Sign in to Savly</Text>
-            <Text style={ui.text}>Sign in securely in your browser.</Text>
-            {(phase === 'loading' || phase === 'browser') && <>
-              <ActivityIndicator accessibilityLabel={phase === 'loading' ? 'Connecting' : 'Signing in'} color={colors.ink} />
-              <Text style={ui.muted}>{phase === 'loading' ? 'Connecting…' : 'Complete sign-in in your browser.'}</Text>
-            </>}
-            {phase === 'error' && <>
-              <Text accessibilityRole="alert" style={ui.error}>{failureMessage}</Text>
-              {failureMessage !== EXPO_GO_ERROR && failureMessage !== SECURE_STORAGE_BUILD_ERROR && <Action label="Try again" onPress={() => { void load(); }} />}
-            </>}
-            {phase === 'ready' && <Action label="Continue to sign in" onPress={() => { void signIn(); }} />}
-            <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>
-            <Action label="Back to Savly" secondary onPress={close} />
-          </Card>
-        </ScrollView>
+        {visible && <AccountForm configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
       </SafeAreaView>
     </Modal>
   </AuthContext.Provider>;

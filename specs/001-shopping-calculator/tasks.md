@@ -185,3 +185,14 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 - [x] Move the shopping-country dropdown below the tab bar and show it only on Calculate, preserving the selected country when switching tabs. TypeScript checks pass; browser and native device checks were not run for this layout change.
 - [x] Show the default/API data-source message directly below Compare a price, only on Calculate. TypeScript checks pass; browser and native device checks were not run for this layout change.
+
+### In-app account forms (2026-10-10)
+
+- [x] Replace browser launch with in-app sign-in, registration, email confirmation/resend, password reset, SMS/authenticator codes, and required new-password forms.
+- [x] Use the existing Cognito SRP configuration, verify identity via GetUser, keep SDK storage disabled, and use Expo Crypto for native randomness.
+- [x] Preserve SecureStore session restoration/sign-out and legacy-session renewal; renew new sessions through the Cognito API with rotation and identity checks.
+- [x] Update account requirements and setup documentation.
+- [x] Verify TypeScript, all 136 unit/integration tests, eight simulated-Cognito Chromium form tests, and Android/iOS/web exports. Expo dependency compatibility passed using its offline bundled map.
+- [ ] Verify real-account registration/email delivery, sign-in, native keyboard behavior, force-quit/reopen, renewal, and sign-out on Android/iOS.
+
+This milestone supersedes the browser sign-in/callback requirements above for new sign-ins. Legacy callback tests remain unit coverage for older stored-session support; no new browser login is launched.

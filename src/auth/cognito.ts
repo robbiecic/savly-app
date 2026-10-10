@@ -19,7 +19,7 @@ export type CognitoConfig = {
   authority: string; clientId: string; redirectUri: string; scopes: string[]; domain?: string;
 };
 export type Endpoints = { authorizationEndpoint: string; tokenEndpoint: string; userInfoEndpoint: string };
-export type Session = { accessToken: string; refreshToken?: string; expiresAt: number; user: { sub: string; email?: string } };
+export type Session = { authMethod?: 'native'; accessToken: string; refreshToken?: string; expiresAt: number; user: { sub: string; email?: string } };
 type Json = Record<string, unknown>;
 
 function object(value: unknown): Json {
