@@ -1,3 +1,4 @@
+import { useBilling } from '../billing/BillingProvider';
 import { RefundRulesScreen } from './RefundRulesScreen';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
@@ -17,6 +18,7 @@ import { colors } from '../theme/colors';
 
 
 export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
+  const billing = useBilling();
   const wide = useWideLayout();
   const [rules, setRules] = useState(false);
   const state = useComparison();
@@ -65,6 +67,8 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             </Pressable>)}
           </View>
           {page === 'saved' ? <SavedScreen onOpen={(saved) => { setEntry(saved); setResultOrigin('saved'); setPage('result'); }} /> : <>
+          {snapshot?.environment === 'prototype' && <Text style={ui.muted}>Default mode · Unlimited calculations with limited, stale built-in rates.</Text>}
+          {billing.preview && <Text style={ui.muted}>Browser prototype · billing is not enabled.</Text>}
           <View style={styles.shoppingPicker}>
             <Select label="Shopping country" value={form.country} options={countries} onChange={(v) => state.edit('country', v)} error={error('country')} compact />
           </View>

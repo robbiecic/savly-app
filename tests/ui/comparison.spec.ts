@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 async function openCompare(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
 }
 
 async function calculate(page: Page) {
@@ -48,11 +48,10 @@ test('AC12–15: submitted result, automatic assumptions, no card fee and restar
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toBeVisible();
   await back(page);
   await expect(page.getByRole('button', { name: 'Edit assumptions', exact: true })).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
@@ -74,7 +73,7 @@ test('Share payload matches the display; cancellation leaves it intact', async (
   await expect(page.getByText(/delivered/i)).toHaveCount(0);
 });
 
-test('Missing, equal, unfavorable comparisons and automatic price updates', async ({ page }) => {
+test('Equal and unfavorable comparisons', async ({ page }) => {
   await comparison(page);
   await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('100');
@@ -84,6 +83,11 @@ test('Missing, equal, unfavorable comparisons and automatic price updates', asyn
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('116.16');
   await calculate(page);
   await expect(page.getByText('Same estimated cost', { exact: true })).toBeVisible();
+  await back(page);
+});
+
+test('Missing home price and automatic price updates', async ({ page }) => {
+  await comparison(page);
   await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('');
   await calculate(page);
@@ -132,14 +136,14 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('FX rates are stale. Login to get accurate rates.', { exact: true })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. Premium and sign-in enable API rates.', { exact: true })).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
   await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('FX rates are stale. Login to get accurate rates.', { exact: true })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. Premium and sign-in enable API rates.', { exact: true })).toBeVisible();
 });
 
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {
@@ -186,9 +190,9 @@ test('Welcome screen offers sign-in and guest entry', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'test-results/savly-welcome-390.png' });
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Get started', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Try it out', exact: true })).toHaveCount(0);
 });
 
 test('Home country selects currency automatically and migrates saved currency choices', async ({ page }) => {
@@ -204,7 +208,7 @@ test('Home country selects currency automatically and migrates saved currency ch
   await setHomeCountry(page, 'France');
   await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toHaveValue('');
   await page.reload();
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toBeVisible();
 });
 
@@ -216,7 +220,7 @@ test('Save persists the displayed snapshot and supports reopening and deletion',
   await back(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('999');
   await page.reload();
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await page.getByRole('button', { name: 'Open Travel bag', exact: true }).click();
   await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
@@ -310,7 +314,7 @@ test('Item photo can be added, removed, saved and reopened after reload', async 
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Saved on this device', exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Open Photo bag', exact: true }).click();
@@ -324,7 +328,7 @@ test('Rotation reflows welcome, calculator and savings while retaining the draft
   const welcomeBrand = await page.getByLabel('Savly', { exact: true }).boundingBox();
   const welcomeHeading = await page.getByRole('heading').boundingBox();
   expect(welcomeHeading!.x).toBeGreaterThan(welcomeBrand!.x + welcomeBrand!.width);
-  await expect(page.getByRole('button', { name: 'Get started', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Try it out', exact: true })).toBeInViewport();
   await page.screenshot({ path: 'test-results/savly-welcome-landscape.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   await comparison(page);
@@ -375,7 +379,7 @@ test('Settings owns home country; fixed flag follows calculations and persists a
   await expect(badge).toBeInViewport();
   await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(badge).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Home price (USD)', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();

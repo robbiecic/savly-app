@@ -2,7 +2,7 @@
 
 A mobile shopping companion that answers: **“What will this cost me in my home currency, and how much could I save?”**
 
-Status: the calculator foundation and interactive sample prototype are implemented, including submitted estimates, automatic assumptions, remembered settings, local saved comparisons, and sharing. Automatic recent history, billing, complete eligibility/provider-fee data and production API access remain future work.
+Status: the calculator foundation and interactive sample prototype are implemented, including submitted estimates, automatic assumptions, remembered settings, local saved comparisons, and sharing. Automatic recent history, production billing, complete eligibility/provider-fee data and production API access remain future work.
 
 ## Start here
 
@@ -77,7 +77,7 @@ Verified with `npm test`: 52 tests total, including 23 data-layer tests for exac
 
 ## Try the prototype
 
-The app opens with a photo-led welcome screen. **Get started** opens Compare; **Sign in** opens the in-app account forms (configuration requirements below).
+The app opens with a photo-led welcome screen. **Sign in** is the top primary button and opens the in-app account forms; **Try it out** is the secondary button below and opens Compare (configuration requirements below).
 
 See [the demonstration and verification record](docs/prototype-verification.md) for sample inputs, screenshots, passed checks, and remaining device checks. Home currency is set automatically from the selected country of residence using cached API metadata; there is no separate currency picker. Select your country of residence explicitly; it is never inferred from currency. Current scheme availability and minimum purchases gate automatic refund estimates; passing the amount check does not verify personal eligibility. Null VAT means no available refund estimate; the app still compares the converted overseas cost against the home price.
 
@@ -103,11 +103,11 @@ The backend lives in the sibling [fxService repository](../fxService/README.md).
 
 ## Working assumptions
 
-The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with automatic assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Cognito login is available; cloud history and prototype billing remain future work. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. The backend now supplies tourist-refund scheme and threshold metadata; it does not supply personal eligibility or provider refund amounts. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
+The owner selected travelers from any country and a polished prototype with sample rates as the first deliverable. The prototype dynamically loads supported countries, FX rates, and VAT metadata through mocks of the fxService endpoints, caches them for four hours, and calculates all savings on-device, with automatic assumptions and clearly labeled sample rates. Calculator access does not require a Savly account. Cognito login is available; cloud history and production billing remain future work; native development builds support RevenueCat Test Store purchases. Supported shopping countries and currencies come from the API dataset rather than a hardcoded list; it does not imply country-specific refund support. The backend now supplies tourist-refund scheme and threshold metadata; it does not supply personal eligibility or provider refund amounts. Production guest access must be resolved with the backend’s Cognito requirement. USD/EUR examples are illustrative, not a market commitment.
 
 ## Development API and keyboard behavior
 
-Development builds use `https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com` on Android, iOS, and web. No local API server or port forwarding is needed. Sign in with Cognito to fetch rates and countries; requests use the current access token. Guests keep clearly identified built-in defaults. API failures after sign-in remain unavailable/retryable or retain a validated cache, without substituting sample rates.
+Development builds use `https://a2ckcxro8g.execute-api.us-east-1.amazonaws.com` on Android, iOS, and web. No local API server or port forwarding is needed. An active Premium entitlement and Cognito sign-in are required to fetch rates and countries; requests use the current access token. Guests keep clearly identified built-in defaults. API failures after sign-in remain unavailable/retryable or retain a validated cache, without substituting sample rates.
 
 To change the server, put `EXPO_PUBLIC_FX_API_URL=https://your-api-host` in `.env.local` (omit `/v1`), then restart with `npm run start:dev`. The override also applies to release builds; unconfigured release builds keep defaults. Production-mode development previews can set `EXPO_PUBLIC_APP_ENV=development`. Web access requires the backend to allow the preview origin through CORS. Validated API data is cached for four hours, isolated by URL and from the old local sample cache. Changing the URL requires restarting Expo/rebuilding exported bundles.
 
@@ -166,7 +166,7 @@ After pulling this configuration change, run `npm ci`, `NODE_ENV=development npx
 
 Verification (2026-10-05): regenerated iOS configuration, successful Xcode simulator build/install, and visible Savly welcome screen on the iPhone 18 Pro simulator running iOS 27. TypeScript and offline Expo dependency compatibility checks passed. Physical iPhone and authenticated callback checks remain pending.
 
-Refund milestone verification (2026-10-07): TypeScript, all 110 unit/integration tests, two focused Chromium rules/navigation checks, and Android/iOS/web production exports pass. The focused browser command is `npx playwright test tests/ui/refund-rules.spec.ts`. Native navigation, source-link opening and accessibility were not device-tested; authenticated live responses were not exercised in this milestone.
+Refund milestone verification (2026-10-07): TypeScript, all 110 unit/integration tests, two focused Chromium rules/navigation checks, and Android/iOS/web production exports and Android/iOS development exports pass. The focused browser command is `npx playwright test tests/ui/refund-rules.spec.ts`. Native navigation, source-link opening and accessibility were not device-tested; authenticated live responses were not exercised in this milestone.
 
 ## Calculation examples and build gate
 
@@ -191,3 +191,19 @@ If an older installation reports `Cannot find native module 'ExpoSecureStore'`, 
 Implementation follows [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/) and [Cognito refresh tokens](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-refresh-token.html). Native force-quit/reopen and real-account renewal still need device verification.
 
 Account implementation references: [Cognito SRP authentication](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-authentication-flow-methods.html) and [Cognito token renewal](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_GetTokensFromRefreshToken.html).
+
+## RevenueCat test purchases
+
+Native development builds now use the owner's RevenueCat Test Store and `savly_premium` entitlement. The default offering must include standard **Monthly** and **Lifetime** packages, both attached to that entitlement. Prices load from RevenueCat. Try it out opens restricted mode with unlimited calculations using limited, stale bundled rates. Settings → Get Savly Premium opens account creation for guests, then purchase options after verified sign-in; signed-in users go straight to purchase options. Saved remains accessible without Premium. Restore purchases and refresh status are also in Settings. Purchases use RevenueCat's anonymous identity independently of Cognito sign-in.
+
+Rebuild with `npm run android` or `npm run ios`, then run `npm run start:dev`. Existing builds without the native SDK show a rebuild message. All purchases are explicitly simulated with no real charges. Manage/reset them in the RevenueCat dashboard. Browser previews use the same unlimited default-data calculations and upgrade navigation, with purchases unavailable. Release builds refuse the test key and keep Premium API access unavailable; production store setup is not implemented. Unlimited default-data calculations remain available.
+
+The public SDK key is in `src/billing/access.ts`; it is not a RevenueCat secret API key. No backend or Cognito configuration changes are required. See the [test billing requirements](specs/002-premium-and-history/spec.md) for access and offline behavior. Native purchase/restore and dashboard configuration have not yet been verified against a device.
+
+Billing verification: TypeScript, all 139 unit/integration tests, offline Expo dependency compatibility, and Android/iOS/web production exports and Android/iOS development exports passed. Native transactions and visual/device checks remain pending.
+
+No calculation quota is stored or enforced. Old allowance counters are ignored, even when exhausted or malformed.
+
+Restricted/free calculations use only bundled static countries, VAT and FX, even when signed in. Reference API fetching requires both active Premium and a Cognito session. Signing in alone does not refresh free rates.
+
+Unlimited-default-mode verification: TypeScript, all 139 unit/integration tests, and all 12 account/upgrade/default-mode browser tests pass. Browser coverage verifies more than three calculations, restart with an exhausted legacy counter, and zero reference API requests for signed-in users without Premium. The browser test run also rebuilt the web export. Broader calculator UI failures documented previously remain unaddressed; that suite was not rerun for this change. Native device purchases were not tested.

@@ -22,8 +22,8 @@ function Input({ label, value, onChange, secret = false, code = false, email = f
 const titles: Record<Step, string> = { signin: 'Sign in to Savly', signup: 'Create your account', confirm: 'Verify your email', forgot: 'Reset your password', reset: 'Choose a new password', challenge: 'Complete sign-in' };
 const actions: Record<Step, string> = { signin: 'Sign in', signup: 'Create account', confirm: 'Verify email', forgot: 'Send reset code', reset: 'Save new password', challenge: 'Continue' };
 
-export function AccountForm({ configuration, onSession, onClose }: { configuration: () => CognitoConfig; onSession: (session: Session) => Promise<void>; onClose: () => void }) {
-  const [step, setStep] = useState<Step>('signin');
+export function AccountForm({ configuration, onSession, onClose, initialStep = 'signin' }: { initialStep?: 'signin' | 'signup'; configuration: () => CognitoConfig; onSession: (session: Session) => Promise<void>; onClose: () => void }) {
+  const [step, setStep] = useState<Step>(initialStep);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeat, setRepeat] = useState('');

@@ -1,16 +1,16 @@
 # 002 — Premium access and optional account history
 
-Status: monthly store billing and lifetime purchase confirmed; prices remain undecided. In-app Cognito sign-in, registration, email confirmation, and recovery are implemented; real-account and device verification remain pending. Billing is not implemented.
+Status: monthly store billing and lifetime purchase confirmed; prices remain undecided. In-app Cognito sign-in, registration, email confirmation, and recovery are implemented; real-account and device verification remain pending. RevenueCat Test Store purchase/restore integration is implemented; real store billing and native transaction verification remain pending.
 
 ## Confirmed direction
 
-Savly is a premium product with paid access. The owner requested a recurring subscription option or a lifetime purchase, and optional login to retain shopping and search history. Do not add a free functional tier. Monthly billing is confirmed. All purchases and renewals use Google Play Billing on Android and Apple App Store in-app purchases on iOS.
+Savly is a premium product with paid access. The owner requested a recurring subscription option or a lifetime purchase, and optional login to retain shopping and search history. Default mode allows unlimited calculations using the limited bundled stale rates and countries. Monthly billing is confirmed. All purchases and renewals use Google Play Billing on Android and Apple App Store in-app purchases on iOS.
 
 Payment and login are separate: a paying user can use the calculator without a Savly account. Login adds durable cloud history and recovery across devices. Store identity restores purchases; a Savly account restores personal history.
 
 ## Purchase flow
 
-Use free installation followed by a required paid unlock: an automatically renewing monthly subscription or a one-time lifetime purchase. There is no free functional tier and no separate upfront download charge. The platform store handles checkout, payment details, recurring charges, and subscription management. Do not add a separate web checkout or custom recurring payment system.
+Use free installation with unlimited default-data calculations and an optional Premium upgrade: an automatically renewing monthly subscription or a one-time lifetime purchase. Premium enables API reference data when signed in; there is no separate upfront download charge. The platform store handles checkout, payment details, recurring charges, and subscription management. Do not add a separate web checkout or custom recurring payment system.
 
 Prices, launch currencies, and any trial are undecided. No trial is assumed. Both purchase options unlock the same features; lifetime access has no recurring Savly subscription charge. Real prices must come from store product metadata, not hardcoded UI values.
 
@@ -24,7 +24,7 @@ Guest history stays on the device and may be lost after uninstall or device loss
 
 ## History behavior
 
-Current prototype: the separate result page offers explicit Save and Share. Save requires a name and stores an immutable comparison on-device. Saved comparisons can be reopened, deleted, or cleared with confirmation; failures and corrupt data show a recoverable error. This implements local favorites only. Automatic recent history, billing, account isolation, and cloud sync remain future work.
+Current prototype: the separate result page offers explicit Save and Share. Save requires a name and stores an immutable comparison on-device. Saved comparisons can be reopened, deleted, or cleared with confirmation; failures and corrupt data show a recoverable error. This implements local favorites only. Automatic recent history, production billing, account isolation, and cloud sync remain future work.
 
 - Shopping history records completed valid comparisons as immutable snapshots, with item label if provided, price, countries/currencies, reference dataset and override metadata, before/after refund costs, home price if supplied, and timestamp.
 - Automatic recalculation must not create a record per keystroke. Upsert one draft comparison while editing; commit it when the user leaves its valid result or starts another item. Reopening a completed record does not rewrite it.
@@ -36,7 +36,7 @@ Current prototype: the separate result page offers explicit Save and Share. Save
 
 ## Access states
 
-Mock locked, active subscription, lifetime, expired, pending, canceled checkout, failed checkout, and restored states in the prototype. A canceled renewal remains active until its paid period ends; expiration or revocation removes premium calculation access without silently deleting history. Keep sign-in, restore, account/history management, and billing help reachable while locked. Define production offline entitlement/grace handling before billing integration.
+Mock locked, active subscription, lifetime, expired, pending, canceled checkout, failed checkout, and restored states in the prototype. A canceled renewal remains active until its paid period ends; expiration or revocation removes API reference-data access for new calculations without silently deleting history. Keep sign-in, restore, account/history management, and billing help reachable while locked. Define production offline entitlement/grace handling before billing integration.
 
 Cross-platform purchase portability, subscription-to-lifetime upgrades, and exact history-retention duration remain open. Cognito is the selected authentication provider. Do not promise automatic cancellation of an existing store subscription when buying lifetime access.
 
@@ -49,7 +49,7 @@ Cross-platform purchase portability, subscription-to-lifetime upgrades, and exac
 - **PH5:** Signed-in history returns on another signed-in device; edits while offline sync once reconnected. Mock demonstrations must be labeled simulated until a real backend is implemented and tested.
 - **PH6:** Sign-out/account switching prevents history leakage. Deleting a record syncs its removal without resurrection.
 - **PH7:** Repeated price edits produce one completed comparison, not a history entry for each local recalculation. Opening history does not modify its historical rate snapshot.
-- **PH8:** Subscription expiration preserves history while disabling premium calculations; valid lifetime access remains unlocked without a renewal date.
+- **PH8:** Subscription expiration preserves history while returning new calculations to bundled default data; valid lifetime access remains unlocked without a renewal date.
 
 - **PH9:** Subscription management opens the relevant store’s management flow. Store renewal, expiry, refund, and revocation events update verified access without requiring a Savly login. No custom recurring billing or external checkout is introduced.
 
@@ -71,7 +71,7 @@ Take photo and Add photo use the same outlined action style as Save and Share, s
 
 ## Cognito sign-in milestone
 
-Welcome and Settings offer real Cognito sign-in, separate from billing, calculator access, and future history sync. Get started continues without an account. The sign-in sheet contains native email/password forms for Sign in, Create account, email verification/resend, and password recovery. On success, Welcome advances to Calculate and Settings shows the signed-in identity. Settings shows Sign out only while signed in, and Sign in only while signed out. These account actions are mutually exclusive. Sign out removes the securely saved session and clears the in-memory session and returns to the opening welcome/splash screen, with Get started and Sign in available. Returning as a guest starts a fresh calculator draft and keeps saved comparisons and preferences. Saved comparisons remain device-local guest data; sign-in never uploads or reassigns them and does not claim cloud retention.
+Welcome and Settings offer real Cognito sign-in, separate from billing, calculator access, and future history sync. Try it out continues without an account. The sign-in sheet contains native email/password forms for Sign in, Create account, email verification/resend, and password recovery. On success, Welcome advances to Calculate and Settings shows the signed-in identity. Settings shows Sign out only while signed in, and Sign in only while signed out. These account actions are mutually exclusive. Sign out removes the securely saved session and clears the in-memory session and returns to the opening welcome/splash screen, with Try it out and Sign in available. Returning as a guest starts a fresh calculator draft and keeps saved comparisons and preferences. Saved comparisons remain device-local guest data; sign-in never uploads or reassigns them and does not claim cloud retention.
 
 For local/development, use issuer `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_MncSdF1r0` and public app client `35vicii2qq71r09bcd0val80lm`. Use Cognito SRP (`USER_SRP_AUTH`), already enabled by fxService infrastructure, with the AWS Cognito identity SDK. No client secret belongs in the app. Release builds require explicit configuration and must not automatically use development IDs. Direct account requests go to Cognito, never to invented fxService endpoints. New sign-ins require no managed-login domain, callback registration, or browser. Keep existing OAuth renewal only for previously saved browser sessions.
 
@@ -87,4 +87,26 @@ Use device-only keychain accessibility on iOS and SecureStore's encrypted Androi
 
 Older native builds without ExpoSecureStore must not crash during startup. Check module availability before loading the storage package, show an app-update message, and allow guest use. Block sign-in until a compatible native build is installed; never silently fall back to insecure token storage or claim that sign-in was retained.
 
-On launch, display the photo-led splash without Get started or Sign in while restoring the saved session. Returning signed-in users go directly to Calculate after three seconds of splash display, waiting longer only if restoration/renewal is still pending. Do not briefly show welcome buttons before Calculate. Guests receive the normal welcome controls as soon as restoration finishes. Interactive sign-in does not add this launch delay.
+On launch, display the photo-led splash without Try it out or Sign in while restoring the saved session. Returning signed-in users go directly to Calculate after three seconds of splash display, waiting longer only if restoration/renewal is still pending. Do not briefly show welcome buttons before Calculate. Guests receive the normal welcome controls as soon as restoration finishes. Interactive sign-in does not add this launch delay.
+
+## RevenueCat Test Store milestone (2026-10-10)
+
+Use the owner's public Test Store SDK key and entitlement `savly_premium` (display name Savly Premium). Load the current/default offering's standard Monthly and Lifetime packages, retaining their RevenueCat product metadata and localized prices. Missing package types show a configuration/retry message rather than fabricated prices. This milestone supports native development builds only. Never configure the Test Store in a release build; release premium access stays locked until production billing is implemented; unlimited default-data calculations still work. Web remains an explicitly labeled calculator prototype with unlimited default-data calculations, without purchases or a claim of premium access.
+
+Configure RevenueCat once with its anonymous customer identity. Cognito login/logout must not change billing identity or access. Try it out opens restricted mode with the calculator form, not a paywall. Settings offers Get Savly Premium; signed-out users start at Create account, can switch to Sign in, and continue to purchase options only after a validated sign-in. Existing signed-in users go directly to purchase options. Canceling account creation returns to Settings and cancels purchase continuation. Registration/verification alone never grants premium. Restore remains reachable without account creation; keep Settings, sign-in, Saved, restore and billing help reachable. Purchase cancellation, pending payment, errors or a completed purchase lacking the entitlement never grant access. A restored purchase does not restore cloud history. Existing saved estimates remain accessible after expiry.
+
+Read customer information on startup/foreground and listen for SDK updates. Use SDK-cached customer information during temporary connection failures; do not add a separate local unlock flag. Monthly access ends at the supplied expiration time even offline; lifetime has no expiry. This is a test policy, not a completed production grace/revocation policy. Test purchase management/reset happens in the RevenueCat dashboard. Real store management, production keys, store notification wiring and production offline/grace decisions remain a separate milestone. RevenueCat handles test transaction status; fxService gains no billing endpoints.
+
+Rebuild native binaries after installing react-native-purchases. Builds lacking its native module display an actionable message rather than crashing or silently unlocking. Device tests must cover monthly/lifetime purchases, cancellation, pending/failure, restoration/restart, expiry/revocation and Cognito sign-out independence before calling this end-to-end verified.
+
+### Restricted entry and upgrade navigation
+
+The owner confirmed unlimited free calculations; the restriction is the limited stale reference dataset, not a usage count. Users can browse countries, enter prices, view VAT information, and reopen Saved items without upgrading. Get Savly Premium is an explicit Settings action rather than an automatic paywall on entry. Purchased access remains tied to RevenueCat independently of Cognito; signing out does not remove a purchase. Browser previews use the same restricted entry, unlimited default-data calculations and account navigation, but purchases remain unavailable there.
+
+There is no calculation quota, daily limit, counter persistence, or allowance storage dependency. Ignore counters saved by earlier builds, including exhausted or malformed values. Valid calculations continue after any number of submissions and across restarts. The same default-data behavior applies whenever the user is signed out OR lacks an active entitlement.
+
+Free/restricted calculations always use the bundled static country/VAT/FX dataset, including after Cognito sign-in. Do not activate an authenticated API store or reuse its cached snapshot for free calculations. Reference API access requires both an active `savly_premium` entitlement and a valid Cognito session under the current backend contract. A signed-in upgrade switches to the API; losing premium switches new calculations back to bundled data. Previously submitted/saved estimates retain their original provenance. Account and RevenueCat requests are separate from the calculator reference API restriction.
+
+Stale-rate messaging must not suggest that login alone upgrades free rates: use “FX rates are stale. Premium and sign-in enable API rates.” Do not promise the API source is live or accurate merely because it was fetched.
+
+Welcome action hierarchy: show **Sign in** first as the filled primary button; show **Try it out** beneath it as the secondary action. Try it out opens unlimited default-data calculations without an account. Keep both actions hidden during session restoration as before.

@@ -101,7 +101,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
         : 'Go back to Calculate and enter the price at home to compare savings.'}</Text>
     </View>}
 
-    <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Login to get accurate rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
+    <Text style={styles.badge}>{isFxStale(r.fx, now) ? 'FX rates are stale. Premium and sign-in enable API rates.' : r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost'}</Text>
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
     {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}

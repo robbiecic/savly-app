@@ -1,3 +1,4 @@
+import { useBilling } from '../../billing/BillingProvider';
 import { useAuth } from '../../auth/AuthProvider';
 import { useCurrentTime } from '../../hooks/useCurrentTime';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -10,13 +11,17 @@ import { withHomeCurrency, compare, editForm, newForm, resetOverrides, type Comp
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
-  const { session } = useAuth();
+  const { session: accountSession } = useAuth();
+  const { active: premium } = useBilling();
+  // Free use must never activate the authenticated API store, even after sign-in.
+  const session = premium ? accountSession : null;
   const initialized = useRef(false);
   const now = useCurrentTime();
   const localeInfo = getLocales()[0];
   const locale = localeInfo?.languageTag ?? 'en-US';
   const [storedForm, setForm] = useState(newForm);
-  const [reference, setReference] = useState<ReferenceState | null>(null);
+  const [referenceState, setReference] = useState<ReferenceState | null>(null);
+  const reference = premium || referenceState?.snapshot?.environment === 'prototype' ? referenceState : null;
   const form = useMemo(() => withHomeCurrency(storedForm, reference?.snapshot ?? null), [storedForm, reference?.snapshot]);
   useEffect(() => { if (form !== storedForm) setForm(current => withHomeCurrency(current, reference?.snapshot ?? null)); }, [form, storedForm, reference?.snapshot]);
   const [ready, setReady] = useState(false);
@@ -27,10 +32,13 @@ export function useComparison() {
   useEffect(() => {
     let mounted = true;
     setStartupError(false);
+    setReady(false);
+    setReference(null);
     let unsubscribe = () => {};
     let deactivate = () => {};
     const loadReference = async () => {
       const store = await getReferenceStore(session);
+      if (!mounted) return null;
       if (mounted) {
         unsubscribe = store.subscribe((state) => { if (mounted) setReference(state); });
         deactivate = activateReferenceData(store);
@@ -38,7 +46,7 @@ export function useComparison() {
       return store.get();
     };
     void Promise.all([preferenceStore.load(), loadReference()]).then(([saved, state]) => {
-      if (!mounted) return;
+      if (!mounted || !state) return;
       const preferences = saved ?? initialPreferences();
       if (!saved && state.snapshot && !state.snapshot.countries.some((row) => row.country === preferences.country)) {
         preferences.country = state.snapshot.countries[0]?.country ?? '';

@@ -20,12 +20,12 @@ export function WelcomeContent({ onGetStarted, onSignIn }: { onGetStarted?: () =
         <View style={[styles.bottom, compact && { paddingTop: 24 }, wide && styles.wideBottom]}>
           <Text accessibilityRole="header" style={[styles.headline, wide && styles.wideHeadline]}>{'Shop the world.\nDiscover what\nyou could save.'}</Text>
           <Text style={styles.description}>Compare overseas prices, exchange rates and estimated VAT refunds — and see what you could save.</Text>
-          {onGetStarted && onSignIn && <><Pressable accessibilityRole="button" onPress={onGetStarted}
+          {onGetStarted && onSignIn && <><Pressable accessibilityRole="button" onPress={onSignIn}
             style={({ pressed }) => [styles.primary, pressed && { opacity: 0.85 }]}>
-            <Text style={styles.primaryText}>Get started</Text>
+            <Text style={styles.primaryText}>Sign in</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={onSignIn} style={styles.signIn}>
-            <Text style={styles.signInText}>Sign in</Text>
+          <Pressable accessibilityRole="button" onPress={onGetStarted} style={({ pressed }) => [styles.secondary, pressed && { opacity: 0.85 }]}>
+            <Text style={styles.secondaryText}>Try it out</Text>
           </Pressable></>}
         </View>
       </ScrollView>
@@ -44,6 +44,6 @@ const styles = StyleSheet.create({
   description: { fontSize: 16, lineHeight: 23, color: '#FFFFFF', marginBottom: 24 },
   primary: { backgroundColor: '#FFFFFF', minHeight: 52, borderRadius: 30, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },
   primaryText: { fontSize: 16, fontWeight: '700', color: '#081126' },
-  signIn: { minHeight: 48, alignItems: 'center', justifyContent: 'center', padding: 12 },
-  signInText: { fontSize: 14, color: '#FFFFFF', fontWeight: '500' },
+  secondary: { minHeight: 48, alignItems: 'center', justifyContent: 'center', padding: 12 },
+  secondaryText: { fontSize: 14, color: '#FFFFFF', fontWeight: '500' },
 });

@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 async function start(page: Page) {
   await page.clock.setFixedTime(new Date('2026-10-07T12:00:00Z'));
   await page.goto('/');
-  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: /^Home country:/ }).click();
   await page.getByRole('textbox', { name: 'Search home country', exact: true }).fill('United States');

@@ -2,7 +2,7 @@
 
 - [x] Move item name, photo actions, and Save/Share ahead of a collapsed Expand details section on Your savings.
 
-- [x] Replace the stale-rate badge on Your savings with “FX rates are stale. Login to get accurate rates.” and remove the duplicate warning.
+- [x] Replace the stale-rate badge on Your savings with “FX rates are stale. Premium and sign-in enable API rates.” and remove the duplicate warning.
 
 - [x] Share the clickable home-country and Settings cog control across Your savings and the other main pages.
 
@@ -196,3 +196,41 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Verify real-account registration/email delivery, sign-in, native keyboard behavior, force-quit/reopen, renewal, and sign-out on Android/iOS.
 
 This milestone supersedes the browser sign-in/callback requirements above for new sign-ins. Legacy callback tests remain unit coverage for older stored-session support; no new browser login is launched.
+
+### RevenueCat Test Store (2026-10-10)
+
+- [x] Install the SDK; configure the owner's Test Store key once in native development builds, using anonymous identity and `savly_premium` independently of Cognito.
+- [x] Load Monthly/Lifetime packages and localized prices from the default offering; add labeled test purchase/restore, retry and configuration errors.
+- [x] Gate native calculations on the active entitlement; retain Saved/Settings/account access, refresh status on foreground and expire cached monthly access.
+- [x] Reject Test Store initialization in release builds; keep web as a labeled billing-free prototype and handle missing native modules.
+- [x] Verify TypeScript and all 139 unit/integration tests; offline Expo dependency compatibility and Android/iOS/web production exports and Android/iOS development exports pass.
+- [ ] Verify native monthly/lifetime transactions, cancellation, pending/error, restore/restart, expiry/revocation and login independence against the configured RevenueCat project.
+- [ ] Implement production store keys/products, store subscription management, notification/revocation handling and production offline/grace policy before release.
+
+### Restricted entry and Settings upgrade (2026-10-10)
+
+- [x] Keep the calculator visible after Get Started; remove the automatic entry paywall and add Get Savly Premium in Settings.
+- [x] Start guests at account creation, continue to purchase options after verified sign-in, skip account forms for signed-in users, and cancel continuation when dismissed. Keep restore available without sign-up.
+- [x] Add a persistent local free-calculation allowance; provisionally three per installation with no reset. Count valid submissions only, serialize consumption, preserve the final result and Saved access, and report storage errors with retry.
+- [x] Verify TypeScript, 141 unit/integration tests, web export, and all 12 simulated-account browser flows including allowance exhaustion/restart and zero reference API calls for signed-in free use.
+- [x] Owner superseded the provisional quota: unlimited calculations using limited stale defaults whenever signed out or lacking entitlement.
+- [ ] Verify this navigation and real RevenueCat purchases on Android/iOS devices.
+
+- [x] Keep all free calculations on bundled static reference data even after sign-in; only active Premium plus a Cognito session activates the reference API store.
+
+- [ ] Broader calculator UI suite needs follow-up: full run had 10 passes and 13 failures, including collapsed-detail/layout expectations, refund navigation, and a case exceeding the new allowance. Split that allowance case into independent scenarios; this is not a fully passing UI suite. No native device tests were run.
+
+The allowance regression was split into independent calculator scenarios; all three targeted calculator checks passed on rerun. Other broad-suite failures remain unaddressed.
+
+### Unlimited default-data calculations (2026-10-10)
+
+- [x] Remove calculation quotas, allowance persistence, counter/error UI and upgrade copy promising unlimited usage. Ignore old quota data.
+- [x] Preserve the requirement for both active Premium and sign-in before reference API access; retain Settings sign-up/purchase navigation.
+- [x] Update requirements and regression coverage for more than three calculations, restart and exhausted legacy counters.
+
+- [x] Verify TypeScript, all 139 unit/integration tests and all 12 account/upgrade/default-mode browser tests (including web export). Native device checks and a full calculator UI rerun were not performed.
+
+### Welcome action order (2026-10-10)
+
+- [x] Put Sign in first with the filled primary style; rename guest entry to Try it out and use the secondary style below it.
+- [x] Update specs, README and existing browser selectors. TypeScript, diff checks and two focused browser sign-in/guest-entry tests pass; the test run rebuilt the web export. Native device visual checks were not run.

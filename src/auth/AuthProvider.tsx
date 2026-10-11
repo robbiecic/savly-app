@@ -12,7 +12,7 @@ import { refreshSession, resolveCognitoConfig, type CognitoConfig, type Session 
 import { refreshNativeSession } from './native-cognito';
 import { AccountForm } from './AccountForm';
 
-type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; signOut: () => Promise<boolean> };
+type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; openSignUp: (onComplete: () => void) => void; signOut: () => Promise<boolean> };
 const AuthContext = createContext<Auth | null>(null);
 
 export function useAuth(): Auth {
@@ -44,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const store = useRef<SessionStore | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [visible, setVisible] = useState(false);
+  const [initialStep, setInitialStep] = useState<'signin' | 'signup'>('signin');
+  const afterSignIn = useRef<(() => void) | null>(null);
 
   const restore = async () => {
     setRestoring(true);
@@ -96,17 +98,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch { setSessionError(true); return false; }
   };
 
-  const close = () => setVisible(false);
+  const close = () => { afterSignIn.current = null; setVisible(false); };
   const accept = async (next: Session) => {
     if (!store.current || (Platform.OS !== 'web' && !next.refreshToken)) throw new Error("Can't connect right now");
     await store.current.accept(next);
     setSessionError(false);
+    const completed = afterSignIn.current;
     close();
+    completed?.();
   };
 
   return <AuthContext.Provider value={{
     session, user: session?.user ?? null,
-    openSignIn: () => setVisible(true),
+    openSignIn: () => { afterSignIn.current = null; setInitialStep('signin'); setVisible(true); },
+    openSignUp: onComplete => { afterSignIn.current = onComplete; setInitialStep('signup'); setVisible(true); },
     signOut,
   }}>
     {restoring || (returningUser && !splashElapsed) ? <>
@@ -129,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {visible && <StatusBar style="dark" />}
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SavlyLogo /></View>
-        {visible && <AccountForm configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
+        {visible && <AccountForm initialStep={initialStep} configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
       </SafeAreaView>
     </Modal>
   </AuthContext.Provider>;
