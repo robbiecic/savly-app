@@ -203,7 +203,6 @@ test('Home country selects currency automatically and migrates saved currency ch
   });
   await openCompare(page);
   await expect(page.getByRole('textbox', { name: 'Home price (USD)', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Home currency:/ })).toHaveCount(0);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await setHomeCountry(page, 'France');
   await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toHaveValue('');

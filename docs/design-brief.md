@@ -49,7 +49,7 @@ Avoid the board's “exactly how much” promise and unsupported “100+ countri
 
 ## Premium and account screens
 
-Carry the same visual system into purchase choices and optional login. Keep account creation optional after unlocking paid access. Include Restore purchases; avoid repeated sign-in prompts. After free installation, show monthly subscription and lifetime purchase choices through the platform store. Keep restore and store subscription management easy to find. See [premium specification](../specs/002-premium-and-history/spec.md).
+Carry the same visual system into purchase choices and optional login. Keep account creation optional after unlocking paid access. Avoid repeated sign-in prompts. After free installation, show monthly subscription and lifetime purchase choices through the platform store. Keep store subscription management easy to find. See [premium specification](../specs/002-premium-and-history/spec.md).
 
 ## Share action
 

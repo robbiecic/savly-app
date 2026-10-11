@@ -58,6 +58,7 @@ test('in-app SRP sign-in, memory-only web session, and sign-out', async ({ page,
   expect(context.pages()).toHaveLength(1);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   expect(calls.map(c => c.operation)).toEqual(['InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
   const disk = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
   expect(disk).not.toMatch(/refresh-secret|MyPassword|signature/);
@@ -163,20 +164,21 @@ test('Try it out opens restricted mode; Settings signup continues to Premium aft
   await expect(page.getByRole('heading', { name: 'Create your account' })).toHaveCount(0);
 });
 
-test('canceling Premium signup clears purchase continuation; restore remains reachable without signup', async ({ page, context }) => {
+test('canceling Premium signup clears purchase continuation; purchase restoration is absent from Settings', async ({ page, context }) => {
   await provider(context); await page.goto('/');
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Get Savly Premium', exact: true }).click();
   await page.getByRole('button', { name: 'Back to Savly', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Get Savly Premium', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await credentials(page);
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
   await continueAfterWebEntitlementCheck(page);
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toHaveCount(0);
 });
 

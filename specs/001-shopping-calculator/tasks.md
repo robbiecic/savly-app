@@ -67,7 +67,7 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 
 - [x] Implement explicit local snapshots and Saved screen with reopening, deletion, confirmed clearing, and storage-error handling.
 - [ ] Implement automatic recent history.
-- [ ] Implement mock purchase/restore states from spec 002 (sign-in uses real Cognito).
+- [ ] Implement mock purchase states from spec 002 (sign-in uses real Cognito).
 - [ ] Verify guest isolation, history import, and simulated sync behavior.
 - [x] Verify local saved-comparison persistence, deletion, duplicate-save behavior, and corrupt-storage handling.
 - [ ] Verify account-specific history persistence when private account history is implemented.
@@ -200,17 +200,17 @@ This milestone supersedes the browser sign-in/callback requirements above for ne
 ### RevenueCat Test Store (2026-10-10)
 
 - [x] Install the SDK; configure the owner's Test Store key once in native development builds, using anonymous identity and `savly_premium` independently of Cognito.
-- [x] Load Monthly/Lifetime packages and localized prices from the default offering; add labeled test purchase/restore, retry and configuration errors.
+- [x] Load Monthly/Lifetime packages and localized prices from the default offering; add labeled test purchase, retry and configuration errors.
 - [x] Gate native calculations on the active entitlement; retain Saved/Settings/account access, refresh status on foreground and expire cached monthly access.
 - [x] Reject Test Store initialization in release builds; keep web as a labeled billing-free prototype and handle missing native modules.
 - [x] Verify TypeScript and all 139 unit/integration tests; offline Expo dependency compatibility and Android/iOS/web production exports and Android/iOS development exports pass.
-- [ ] Verify native monthly/lifetime transactions, cancellation, pending/error, restore/restart, expiry/revocation and login independence against the configured RevenueCat project.
+- [ ] Verify native monthly/lifetime transactions, cancellation, pending/error, restart, expiry/revocation and login independence against the configured RevenueCat project.
 - [ ] Implement production store keys/products, store subscription management, notification/revocation handling and production offline/grace policy before release.
 
 ### Restricted entry and Settings upgrade (2026-10-10)
 
 - [x] Keep the calculator visible after Get Started; remove the automatic entry paywall and add Get Savly Premium in Settings.
-- [x] Start guests at account creation, continue to purchase options after verified sign-in, skip account forms for signed-in users, and cancel continuation when dismissed. Keep restore available without sign-up.
+- [x] Start guests at account creation, continue to purchase options after verified sign-in, skip account forms for signed-in users, and cancel continuation when dismissed.
 - [x] Add a persistent local free-calculation allowance; provisionally three per installation with no reset. Count valid submissions only, serialize consumption, preserve the final result and Saved access, and report storage errors with retry.
 - [x] Verify TypeScript, 141 unit/integration tests, web export, and all 12 simulated-account browser flows including allowance exhaustion/restart and zero reference API calls for signed-in free use.
 - [x] Owner superseded the provisional quota: unlimited calculations using limited stale defaults whenever signed out or lacking entitlement.
@@ -240,14 +240,14 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Check entitlement once per signed-in identity/launch, refreshing RevenueCat customer info and queuing behind in-flight billing work rather than refreshing on every render.
 - [x] Show configured offering plans when no active entitlement exists; show retry on check failure and retain unlimited default-data access. Preserve calculator/settings behind the prompt.
 - [x] Include all offering packages and their actual localized title, price and billing period; support monthly, annual, lifetime and custom packages.
-- [x] Dismiss the prompt only after active access from purchase/restore/customer update or explicit continuation with default rates. Keep cancellation/pending/failure from granting access.
+- [x] Dismiss the prompt only after active access from purchase/customer update or explicit continuation with default rates. Keep cancellation/pending/failure from granting access.
 - [x] Verify TypeScript, all 142 unit/integration tests, and all 12 account-flow browser tests, including the unavailable-billing fallback and preserved default access. Web export passed through the browser test setup.
-- [ ] Verify the actual three configured products, native checkout/restore, cancellation/pending and entitlement activation against RevenueCat Test Store on Android/iOS. Browser tests do not exercise native transactions.
+- [ ] Verify the actual three configured products, native checkout, cancellation/pending and entitlement activation against RevenueCat Test Store on Android/iOS. Browser tests do not exercise native transactions.
 - [x] Android and iOS development JavaScript exports passed; this is not an installed native binary or device transaction test.
 
 ### Three-offer Premium page and login routing (2026-10-10)
 
-- [x] Limit product offers to Monthly, Annual, and Lifetime in order, using store prices; remove restore, refresh-status and default-rate continuation from the successful-check product page. Keep restore in Settings and error recovery available.
+- [x] Limit product offers to Monthly, Annual, and Lifetime in order, using store prices; remove restore, refresh-status and default-rate continuation from the successful-check product page. Keep error recovery available.
 - [x] Route successful login through entitlement checking, then calculator for active Premium or product selection for inactive access; remove the Settings signup callback that bypassed this routing. Preserve calculator draft inputs.
 - [x] Update specs and regression checks. TypeScript, 142 unit/integration tests, all 12 simulated-account Chromium tests, web export, and diff whitespace checks pass.
 - [ ] Verify actual active/inactive RevenueCat routing and three configured offers on Android/iOS; browser billing remains unavailable and native transactions were not tested.
@@ -264,3 +264,19 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Require both sign-in and active entitlement for the Premium-active label and Manage Savly Premium. Signed-out users see default mode and Get Savly Premium, which opens the account flow; retained store purchases no longer bypass it.
 - [x] Hide purchase management when no user is signed in; retain the underlying store entitlement independently of sign-out.
 - [x] Update requirements and verify TypeScript and diff whitespace checks. Browser and native interaction tests were not run for this UI change.
+
+### Remove manual purchase restoration (2026-10-10)
+
+- [x] Remove Restore purchases from Settings and delete its billing action, SDK call, and result messages.
+- [x] Update purchase requirements, documentation and existing browser checks for its absence in guest and signed-in Settings.
+- [x] Verify TypeScript, all 142 unit/integration tests, two focused account-flow Chromium checks, web export and diff whitespace checks. Native device tests were not run.
+
+### Owned Premium plan and subscription management (2026-10-10)
+
+- [x] Replace the active user's purchase card with a dismissible management modal showing the owned plan, email, store, purchase date, billing status and renewal/expiry date.
+- [x] Resolve owned product metadata independently of current offers, including Google base plans; retain unavailable/retry handling.
+- [x] Open the purchase's management URL for cancellation/changes; refresh on opening and foreground return, preserve canceled access until expiry, and handle Lifetime, separate recurring subscriptions, shared access and Test Store limitations.
+- [x] Verify TypeScript, all 152 unit/integration tests (including 10 plan-management cases), three focused Chromium account/upgrade regressions, web export and diff whitespace checks. Browser tests do not exercise native billing or the active-plan modal.
+- [ ] Verify actual plan details, store cancellation/return, and modal layout on Android/iOS with real customer data.
+
+- [x] Remove Refresh plan details from the Premium management modal; keep automatic refresh on opening and foreground return.

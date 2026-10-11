@@ -48,7 +48,7 @@ Proposed screens:
 1. **Compare:** price-first entry, remembered country/currency settings, automatic results, and a country-specific VAT refund rules button.
 2. **Result:** cost with and without the estimated VAT refund; optional home-price savings, an expandable breakdown, and a Share savings/comparison action.
 3. **History / Saved:** recent comparisons and saved items, plus an unobtrusive optional sign-in action.
-4. **Premium access and account:** monthly/lifetime purchase choices, restore access, store subscription management, and optional login.
+4. **Premium access and account:** monthly/lifetime purchase choices, store subscription management, and optional login.
 
 Prototype target: complete a straightforward comparison in under a minute. Validate with a real user; this is a target, not a measured result.
 
