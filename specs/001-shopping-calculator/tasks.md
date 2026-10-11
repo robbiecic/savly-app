@@ -286,3 +286,9 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Allow sixty seconds for each Cognito SDK sign-in step after observing Android SRP calculation exceed the previous twenty-second deadline; retain ten-second direct HTTP timeouts.
 - [x] Add regression coverage for successful delayed sign-in and ignored success after timeout; TypeScript and all 154 unit/integration tests pass.
 - [x] Owner confirmed successful valid-account sign-in on the Android emulator with the longer deadline.
+
+### Explicit subscription cancellation (2026-10-11)
+
+- [x] Add Cancel subscription beside Manage subscription for renewing plans; use the purchasing store’s management URL, with guidance when no URL exists.
+- [x] Explain Test Store limits on tap; hide cancellation for shared, expired/inactive, already non-renewing and Lifetime-only plans while retaining cancellation of a separate subscription.
+- [x] Verify TypeScript, 17 billing/plan-management tests and diff whitespace checks. Actual store cancellation was not performed.

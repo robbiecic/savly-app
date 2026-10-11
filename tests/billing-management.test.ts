@@ -33,6 +33,7 @@ test('lifetime needs matching non-subscription metadata; missing expiry alone ne
   assert.equal(plan?.name, 'Lifetime');
   assert.equal(plan?.managementUrl, null);
   assert.equal(plan?.expirationDate, null);
+  assert.equal(plan?.showCancellation, false);
   assert.equal(premiumPlan(info, [], now)?.lifetime, false);
   assert.equal(premiumPlan(info, [], now)?.name, 'Plan details unavailable');
 });
@@ -43,6 +44,7 @@ test('canceled renewal retains access until expiry and never shows a renewal pro
   assert.equal(plan?.active, true);
   assert.equal(plan?.status, 'Active · Auto-renewal off');
   assert.equal(plan?.dateLabel, 'Access until');
+  assert.equal(plan?.showCancellation, false);
   const expired = premiumPlan(info, [product()], Date.parse(info.entitlements.all.savly_premium.expirationDate!));
   assert.equal(expired?.active, false);
   assert.equal(expired?.status, 'Expired');
@@ -55,9 +57,11 @@ test('trial and billing issue details use entitlement data', () => {
 
 test('family-shared access hides cancellation and Test Store stays identifiable', () => {
   assert.equal(premiumPlan(customer({ ownershipType: 'FAMILY_SHARED' }), [product()], now)?.managementUrl, null);
+  assert.equal(premiumPlan(customer({ ownershipType: 'FAMILY_SHARED' }), [product()], now)?.showCancellation, false);
   const plan = premiumPlan({ ...customer({ store: 'TEST_STORE', isSandbox: true }), managementURL: null }, [product()], now);
   assert.equal(plan?.testStore, true);
   assert.equal(plan?.managementUrl, null);
+  assert.equal(plan?.showCancellation, true);
 });
 
 test('Lifetime retains management for a separately active recurring subscription', () => {
@@ -66,6 +70,16 @@ test('Lifetime retains management for a separately active recurring subscription
   assert.equal(plan?.lifetime, true);
   assert.equal(plan?.otherSubscriptions, true);
   assert.ok(plan?.managementUrl);
+  assert.equal(plan?.showCancellation, true);
+});
+
+test('cancellation is offered for renewing subscriptions even when product metadata or store links are missing', () => {
+  for (const store of ['APP_STORE', 'PLAY_STORE', 'TEST_STORE'] as const) {
+    assert.equal(premiumPlan(customer({ store }), [product()], now)?.showCancellation, true);
+    assert.equal(premiumPlan({ ...customer({ store }), managementURL: null }, [], now)?.showCancellation, true);
+  }
+  assert.equal(premiumPlan(customer({ isActive: false }), [product()], now)?.showCancellation, false);
+  assert.equal(premiumPlan(customer(), [product()], Date.parse('2026-12-01T00:00:00Z'))?.showCancellation, false);
 });
 
 test('management routes to the purchased subscription URL and rejects unsafe links', () => {

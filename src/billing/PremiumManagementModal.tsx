@@ -16,6 +16,7 @@ export function PremiumManagementModal({ email, locale, onClose }: { email?: str
   const { plan } = billing;
   const [opening, setOpening] = useState(false);
   const [linkError, setLinkError] = useState(false);
+  const [cancellationHelp, setCancellationHelp] = useState(false);
   const openingRef = useRef(false);
   // Refresh once when opened; provider also refreshes after returning from the store.
   const refresh = useRef(billing.refreshDetails);
@@ -48,8 +49,13 @@ export function PremiumManagementModal({ email, locale, onClose }: { email?: str
           {plan.otherSubscriptions && <Text style={ui.text}>You also have an active subscription. Buying Lifetime does not cancel it; manage that subscription separately to stop renewals.</Text>}
           {plan.managementUrl && <>
             <Text style={ui.muted}>Change or cancel your subscription in the store. The store confirms when changes take effect; opening it does not cancel your plan.</Text>
-            <Action label={plan.otherSubscriptions ? 'Manage other subscriptions' : plan.active ? 'Manage or cancel subscription' : 'Manage subscription'} disabled={opening || billing.busy} onPress={() => { void openManagement(); }} />
+            <Action label={plan.otherSubscriptions ? 'Manage other subscriptions' : 'Manage subscription'} disabled={opening || billing.busy} onPress={() => { void openManagement(); }} />
           </>}
+          {plan.showCancellation && <Action label={plan.otherSubscriptions ? 'Cancel other subscription' : 'Cancel subscription'} secondary disabled={opening || billing.busy}
+            onPress={() => { if (plan.managementUrl) void openManagement(); else setCancellationHelp(true); }} />}
+          {cancellationHelp && plan.showCancellation && !plan.managementUrl && <Text accessibilityRole="alert" style={ui.text}>{plan.testStore
+            ? 'This simulated subscription can’t be canceled from Savly. Manage test purchases in the RevenueCat dashboard, or wait for the test subscription to expire automatically. No real charges are made.'
+            : `To cancel, open your subscription settings in ${plan.storeName} and select Savly. Your access remains until the verified end date; Savly checks for changes when you return.`}</Text>}
           {!plan.managementUrl && !plan.lifetime && !plan.shared && <Text style={ui.muted}>{plan.testStore
             ? 'In-app cancellation is unavailable for this test purchase. Manage test purchases in the RevenueCat dashboard.'
             : 'A subscription-management link is unavailable. You can manage your subscription in the store where you purchased it.'}</Text>}

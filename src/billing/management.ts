@@ -34,10 +34,11 @@ export function premiumPlan(info: Customer | null, products: readonly Product[],
   const shared = entitlement.ownershipType === 'FAMILY_SHARED';
   // CustomerInfo URLs route to the purchase's store, which may differ from this device's platform.
   const otherSubscriptions = lifetime && !!info?.activeSubscriptions?.length;
+  const showCancellation = !shared && (otherSubscriptions || (active && !!entitlement.expirationDate && entitlement.willRenew));
   const url = !shared && (!lifetime || otherSubscriptions) ? safeManagementUrl(info?.managementURL) : null;
   return { name, productId, active, status, dateLabel, expirationDate: entitlement.expirationDate,
     purchasedAt: entitlement.originalPurchaseDate, lifetime, testStore, sandbox: entitlement.isSandbox,
-    storeName, shared, otherSubscriptions, managementUrl: url, detailsUnavailable: !product };
+    storeName, shared, otherSubscriptions, showCancellation, managementUrl: url, detailsUnavailable: !product };
 }
 
 export function subscriptionManagementUrl(info: CustomerInfo | null): string | null {
