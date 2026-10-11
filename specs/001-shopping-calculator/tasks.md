@@ -280,3 +280,9 @@ The allowance regression was split into independent calculator scenarios; all th
 - [ ] Verify actual plan details, store cancellation/return, and modal layout on Android/iOS with real customer data.
 
 - [x] Remove Refresh plan details from the Premium management modal; keep automatic refresh on opening and foreground return.
+
+### Android sign-in timeout (2026-10-10)
+
+- [x] Allow sixty seconds for each Cognito SDK sign-in step after observing Android SRP calculation exceed the previous twenty-second deadline; retain ten-second direct HTTP timeouts.
+- [x] Add regression coverage for successful delayed sign-in and ignored success after timeout; TypeScript and all 154 unit/integration tests pass.
+- [x] Owner confirmed successful valid-account sign-in on the Android emulator with the longer deadline.

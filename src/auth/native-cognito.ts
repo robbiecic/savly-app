@@ -1,6 +1,10 @@
 import { AuthenticationDetails, CognitoUser, CognitoUserPool, type IAuthenticationCallback, type ICognitoStorage } from 'amazon-cognito-identity-js';
 import { CONNECTION_ERROR, SessionExpiredError, type CognitoConfig, type Session } from './cognito';
 
+// Android development builds can take over 20 seconds to calculate the SRP proof.
+// Keep a bounded deadline for the full SDK flow; direct HTTP requests retain 10 seconds.
+export const SIGN_IN_TIMEOUT_MS = 60_000;
+
 type Json = Record<string, any>;
 export class AccountError extends Error {
   constructor(public code: string) { super(accountMessage(code)); }
@@ -85,7 +89,7 @@ export class NativeAccount {
     return new Promise((resolve, reject) => {
       let finished = false;
       const finish = (work: () => void) => { if (!finished) { finished = true; clearTimeout(timer); work(); } };
-      const timer = setTimeout(() => finish(() => reject(new Error(CONNECTION_ERROR))), 20000);
+      const timer = setTimeout(() => finish(() => reject(new Error(CONNECTION_ERROR))), SIGN_IN_TIMEOUT_MS);
       const unsupported = () => finish(() => reject(new AccountError('UnsupportedChallenge')));
       try { start({
         onSuccess: session => {
