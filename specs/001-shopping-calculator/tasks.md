@@ -251,3 +251,16 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Route successful login through entitlement checking, then calculator for active Premium or product selection for inactive access; remove the Settings signup callback that bypassed this routing. Preserve calculator draft inputs.
 - [x] Update specs and regression checks. TypeScript, 142 unit/integration tests, all 12 simulated-account Chromium tests, web export, and diff whitespace checks pass.
 - [ ] Verify actual active/inactive RevenueCat routing and three configured offers on Android/iOS; browser billing remains unavailable and native transactions were not tested.
+
+### iOS Premium-check recovery (2026-10-10)
+
+- [x] Diagnose missing RevenueCat in the local iOS pod installation; install pods, rebuild and reinstall the development app on the running iPhone 18 Pro simulator. Native build succeeded and the welcome screen was visually verified.
+- [x] Distinguish billing-unavailable builds from entitlement request failures, and keep offer-loading failures on product selection with retry instead of falsely reporting a failed entitlement check.
+- [x] Verify TypeScript, all 142 unit/integration tests, focused Chromium sign-in regression, web export, and diff checks.
+- [ ] Verify signed-in entitlement routing and Test Store checkout in the rebuilt simulator; launch verification did not exercise login or purchases.
+
+### Signed-in Premium status in Settings (2026-10-10)
+
+- [x] Require both sign-in and active entitlement for the Premium-active label and Manage Savly Premium. Signed-out users see default mode and Get Savly Premium, which opens the account flow; retained store purchases no longer bypass it.
+- [x] Hide purchase management when no user is signed in; retain the underlying store entitlement independently of sign-out.
+- [x] Update requirements and verify TypeScript and diff whitespace checks. Browser and native interaction tests were not run for this UI change.

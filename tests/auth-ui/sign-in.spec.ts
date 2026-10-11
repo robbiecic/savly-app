@@ -42,7 +42,7 @@ async function credentials(page: Page) {
   await page.getByLabel('Password', { exact: true }).fill('MyPassword123!');
 }
 async function continueAfterWebEntitlementCheck(page: Page) {
-  await expect(page.getByRole('heading', { name: 'Couldn’t check Premium access', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Premium billing is unavailable in this build', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Continue with default rates', exact: true }).click();
 }
 async function newPassword(page: Page) {

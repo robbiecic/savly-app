@@ -6,7 +6,7 @@ import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 import { getOfferingPackages, hasPremium, PREMIUM_ENTITLEMENT, purchaseMessage, TEST_API_KEY } from './access';
 
 type Billing = {
-  prompt: 'checking' | 'plans' | 'error' | null; dismissPrompt: () => void; checkEntitlement: () => void;
+  prompt: 'checking' | 'plans' | 'error' | 'unavailable' | null; dismissPrompt: () => void; checkEntitlement: () => void;
   active: boolean; preview: boolean; busy: boolean; message: string;
   packages: PurchasesPackage[]; refresh: () => void;
   purchase: (item: PurchasesPackage) => void; restore: () => void;
@@ -30,7 +30,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   currentSubject.current = subject;
   const queuedCheck = useRef(false);
   const checkDismissed = useRef(false);
-  const [prompt, setPrompt] = useState<'checking' | 'plans' | 'error' | null>(null);
+  const [prompt, setPrompt] = useState<'checking' | 'plans' | 'error' | 'unavailable' | null>(null);
   const preview = Platform.OS === 'web';
   const [info, setInfo] = useState<CustomerInfo | null>(null);
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
@@ -40,11 +40,12 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   const running = useRef(false);
   const mounted = useRef(true);
   const run = async (action: 'refresh' | 'restore' | 'purchase' | 'check', item?: PurchasesPackage) => {
-    if (preview) { if (action === 'check') setPrompt('error'); return; }
+    if (preview) { if (action === 'check') setPrompt('unavailable'); return; }
     if (running.current) { if (action === 'check') queuedCheck.current = true; return; }
     const checkingSubject = currentSubject.current;
     if (action === 'check' && !checkDismissed.current) setPrompt('checking');
     running.current = true; setBusy(true); setMessage('');
+    let loadingOffers = false;
     try {
       const sdk = await getSdk();
       if (action === 'check') await sdk.invalidateCustomerInfoCache();
@@ -58,6 +59,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       if (action === 'purchase' && !hasPremium(customer)) setMessage('No active Savly Premium access was returned. Check that the product is attached to savly_premium in RevenueCat.');
       if (action === 'check' && hasPremium(customer)) return;
       if (action === 'refresh' || action === 'check') {
+        loadingOffers = true;
+        setPackages([]);
         const offering = (await sdk.getOfferings()).current;
         if (!mounted.current) return;
         const choices = getOfferingPackages(offering);
@@ -66,9 +69,10 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       if (!mounted.current) return;
-      if (action === 'check' && !checkDismissed.current && checkingSubject && currentSubject.current === checkingSubject) setPrompt('error');
+      const unavailable = error instanceof Error && ['release', 'native'].includes(error.message);
+      if (action === 'check' && !loadingOffers && !checkDismissed.current && checkingSubject && currentSubject.current === checkingSubject) setPrompt(unavailable ? 'unavailable' : 'error');
       setMessage(error instanceof Error && error.message === 'release' ? 'Store billing is not configured for this release. Test purchases require a development build.'
-        : error instanceof Error && error.message === 'native' ? 'Install a rebuilt Savly development app to test purchases. This build does not include RevenueCat.' : purchaseMessage(error));
+        : error instanceof Error && error.message === 'native' ? 'Install a rebuilt Savly development app to test purchases. This build does not include RevenueCat.' : loadingOffers ? 'Premium access was checked, but the offers couldn’t load. Retry loading offers.' : purchaseMessage(error));
     } finally {
       running.current = false;
       if (mounted.current) {
