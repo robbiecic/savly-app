@@ -48,13 +48,13 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
       form: { ...form }, comparison: JSON.parse(JSON.stringify(view.comparison)) });
     setResultOrigin('calculator'); setPage('result');
   };
-  const openSettings = () => { Keyboard.dismiss(); setPage('settings'); };
-  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={openSettings} homeCountry={form.residence} locale={state.locale} />;
+  const toggleSettings = () => { Keyboard.dismiss(); setPage(current => current === 'settings' ? 'calculator' : 'settings'); };
+  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={toggleSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
     {rules && shopping && <RefundRulesScreen country={shopping} locale={state.locale} defaults={snapshot?.environment === 'prototype'} onClose={() => setRules(false)} />}
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
-      <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} onPress={openSettings} />
+      <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} expanded={page === 'settings'} onPress={toggleSettings} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>

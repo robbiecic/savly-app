@@ -292,3 +292,8 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Add Cancel subscription beside Manage subscription for renewing plans; use the purchasing store’s management URL, with guidance when no URL exists.
 - [x] Explain Test Store limits on tap; hide cancellation for shared, expired/inactive, already non-renewing and Lifetime-only plans while retaining cancellation of a separate subscription.
 - [x] Verify TypeScript, 17 billing/plan-management tests and diff whitespace checks. Actual store cancellation was not performed.
+
+### Settings header after modal dismissal (2026-10-11)
+
+- [x] Make the Settings header button toggle back to Calculate while Settings is open, including after closing a modal; preserve the calculator draft and expose the expanded state.
+- [x] Add pressed feedback and a regression covering repeated picker dismissal and Settings toggling.

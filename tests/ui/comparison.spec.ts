@@ -362,6 +362,23 @@ test('Startup identifies defaults without prototype branding or a premature stal
   await expect(page.getByRole('alert').filter({ hasText: /FX rate.*stale/ })).toHaveCount(0);
 });
 
+test('Settings cog toggles the page after repeatedly dismissing a Settings modal', async ({ page }) => {
+  await openCompare(page);
+  const settings = page.getByRole('button', { name: 'Settings', exact: true });
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  for (let cycle = 0; cycle < 2; cycle++) {
+    await settings.click();
+    await expect(settings).toHaveAttribute('aria-expanded', 'true');
+    await page.getByRole('button', { name: /^Home country:/ }).click();
+    await page.getByRole('button', { name: 'Close selection', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+    await settings.click();
+    await expect(settings).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('heading', { name: 'Compare a price', exact: true })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('120');
+  }
+});
+
 test('Settings owns home country; fixed flag follows calculations and persists after reload', async ({ page }) => {
   await openCompare(page);
   await expect(page.getByRole('button', { name: /^Home country:/ })).toHaveCount(0);
