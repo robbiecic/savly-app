@@ -12,7 +12,7 @@ import { refreshSession, resolveCognitoConfig, type CognitoConfig, type Session 
 import { refreshNativeSession } from './native-cognito';
 import { AccountForm } from './AccountForm';
 
-type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; openSignUp: (onComplete: () => void) => void; signOut: () => Promise<boolean> };
+type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; openSignUp: (onComplete?: () => void) => void; signOut: () => Promise<boolean> };
 const AuthContext = createContext<Auth | null>(null);
 
 export function useAuth(): Auth {
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={{
     session, user: session?.user ?? null,
     openSignIn: () => { afterSignIn.current = null; setInitialStep('signin'); setVisible(true); },
-    openSignUp: onComplete => { afterSignIn.current = onComplete; setInitialStep('signup'); setVisible(true); },
+    openSignUp: onComplete => { afterSignIn.current = onComplete ?? null; setInitialStep('signup'); setVisible(true); },
     signOut,
   }}>
     {restoring || (returningUser && !splashElapsed) ? <>

@@ -1,13 +1,13 @@
+import { View } from 'react-native';
 import { BillingProvider, useBilling } from './src/billing/BillingProvider';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { WelcomeScreen } from './src/app/WelcomeScreen';
 import { CompareScreen } from './src/app/CompareScreen';
-import { PremiumCard } from './src/billing/PremiumCard';
-import { Action } from './src/components/controls';
+import { SignInCheckout } from './src/billing/SignInCheckout';
 
 export default function App() {
   return <SafeAreaProvider><AuthProvider><BillingProvider><AppContent /></BillingProvider></AuthProvider></SafeAreaProvider>;
@@ -17,22 +17,15 @@ function AppContent() {
   const { user, signOut } = useAuth();
   const billing = useBilling();
   const [started, setStarted] = useState(() => !!user);
-  useEffect(() => {
-    if (!user) setStarted(false);
-    else if (billing.active || billing.preview) setStarted(true);
-  }, [user, billing.active, billing.preview]);
-  const needsPremium = !!user && !billing.preview && !billing.active;
-  if (needsPremium) {
-    return <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar style="dark" />
-      <PremiumCard />
-      <Action label="Sign out" secondary onPress={() => { void signOut().then(success => { if (success) setStarted(false); }); }} />
-    </SafeAreaView>;
-  }
+
+  useEffect(() => { if (user) setStarted(true); }, [user]);
   return (
     <>
       <StatusBar style={started ? "dark" : "light"} />
+      {user && billing.prompt && <SignInCheckout />}
+      <View style={{ flex: 1, display: user && billing.prompt ? 'none' : 'flex' }}>
       {started ? <CompareScreen onSignOut={() => { void signOut().then(success => { if (success) setStarted(false); }); }} /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}
+      </View>
     </>
   );
 }

@@ -29,9 +29,10 @@ export function SettingsScreen({ country, currency, locale, onChange, onBack, on
     <Text style={ui.label}>{billing.active ? 'Savly Premium is active' : 'Default mode · Unlimited calculations'}</Text>
     <Action label={billing.active ? 'Manage Savly Premium' : 'Get Savly Premium'} onPress={() => {
       if (user || billing.active) setPurchasing(true);
-      else openSignUp(() => setPurchasing(true));
+      else openSignUp();
     }} />
-    {!billing.active && <Action label="Restore purchases" secondary onPress={() => setPurchasing(true)} />}
+    {!billing.active && <Action label="Restore purchases" disabled={billing.busy || billing.preview} secondary onPress={billing.restore} />}
+    {!!billing.message && <Text accessibilityLiveRegion="polite" style={ui.text}>{billing.message}</Text>}
     <Text style={ui.label}>Account</Text>
     <Text style={ui.text}>{user ? `Signed in${user.email ? ` as ${user.email}` : ''}` : 'Not signed in'}</Text>
     <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>

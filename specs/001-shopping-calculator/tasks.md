@@ -234,3 +234,20 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Put Sign in first with the filled primary style; rename guest entry to Try it out and use the secondary style below it.
 - [x] Update specs, README and existing browser selectors. TypeScript, diff checks and two focused browser sign-in/guest-entry tests pass; the test run rebuilt the web export. Native device visual checks were not run.
+
+### Basic checkout after sign-in (2026-10-10)
+
+- [x] Check entitlement once per signed-in identity/launch, refreshing RevenueCat customer info and queuing behind in-flight billing work rather than refreshing on every render.
+- [x] Show configured offering plans when no active entitlement exists; show retry on check failure and retain unlimited default-data access. Preserve calculator/settings behind the prompt.
+- [x] Include all offering packages and their actual localized title, price and billing period; support monthly, annual, lifetime and custom packages.
+- [x] Dismiss the prompt only after active access from purchase/restore/customer update or explicit continuation with default rates. Keep cancellation/pending/failure from granting access.
+- [x] Verify TypeScript, all 142 unit/integration tests, and all 12 account-flow browser tests, including the unavailable-billing fallback and preserved default access. Web export passed through the browser test setup.
+- [ ] Verify the actual three configured products, native checkout/restore, cancellation/pending and entitlement activation against RevenueCat Test Store on Android/iOS. Browser tests do not exercise native transactions.
+- [x] Android and iOS development JavaScript exports passed; this is not an installed native binary or device transaction test.
+
+### Three-offer Premium page and login routing (2026-10-10)
+
+- [x] Limit product offers to Monthly, Annual, and Lifetime in order, using store prices; remove restore, refresh-status and default-rate continuation from the successful-check product page. Keep restore in Settings and error recovery available.
+- [x] Route successful login through entitlement checking, then calculator for active Premium or product selection for inactive access; remove the Settings signup callback that bypassed this routing. Preserve calculator draft inputs.
+- [x] Update specs and regression checks. TypeScript, 142 unit/integration tests, all 12 simulated-account Chromium tests, web export, and diff whitespace checks pass.
+- [ ] Verify actual active/inactive RevenueCat routing and three configured offers on Android/iOS; browser billing remains unavailable and native transactions were not tested.

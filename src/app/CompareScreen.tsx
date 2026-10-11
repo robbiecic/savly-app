@@ -1,3 +1,4 @@
+import { useAuth } from '../auth/AuthProvider';
 import { useBilling } from '../billing/BillingProvider';
 import { RefundRulesScreen } from './RefundRulesScreen';
 import { SavlyLogo } from '../components/SavlyLogo';
@@ -19,6 +20,7 @@ import { colors } from '../theme/colors';
 
 export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const billing = useBilling();
+  const subject = useAuth().user?.sub;
   const wide = useWideLayout();
   const [rules, setRules] = useState(false);
   const state = useComparison();
@@ -26,6 +28,9 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
   const goBack = () => setPage('calculator');
+  useEffect(() => {
+    if (subject) { setPage('calculator'); setRules(false); }
+  }, [subject]);
   useEffect(() => {
     if (page === 'calculator') return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });

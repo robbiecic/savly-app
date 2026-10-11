@@ -34,3 +34,20 @@ test('canceled, pending and failed checkout messages never promise an unlock or 
   assert.match(purchaseMessage(new Error('private provider details')), /try again/);
   assert.equal(purchaseMessage(null).includes('private'), false);
 });
+
+import { planLabel } from '../src/billing/access';
+test('all offering plan labels use product metadata without mislabeling annual or custom plans as lifetime', () => {
+  assert.equal(planLabel({ title: 'Monthly', priceString: '$2.99', subscriptionPeriod: 'P1M' }), 'Test Monthly · $2.99 · every 1 month · auto-renews');
+  assert.equal(planLabel({ title: 'Annual', priceString: '€19.99', subscriptionPeriod: 'P1Y' }), 'Test Annual · €19.99 · every 1 year · auto-renews');
+  assert.equal(planLabel({ title: 'Lifetime', priceString: '$49.99', subscriptionPeriod: null }), 'Test Lifetime · $49.99 · one-time purchase');
+  assert.match(planLabel({ title: 'Quarterly', priceString: '$8.99', subscriptionPeriod: 'P3M' }), /every 3 months/);
+});
+
+test('offering excludes custom packages and orders only the three supported offers', () => {
+  const monthly = { identifier: 'monthly' };
+  const annual = { identifier: 'annual' };
+  const lifetime = { identifier: 'lifetime' };
+  assert.deepEqual(getOfferingPackages({ monthly, annual, lifetime,
+    availablePackages: [lifetime, { identifier: 'custom' }, annual, monthly] }), [monthly, annual, lifetime]);
+  assert.deepEqual(getOfferingPackages({ availablePackages: [] }), []);
+});

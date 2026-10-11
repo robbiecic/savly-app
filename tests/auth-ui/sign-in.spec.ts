@@ -41,6 +41,10 @@ async function credentials(page: Page) {
   await page.getByLabel('Email address', { exact: true }).fill('traveler@example.test');
   await page.getByLabel('Password', { exact: true }).fill('MyPassword123!');
 }
+async function continueAfterWebEntitlementCheck(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Couldn’t check Premium access', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue with default rates', exact: true }).click();
+}
 async function newPassword(page: Page) {
   await page.getByLabel('New password', { exact: true }).fill('MyNewPassword123!');
   await page.getByLabel('Confirm password', { exact: true }).fill('MyNewPassword123!');
@@ -49,6 +53,7 @@ test('in-app SRP sign-in, memory-only web session, and sign-out', async ({ page,
   const calls = await provider(context);
   await open(page); await credentials(page);
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   expect(context.pages()).toHaveLength(1);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
@@ -99,6 +104,7 @@ for (const challenge of ['SMS_MFA', 'SOFTWARE_TOKEN_MFA', 'NEW_PASSWORD_REQUIRED
     if (challenge === 'NEW_PASSWORD_REQUIRED') await newPassword(page);
     else await page.getByLabel('Verification code').fill('123456');
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await continueAfterWebEntitlementCheck(page);
     await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
     expect(calls.filter(c => c.operation === 'RespondToAuthChallenge').at(-1)?.body.ChallengeName).toBe(challenge);
   });
@@ -114,6 +120,7 @@ test('unconfirmed account leads to verification and connection failure is retrya
   await expect(page.getByRole('alert')).toHaveText("Can't connect right now");
   options.offline = false;
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
 });
 test('dismissed forms clear passwords and preserve guest access', async ({ page, context }) => {
@@ -132,7 +139,7 @@ test('Try it out opens restricted mode; Settings signup continues to Premium aft
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Calculate savings', exact: true })).toBeDisabled();
-  await expect(page.getByRole('heading', { name: 'Savly Premium', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Get Savly Premium', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
@@ -143,15 +150,16 @@ test('Try it out opens restricted mode; Settings signup continues to Premium aft
   await expect(page.getByRole('heading', { name: 'Sign in to Savly' })).toBeVisible();
   await credentials(page);
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
-  await expect(page.getByRole('heading', { name: 'Savly Premium', exact: true })).toBeVisible();
-  await expect(page.getByText(/purchases are unavailable here/)).toBeVisible();
+  await continueAfterWebEntitlementCheck(page);
+  await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   expect(calls.map(c => c.operation)).toEqual(['SignUp', 'ConfirmSignUp', 'InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
-  await page.getByRole('button', { name: 'Back to Settings', exact: true }).click();
-  await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
+
   await expect(page.getByRole('button', { name: 'Calculate savings', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Get Savly Premium', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Savly Premium', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Refresh purchase status', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Create your account' })).toHaveCount(0);
 });
 
@@ -162,13 +170,14 @@ test('canceling Premium signup clears purchase continuation; restore remains rea
   await page.getByRole('button', { name: 'Get Savly Premium', exact: true }).click();
   await page.getByRole('button', { name: 'Back to Savly', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Get Savly Premium', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Restore purchases', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Savly Premium', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Back to Settings', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await credentials(page);
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
+  await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Savly Premium', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toHaveCount(0);
 });
 
 test('default calculations stay unlimited across reload and ignore an exhausted legacy allowance', async ({ page, context }) => {
@@ -203,6 +212,7 @@ test('signed-in free users only use bundled reference data and never request the
   page.on('request', request => { if (request.url().startsWith('https://savly-api.example.test/')) requests.push(request.url()); });
   await open(page); await credentials(page);
   await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
   await expect(page.getByText('Using built-in default countries, VAT and FX rates.', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: /^Home country:/ }).click();
