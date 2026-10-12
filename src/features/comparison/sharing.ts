@@ -12,15 +12,17 @@ export function shareLink(url?: string): ShareLink {
   }
   return { url: parsed.toString(), demo: parsed.hostname === 'example.com' };
 }
-export function shareMessage(comparison: DisplayedComparison, link: ShareLink, previewSavings?: string): string {
+export function shareMessage(comparison: DisplayedComparison, link: ShareLink, previewAmount?: string): string {
   const { result: r } = comparison;
   const source = r.fx.source === 'Built-in defaults' ? 'Estimate using built-in default rates'
     : comparison.sample ? 'Sample estimate'
     : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion'
     : r.fx.kind === 'manual' ? 'Estimated using a manual rate'
     : `Estimated using rates as of ${r.fx.asOf}`;
-  if (previewSavings && r.savings?.outcome === 'save') return [
-    `I could save ${previewSavings} with Savly (preview).`,
+  if (previewAmount && r.savings && r.savings.outcome !== 'same') return [
+    r.savings.outcome === 'save'
+      ? `I could save ${previewAmount} with Savly (preview).`
+      : `This would cost ${previewAmount} more than at home with Savly (preview).`,
     ...(comparison.itemName ? [`Item: ${comparison.itemName.replace(/[\r\n]+/g, ' ')}`] : []),
     source,
     ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),

@@ -62,13 +62,14 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
   const number = (value: string) => formatResultNumber(value, locale);
   const summaryMoney = (value: string) => formatSummaryMoney(value, r.homeCurrency, locale);
   const favorable = r.savings?.outcome === 'save';
-  const previewSavings = favorable && !(user && billing.active);
-  const summary = savingsLabel(r, number, value => previewSavings ? maskSavingsAmount(summaryMoney(value)) : summaryMoney(value));
+  const previewAmount = !(user && billing.active);
+  const displaySummaryMoney = (value: string) => previewAmount ? maskSavingsAmount(summaryMoney(value)) : summaryMoney(value);
+  const summary = savingsLabel(r, number, displaySummaryMoney);
   const money = (value: string) => `${r.homeCurrency} ${number(value)}`;
   const share = async () => {
     // Capture exactly the displayed snapshot before opening the native sheet.
     const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink,
-      previewSavings ? maskSavingsAmount(summaryMoney(r.savings!.amount)) : undefined);
+      previewAmount && r.savings && r.savings.outcome !== 'same' ? displaySummaryMoney(r.savings.amount.replace('-', '')) : undefined);
     setSharing(true); setShareError(false);
     const outcome = await openShare(message, (content) => Share.share(content));
     setShareError(outcome === 'failed'); setSharing(false);
@@ -94,14 +95,14 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     <Card>
       {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
-        {previewSavings && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
+        {previewAmount && r.savings && r.savings.outcome !== 'same' && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
         {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
-        {r.savings?.outcome !== 'same' && !previewSavings && <Text style={ui.text}>{r.savings ? number(r.savings.percentage.replace('-', '')) : ''}% {favorable ? 'less' : 'more'} than at home</Text>}
+        {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={ui.text}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null
         ? new D(r.priceDifference).isZero() ? 'Same price before VAT refund'
-          : `${summaryMoney(r.priceDifference.replace('-', ''))} ${new D(r.priceDifference).gt(0) ? 'less' : 'more'} before VAT refund`
+          : `${displaySummaryMoney(r.priceDifference.replace('-', ''))} ${new D(r.priceDifference).gt(0) ? 'less' : 'more'} before VAT refund`
         : comparison.homePrice ? 'Final savings unavailable' : 'Add a home price to see savings'}</Text>
       <Text style={ui.text}>{comparison.homePrice
         ? 'Final savings are unavailable because the VAT refund is unknown. Any price difference shown excludes a VAT refund.'

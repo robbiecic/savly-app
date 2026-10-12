@@ -310,6 +310,11 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] After email verification, complete Cognito sign-in with the in-memory signup password and check Premium access without another credential form. Inactive access opens Get Savly Premium; active access opens Calculate. Already-confirmed registration follows the same route; an automatic sign-in failure can be retried without confirming again.
 - [x] Update account requirements, README, and simulated Cognito browser checks. TypeScript, all 157 unit/integration tests, and all 15 account-flow Chromium tests pass; the browser test export passed. Native registration and email delivery remain unverified.
 
+### Defer Premium plan choice (2026-10-11)
+
+- [x] Add a secondary **Not right now** action below the three offers on the confirmed inactive Premium plan screen. It dismisses the prompt and opens the default-data calculator; the user can revisit Premium from Settings.
+- [x] Update the purchase requirements and README. TypeScript, all 157 unit/integration tests, and diff checks pass. The native plan screen was not device-tested.
+
 ### Trial savings preview (2026-10-11)
 
 - [x] Mask favorable savings after its first digit in default mode, hide its percentage, and place Get Premium directly under the result label.
@@ -317,3 +322,9 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Keep saved calculation snapshots intact and use masked savings in trial sharing.
 - [x] Verify TypeScript, all 157 unit/integration tests, Android/iOS and web exports, and focused Chromium checks for guest and signed-in upgrade navigation, saved results, sharing, unfavorable results, and VAT rules.
 - [ ] Visually verify the preview and purchase path in an Android and iOS development build.
+
+### Mask default-mode extra costs (2026-10-11)
+
+- [x] Apply the first-digit preview to extra-cost and before-refund summary amounts as well as savings, hide the extra-cost percentage, and keep the Get Premium action under the masked result. Saved results use the viewer's current access level.
+- [x] Match default-mode sharing to the masked extra-cost summary without exporting exact comparison amounts. Update the specs and README.
+- [x] Verify TypeScript, all 158 unit/integration tests, web export, and three focused Chromium checks for unfavorable results, savings previews, and sharing. Native display was not device-tested.

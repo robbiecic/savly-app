@@ -96,7 +96,9 @@ test('Equal and unfavorable comparisons', async ({ page }) => {
   await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('100');
   await calculate(page);
-  await expect(page.getByText('Costs $16.16 more', { exact: true })).toBeVisible();
+  await expect(page.getByText('Costs $1X.XX more', { exact: true })).toBeVisible();
+  await expect(page.getByText('16.2% more than at home', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Get Premium', exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('116.16');
   await calculate(page);

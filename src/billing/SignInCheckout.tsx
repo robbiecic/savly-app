@@ -14,6 +14,7 @@ export function SignInCheckout() {
         <PremiumCard allowPurchase={billing.prompt === 'plans'} />
         {billing.prompt === 'error' && !billing.preview && <Action label="Retry entitlement check" disabled={billing.busy} onPress={billing.checkEntitlement} />}
       </>}
+      {billing.prompt === 'plans' && <Action label="Not right now" secondary onPress={billing.dismissPrompt} />}
       {(billing.prompt === 'error' || billing.prompt === 'unavailable') && <Action label="Continue with default rates" secondary onPress={billing.dismissPrompt} />}
     </ScrollView>
   </SafeAreaView>;
