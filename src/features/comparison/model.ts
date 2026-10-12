@@ -87,7 +87,6 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
   const country = selectedCountry(snapshot, form.country);
   if (!country) return { status: 'invalid', field: 'country', message: 'This shopping country is no longer supported. Choose another country.' };
   if (!availableCurrencies(snapshot).includes(form.homeCurrency)) return { status: 'invalid', field: 'homeCurrency', message: form.residence ? 'Currency data is unavailable for this home country.' : 'Set your home country in Settings to calculate savings.' };
-  if (!form.price.trim()) return { status: 'empty', message: 'Enter a shopping price to see your estimate.' };
   try {
     const price = normalizeDecimal(form.price, locale);
     positive(price, 'price');
