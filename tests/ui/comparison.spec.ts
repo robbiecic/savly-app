@@ -156,14 +156,15 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await calculate(page);
-  await expect(page.getByText('FX rates are stale. Premium and sign-in enable API rates.', { exact: true })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. This estimate used built-in default rates.', { exact: true })).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
+  await expect(page.getByText('USD 132.00', { exact: true }).first()).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
   await calculate(page);
-  await expect(page.getByText('FX rates are stale. Premium and sign-in enable API rates.', { exact: true })).toBeVisible();
+  await expect(page.getByText('FX rates are stale. This estimate used built-in default rates.', { exact: true })).toBeVisible();
 });
 
 test('Unknown refund and missing FX never invent a total; invalid input hides sharing', async ({ page }) => {

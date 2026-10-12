@@ -109,7 +109,7 @@ There is no calculation quota, daily limit, counter persistence, or allowance st
 
 Free/restricted calculations always use the bundled static country/VAT/FX dataset, including after Cognito sign-in. Do not activate an authenticated API store or reuse its cached snapshot for free calculations. Reference API access requires both an active `savly_premium` entitlement and a valid Cognito session under the current backend contract. A signed-in upgrade switches to the API; losing premium switches new calculations back to bundled data. Previously submitted/saved estimates retain their original provenance. Account and RevenueCat requests are separate from the calculator reference API restriction.
 
-Stale-rate messaging must not suggest that login alone upgrades free rates: use “FX rates are stale. Premium and sign-in enable API rates.” Do not promise the API source is live or accurate merely because it was fetched.
+Stale-rate messaging describes the quote used by the result. Built-in defaults and samples retain their own labels; a stale API quote says its source timestamp is over 48 hours old or unverified. Do not suggest that sign-in or Premium will refresh an already-used API quote, or promise the API source is live merely because it was fetched.
 
 Welcome action hierarchy: show **Sign in** first as the filled primary button; show **Try it out** beneath it as the secondary action. Try it out opens unlimited default-data calculations without an account. Keep both actions hidden during session restoration as before.
 

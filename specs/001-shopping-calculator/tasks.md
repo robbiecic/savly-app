@@ -2,7 +2,7 @@
 
 - [x] Move item name, photo actions, and Save/Share ahead of a collapsed Expand details section on Your savings.
 
-- [x] Replace the stale-rate badge on Your savings with “FX rates are stale. Premium and sign-in enable API rates.” and remove the duplicate warning.
+- [x] Keep one stale-rate badge on Your savings, with wording based on the quote used by the result. The former Premium/sign-in wording was superseded by source-aware messaging.
 
 - [x] Share the clickable home-country and Settings cog control across Your savings and the other main pages.
 
@@ -328,3 +328,8 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Apply the first-digit preview to extra-cost and before-refund summary amounts as well as savings, hide the extra-cost percentage, and keep the Get Premium action under the masked result. Saved results use the viewer's current access level.
 - [x] Match default-mode sharing to the masked extra-cost summary without exporting exact comparison amounts. Update the specs and README.
 - [x] Verify TypeScript, all 158 unit/integration tests, web export, and three focused Chromium checks for unfavorable results, savings previews, and sharing. Native display was not device-tested.
+
+### FX warning provenance (2026-10-11)
+
+- [x] Describe the quote used by Your savings: built-in defaults, a sample, or an API quote whose source timestamp is old or unverified. Remove the Premium/sign-in upgrade claim from the warning; retain the 48-hour source-age rule and immutable saved results.
+- [x] Update requirements and verify TypeScript, all 159 unit/integration tests, web export, and the focused dated-default Chromium check. A live authenticated API response and native device display were not tested.
