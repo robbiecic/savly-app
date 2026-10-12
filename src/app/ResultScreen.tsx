@@ -1,5 +1,7 @@
 import { RefundRulesScreen } from './RefundRulesScreen';
-import { formatResultNumber, formatSummaryMoney } from '../features/comparison/number-display';
+import { formatResultNumber, formatSummaryMoney, maskSavingsAmount } from '../features/comparison/number-display';
+import { useAuth } from '../auth/AuthProvider';
+import { useBilling } from '../billing/BillingProvider';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
 import { isFxStale } from '../data/fx-freshness';
@@ -23,6 +25,8 @@ import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
 export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; onSettings: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
+  const { user, openSignUp } = useAuth();
+  const billing = useBilling();
   const wide = useWideLayout();
   const [rules, setRules] = useState(false);
   const now = useCurrentTime();
@@ -57,12 +61,14 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
   const r = comparison.result;
   const number = (value: string) => formatResultNumber(value, locale);
   const summaryMoney = (value: string) => formatSummaryMoney(value, r.homeCurrency, locale);
-  const summary = savingsLabel(r, number, summaryMoney);
   const favorable = r.savings?.outcome === 'save';
+  const previewSavings = favorable && !(user && billing.active);
+  const summary = savingsLabel(r, number, value => previewSavings ? maskSavingsAmount(summaryMoney(value)) : summaryMoney(value));
   const money = (value: string) => `${r.homeCurrency} ${number(value)}`;
   const share = async () => {
     // Capture exactly the displayed snapshot before opening the native sheet.
-    const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink);
+    const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink,
+      previewSavings ? maskSavingsAmount(summaryMoney(r.savings!.amount)) : undefined);
     setSharing(true); setShareError(false);
     const outcome = await openShare(message, (content) => Share.share(content));
     setShareError(outcome === 'failed'); setSharing(false);
@@ -88,8 +94,9 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     <Card>
       {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
         <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
+        {previewSavings && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
         {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
-        {r.savings?.outcome !== 'same' && <Text style={ui.text}>{r.savings ? number(r.savings.percentage.replace('-', '')) : ''}% {favorable ? 'less' : 'more'} than at home</Text>}
+        {r.savings?.outcome !== 'same' && !previewSavings && <Text style={ui.text}>{r.savings ? number(r.savings.percentage.replace('-', '')) : ''}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null

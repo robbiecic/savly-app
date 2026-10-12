@@ -297,3 +297,18 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Make the Settings header button toggle back to Calculate while Settings is open, including after closing a modal; preserve the calculator draft and expose the expanded state.
 - [x] Add pressed feedback and a regression covering repeated picker dismissal and Settings toggling.
+- [x] Verify TypeScript, all 155 unit/integration tests, web export, and two focused Chromium Settings regressions. Update the existing navigation check to expect the current `$33.84` savings display.
+- [ ] Complete the signed-in Android Manage Premium repeat check after the change. The original close → Back to calculator → Settings sequence worked before the change; final automated emulator checks were interrupted by a return to welcome.
+
+### Native sign-in safe area (2026-10-11)
+
+- [x] Give the account modal its own safe-area provider so the logo and form sit below the camera cutout.
+- [ ] Visually verify the account modal on an iPhone with a camera cutout in portrait and landscape.
+
+### Trial savings preview (2026-10-11)
+
+- [x] Mask favorable savings after its first digit in default mode, hide its percentage, and place Get Premium directly under the result label.
+- [x] Route guests to account creation and signed-in nonmembers through entitlement checking to plan selection.
+- [x] Keep saved calculation snapshots intact and use masked savings in trial sharing.
+- [x] Verify TypeScript, all 157 unit/integration tests, Android/iOS and web exports, and focused Chromium checks for guest and signed-in upgrade navigation, saved results, sharing, unfavorable results, and VAT rules.
+- [ ] Visually verify the preview and purchase path in an Android and iOS development build.

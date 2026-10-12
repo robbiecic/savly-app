@@ -134,6 +134,24 @@ test('dismissed forms clear passwords and preserve guest access', async ({ page,
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
 });
 
+test('signed-in trial savings upgrades through the entitlement check', async ({ page, context }) => {
+  await provider(context);
+  await open(page); await credentials(page);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: /^Home country:/ }).click();
+  await page.getByRole('textbox', { name: 'Search home country', exact: true }).fill('United States');
+  await page.getByRole('button', { name: 'United States', exact: true }).click();
+  await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
+  await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Get Premium', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Premium billing is unavailable in this build', exact: true })).toBeVisible();
+});
+
 test('Try it out opens restricted mode; Settings signup continues to Premium after verified sign-in', async ({ page, context }) => {
   const calls = await provider(context);
   await page.goto('/');

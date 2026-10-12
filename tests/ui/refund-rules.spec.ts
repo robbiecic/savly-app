@@ -17,21 +17,21 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await expect(page.getByRole('heading', { name: 'VAT refund rules · France' })).toBeVisible();
   await expect(page.getByText(/^More than EUR 100 including VAT/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open source: French Customs' })).toBeVisible();
-  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('100');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
-  await expect(page.getByText('You could save $40.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $4X.XX', { exact: true })).toBeVisible();
   await expect(page.getByText('Compared without a VAT refund.', { exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Bag');
   await expect(page.getByRole('button', { name: 'VAT refund rules', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
-  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Name for saved comparison' })).toHaveValue('Bag');
   await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
-  await expect(page.getByText('You could save $33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Purchase minimum met/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('Refund fee (28% assumed)', { exact: true })).toBeVisible();
@@ -43,7 +43,7 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible();
   await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
   await expect(page.getByText('Rules retained with this comparison; they may have changed.')).toBeVisible();
-  await page.getByRole('button', { name: 'Back from refund rules' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible();
 });
 test('UK rules disclose the Northern Ireland exception and review dates', async ({ page }) => {

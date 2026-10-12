@@ -12,8 +12,22 @@ export function shareLink(url?: string): ShareLink {
   }
   return { url: parsed.toString(), demo: parsed.hostname === 'example.com' };
 }
-export function shareMessage(comparison: DisplayedComparison, link: ShareLink): string {
+export function shareMessage(comparison: DisplayedComparison, link: ShareLink, previewSavings?: string): string {
   const { result: r } = comparison;
+  const source = r.fx.source === 'Built-in defaults' ? 'Estimate using built-in default rates'
+    : comparison.sample ? 'Sample estimate'
+    : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion'
+    : r.fx.kind === 'manual' ? 'Estimated using a manual rate'
+    : `Estimated using rates as of ${r.fx.asOf}`;
+  if (previewSavings && r.savings?.outcome === 'save') return [
+    `I could save ${previewSavings} with Savly (preview).`,
+    ...(comparison.itemName ? [`Item: ${comparison.itemName.replace(/[\r\n]+/g, ' ')}`] : []),
+    source,
+    ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),
+    'Refund eligibility and provider fees still need confirmation.',
+    ...(link.demo ? ['Demo link only; app open/download routing is not available.'] : []),
+    `Open or download Savly: ${link.url}`,
+  ].join('\n');
   const money = (amount: string) => `${r.homeCurrency} ${amount}`;
   const savings = r.savings;
   const title = !savings ? "Here’s my overseas shopping estimate from Savly."
@@ -33,7 +47,7 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink): 
     ...(r.refundHome !== null && r.withRefund !== null
       ? [`Estimated VAT refund: ${money(r.refundHome)}`, `With VAT refund: ${money(r.withRefund)}`]
       : [r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable; comparison excludes any refund.' : 'Refund estimate unavailable']), '',
-    r.fx.source === 'Built-in defaults' ? 'Estimate using built-in default rates' : comparison.sample ? 'Sample estimate' : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion' : r.fx.kind === 'manual' ? 'Estimated using a manual rate' : `Estimated using rates as of ${r.fx.asOf}`,
+    source,
     ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),
     fxLabel(r.fx),
     ...(r.refund.kind === 'manual' ? ['Manual refund amount'] : []),

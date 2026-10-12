@@ -3,7 +3,7 @@ import { SessionStore } from './session-store';
 import { checkSessionStorage, SECURE_STORAGE_BUILD_ERROR, SecureStorageBuildError, sessionStorage } from './session-storage';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState, Modal, Platform, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Action, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
@@ -132,10 +132,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <Modal visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       onRequestClose={close}>
       {visible && <StatusBar style="dark" />}
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SavlyLogo /></View>
-        {visible && <AccountForm initialStep={initialStep} configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SavlyLogo /></View>
+          {visible && <AccountForm initialStep={initialStep} configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   </AuthContext.Provider>;
 }

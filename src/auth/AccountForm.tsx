@@ -19,7 +19,7 @@ function Input({ label, value, onChange, secret = false, code = false, email = f
       autoComplete={email ? 'email' : code ? 'one-time-code' : secret ? (label === 'Password' ? 'current-password' : 'new-password') : 'off'} />
   </View>;
 }
-const titles: Record<Step, string> = { signin: 'Sign in to Savly', signup: 'Create your account', confirm: 'Verify your email', forgot: 'Reset your password', reset: 'Choose a new password', challenge: 'Complete sign-in' };
+const titles: Record<Step, string> = { signin: 'Welcome back', signup: 'Create your account', confirm: 'Verify your email', forgot: 'Reset your password', reset: 'Choose a new password', challenge: 'Complete sign-in' };
 const actions: Record<Step, string> = { signin: 'Sign in', signup: 'Create account', confirm: 'Verify email', forgot: 'Send reset code', reset: 'Save new password', challenge: 'Continue' };
 
 export function AccountForm({ configuration, onSession, onClose, initialStep = 'signin' }: { initialStep?: 'signin' | 'signup'; configuration: () => CognitoConfig; onSession: (session: Session) => Promise<void>; onClose: () => void }) {
@@ -97,7 +97,7 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
     <KeyboardFormScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 20, width: '100%', maxWidth: 620, alignSelf: 'center' }}>
       <Card>
         <Text accessibilityRole="header" style={ui.title}>{titles[step]}</Text>
-        <Text style={ui.text}>{step === 'signin' ? 'Welcome back. Sign in with your email and password.' : step === 'signup' ? 'Create a Savly account with your email address.' : step === 'challenge' ? (newPassword ? 'Choose a new password to finish signing in.' : challenge?.kind === 'SOFTWARE_TOKEN_MFA' ? 'Enter the code from your authenticator app.' : 'Enter the verification code sent to your phone.') : email.trim()}</Text>
+        <Text style={ui.text}>{step === 'signin' ? 'Sign in with your email and password.' : step === 'signup' ? 'Create a Savly account with your email address.' : step === 'challenge' ? (newPassword ? 'Choose a new password to finish signing in.' : challenge?.kind === 'SOFTWARE_TOKEN_MFA' ? 'Enter the code from your authenticator app.' : 'Enter the verification code sent to your phone.') : email.trim()}</Text>
         {!!notice && <Text accessibilityLiveRegion="polite" style={ui.text}>{notice}</Text>}
         {['signin', 'signup', 'forgot'].includes(step) && <Input label="Email address" email value={email} onChange={setEmail} disabled={busy} />}
         {needsCode && <Input label="Verification code" code value={code} onChange={setCode} disabled={busy} />}
@@ -115,8 +115,7 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
         {step === 'signin' && <><Action label="Create an account" secondary disabled={busy} onPress={() => changeStep('signup')} />
           <Action label="Forgot password?" secondary disabled={busy} onPress={() => changeStep('forgot')} /></>}
         {step !== 'signin' && <Action label="Back to sign in" secondary disabled={busy} onPress={() => changeStep('signin')} />}
-        <Text style={ui.muted}>Saved comparisons stay on this device. Cloud history sync is not available yet.</Text>
-        <Action label="Back to Savly" secondary disabled={busy} onPress={onClose} />
+        <Action label="Back" secondary disabled={busy} onPress={onClose} />
       </Card>
     </KeyboardFormScrollView>
   </KeyboardAvoidingView>;

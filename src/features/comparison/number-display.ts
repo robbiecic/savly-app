@@ -12,6 +12,14 @@ export function formatSummaryMoney(value: string, currency: string, locale: stri
   return `${symbol}${symbol === currency ? ' ' : ''}${formatResultNumber(value, locale)}`;
 }
 
+export function maskSavingsAmount(formattedMoney: string): string {
+  let firstDigit = true;
+  return formattedMoney.replace(/[0-9]/g, digit => {
+    if (firstDigit) { firstDigit = false; return digit; }
+    return 'X';
+  });
+}
+
 // Keep the exact stored decimal digits, including currency trailing zeroes.
 export function formatResultNumber(value: string, locale: string): string {
   const sign = value.startsWith('-') ? '-' : '';

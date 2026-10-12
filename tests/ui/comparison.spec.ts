@@ -28,8 +28,25 @@ async function comparison(page: Page) {
   await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toHaveCount(0);
   await calculate(page);
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
-  await expect(page.getByText('You could save $33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
 }
+
+test('trial savings teaser opens account creation and stays masked in Saved', async ({ page }) => {
+  await comparison(page);
+  const teaser = page.getByText('You could save $3X.XX', { exact: true });
+  await expect(teaser).toBeVisible();
+  await expect(page.getByText('22.6% less than at home', { exact: true })).toHaveCount(0);
+  await teaser.locator('..').getByRole('button', { name: 'Get Premium', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Create your account', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(teaser).toBeVisible();
+  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Trial bag');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await back(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  await page.getByRole('button', { name: 'Open Trial bag', exact: true }).click();
+  await expect(teaser).toBeVisible();
+});
 
 test('AC12–15: submitted result, automatic assumptions, no card fee and restart settings', async ({ page }) => {
   await comparison(page);
@@ -40,7 +57,7 @@ test('AC12–15: submitted result, automatic assumptions, no card fee and restar
   await expect(page.getByRole('button', { name: 'Edit assumptions', exact: true })).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
   await calculate(page);
-  await expect(page.getByText('You could save $33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   await back(page);
   await expect(page.getByRole('textbox', { name: /Manual FX|Manual refund/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true })).toHaveCount(0);
@@ -66,7 +83,8 @@ test('Share payload matches the display; cancellation leaves it intact', async (
   });
   await comparison(page);
   await page.getByRole('button', { name: 'Share savings', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('USD 33.84 (22.6%)');
+  await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('$3X.XX');
+  expect(await page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).not.toContain('33.84');
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
   await expect(page.getByText('Sharing couldn’t open. Please try again.', { exact: true })).toHaveCount(0);
@@ -280,7 +298,7 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
-  for (const label of ['You could save USD 56.92', 'login to get accurate rates', 'USD -6.36',
+  for (const label of ['You could save $5X.XX', 'login to get accurate rates', 'USD -6.36',
     'Net VAT refund (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61', 'USD 63.27', 'USD 443.08']) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
@@ -318,7 +336,7 @@ test('Item photo can be added, removed, saved and reopened after reload', async 
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Open Photo bag', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
-  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
 });
 
 test('Rotation reflows welcome, calculator and savings while retaining the draft', async ({ page }) => {
@@ -344,7 +362,7 @@ test('Rotation reflows welcome, calculator and savings while retaining the draft
   await page.screenshot({ path: 'test-results/savly-calculator-landscape.png' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await calculate(page);
-  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Landscape bag');
   await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/savly-result-landscape.png' });
@@ -393,7 +411,7 @@ test('Settings owns home country; fixed flag follows calculations and persists a
   await expect(badge).toBeInViewport();
   await calculate(page);
   await expect(badge).toBeInViewport();
-  await expect(page.getByText('You could save USD 33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(badge).toBeVisible();
@@ -404,7 +422,7 @@ test('Settings owns home country; fixed flag follows calculations and persists a
 
 test('Savings lead the result; VAT is assumed refundable regardless of home country', async ({ page }) => {
   await comparison(page);
-  const savings = page.getByText('You could save USD 33.84', { exact: true });
+  const savings = page.getByText('You could save $3X.XX', { exact: true });
   await expect(savings).toBeInViewport();
   const summaryBounds = await savings.boundingBox();
   const warningBounds = await page.getByText('login to get accurate rates', { exact: true }).boundingBox();
@@ -413,7 +431,7 @@ test('Savings lead the result; VAT is assumed refundable regardless of home coun
   await setHomeCountry(page, 'France');
   await page.getByRole('textbox', { name: 'Home price (EUR)', exact: true }).fill('150');
   await calculate(page);
-  await expect(page.getByText('You could save EUR 44.40', { exact: true })).toBeInViewport();
+  await expect(page.getByText('You could save €4X.XX', { exact: true })).toBeInViewport();
   await expect(page.getByText('Assumes all included VAT is refundable', { exact: false })).toBeVisible();
 });
 
@@ -429,7 +447,7 @@ test('Null VAT still shows cheaper and more expensive overseas comparisons', asy
   await expect(page.getByRole('textbox', { name: 'Shopping price (USD)', exact: true })).toHaveValue('110');
   await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toHaveValue('120');
   await calculate(page);
-  await expect(page.getByText('You could save EUR 20.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save €2X.XX', { exact: true })).toBeVisible();
   await expect(page.getByText('Compared without a VAT refund.', { exact: true })).toBeVisible();
   await expect(page.getByText('VAT refund unavailable: no VAT rate supplied.', { exact: false })).toBeVisible();
   await back(page);

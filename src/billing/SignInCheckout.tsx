@@ -11,7 +11,6 @@ export function SignInCheckout() {
     <ScrollView contentContainerStyle={{ padding: 24, gap: 20, width: '100%', maxWidth: 620, alignSelf: 'center' }}>
       <Text accessibilityRole="header" style={ui.title}>{billing.prompt === 'checking' ? 'Checking Premium access…' : billing.prompt === 'unavailable' ? 'Premium billing is unavailable in this build' : billing.prompt === 'error' ? 'Couldn’t check Premium access' : 'Choose your Savly Premium plan'}</Text>
       {billing.prompt !== 'checking' && <>
-        {billing.prompt === 'plans' && <Text style={ui.text}>Choose Monthly, Annual, or Lifetime access.</Text>}
         <PremiumCard allowPurchase={billing.prompt === 'plans'} />
         {billing.prompt === 'error' && !billing.preview && <Action label="Retry entitlement check" disabled={billing.busy} onPress={billing.checkEntitlement} />}
       </>}
