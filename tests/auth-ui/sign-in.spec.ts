@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 const endpoint = 'https://cognito-idp.us-east-1.amazonaws.com/';
 const jwt = (claims: object) => `e30.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.signature`;
-async function provider(context: BrowserContext, options: { error?: string; challenge?: string; offline?: boolean } = {}) {
+async function provider(context: BrowserContext, options: { error?: string; challenge?: string; offline?: boolean; signInFailures?: number; userConfirmed?: boolean } = {}) {
   const calls: { operation: string; body: any }[] = [];
   await context.route(endpoint, async route => {
     const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*' };
@@ -9,6 +9,10 @@ async function provider(context: BrowserContext, options: { error?: string; chal
     if (options.offline) { await route.abort(); return; }
     const operation = route.request().headers()['x-amz-target'].split('.').pop()!;
     const body = route.request().postDataJSON(); calls.push({ operation, body });
+    if (operation === 'InitiateAuth' && options.signInFailures) {
+      options.signInFailures--;
+      await route.fulfill({ status: 503, headers, json: { __type: 'ServiceUnavailableException' } }); return;
+    }
     if (options.error && operation !== 'GetUser') {
       await route.fulfill({ status: 400, headers, json: { __type: options.error } }); return;
     }
@@ -27,7 +31,7 @@ async function provider(context: BrowserContext, options: { error?: string; chal
       } else json = result;
     }
     else if (operation === 'GetUser') json = { UserAttributes: [{ Name: 'sub', Value: 'user' }, { Name: 'email', Value: 'traveler@example.test' }] };
-    else if (operation === 'SignUp') json = { UserConfirmed: false };
+    else if (operation === 'SignUp') json = { UserConfirmed: !!options.userConfirmed };
     await route.fulfill({ headers, json });
   });
   await context.route('https://savly-api.example.test/v1/*', route => route.fulfill({ status: 503, json: {} }));
@@ -57,7 +61,7 @@ test('in-app SRP sign-in, memory-only web session, and sign-out', async ({ page,
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   expect(context.pages()).toHaveLength(1);
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
+  await expect(page.getByText('traveler@example.test', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   expect(calls.map(c => c.operation)).toEqual(['InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
   const disk = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }));
@@ -65,7 +69,7 @@ test('in-app SRP sign-in, memory-only web session, and sign-out', async ({ page,
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Try it out', exact: true })).toBeVisible();
 });
-test('sign-up validates passwords, resends and confirms email without signing in early', async ({ page, context }) => {
+test('sign-up validates passwords, resends and opens Premium after verified sign-in', async ({ page, context }) => {
   const calls = await provider(context); await open(page);
   await page.getByRole('button', { name: 'Create an account' }).click();
   await page.getByLabel('Email address').fill('traveler@example.test'); await newPassword(page);
@@ -79,9 +83,35 @@ test('sign-up validates passwords, resends and confirms email without signing in
   await expect(page.getByText('A new code has been requested. Check your email.')).toBeVisible();
   await page.getByLabel('Verification code').fill('123456');
   await page.getByRole('button', { name: 'Verify email', exact: true }).click();
-  await expect(page.getByText('Email verified. You can now sign in.')).toBeVisible();
-  expect(calls.map(c => c.operation)).toEqual(['SignUp', 'ResendConfirmationCode', 'ConfirmSignUp']);
-  await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toBeVisible();
+  await continueAfterWebEntitlementCheck(page);
+  await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
+  expect(calls.map(c => c.operation)).toEqual(['SignUp', 'ResendConfirmationCode', 'ConfirmSignUp', 'InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByText('traveler@example.test', { exact: true })).toBeVisible();
+});
+test('confirmed registration retries automatic sign-in without another code', async ({ page, context }) => {
+  const calls = await provider(context, { signInFailures: 1 }); await open(page);
+  await page.getByRole('button', { name: 'Create an account' }).click();
+  await page.getByLabel('Email address').fill('traveler@example.test'); await newPassword(page);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await page.getByLabel('Verification code').fill('123456');
+  await page.getByRole('button', { name: 'Verify email', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText("Can't connect right now");
+  await expect(page.getByLabel('Verification code')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toBeVisible();
+  await continueAfterWebEntitlementCheck(page);
+  await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
+  expect(calls.map(c => c.operation)).toEqual(['SignUp', 'ConfirmSignUp', 'InitiateAuth', 'InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
+});
+test('already-confirmed registration opens Premium directly', async ({ page, context }) => {
+  const calls = await provider(context, { userConfirmed: true }); await open(page);
+  await page.getByRole('button', { name: 'Create an account' }).click();
+  await page.getByLabel('Email address').fill('traveler@example.test'); await newPassword(page);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toBeVisible();
+  expect(calls.map(c => c.operation)).toEqual(['SignUp', 'InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
 });
 test('password recovery handles an incorrect code then succeeds', async ({ page, context }) => {
   const options: { error?: string } = {}; const calls = await provider(context, options); await open(page);
@@ -126,10 +156,10 @@ test('unconfirmed account leads to verification and connection failure is retrya
 });
 test('dismissed forms clear passwords and preserve guest access', async ({ page, context }) => {
   await provider(context); await open(page); await credentials(page);
-  await page.getByRole('button', { name: 'Back to Savly' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
-  await page.getByRole('button', { name: 'Back to Savly' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
 });
@@ -152,7 +182,7 @@ test('signed-in trial savings upgrades through the entitlement check', async ({ 
   await expect(page.getByRole('heading', { name: 'Premium billing is unavailable in this build', exact: true })).toBeVisible();
 });
 
-test('Try it out opens restricted mode; Settings signup continues to Premium after verified sign-in', async ({ page, context }) => {
+test('Try it out opens restricted mode; Settings signup opens Premium after verification', async ({ page, context }) => {
   const calls = await provider(context);
   await page.goto('/');
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
@@ -166,9 +196,7 @@ test('Try it out opens restricted mode; Settings signup continues to Premium aft
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await page.getByLabel('Verification code').fill('123456');
   await page.getByRole('button', { name: 'Verify email', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Sign in to Savly' })).toBeVisible();
-  await credentials(page);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toBeVisible();
   await continueAfterWebEntitlementCheck(page);
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   expect(calls.map(c => c.operation)).toEqual(['SignUp', 'ConfirmSignUp', 'InitiateAuth', 'RespondToAuthChallenge', 'GetUser']);
@@ -187,7 +215,7 @@ test('canceling Premium signup clears purchase continuation; purchase restoratio
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Get Savly Premium', exact: true }).click();
-  await page.getByRole('button', { name: 'Back to Savly', exact: true }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Get Savly Premium', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click(); await credentials(page);
@@ -195,7 +223,7 @@ test('canceling Premium signup clears purchase continuation; purchase restoratio
   await continueAfterWebEntitlementCheck(page);
   await expect(page.getByRole('heading', { name: 'Compare a price' })).toBeVisible();
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await expect(page.getByText('Signed in as traveler@example.test', { exact: true })).toBeVisible();
+  await expect(page.getByText('traveler@example.test', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Restore purchases', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Get Savly Premium', exact: true })).toHaveCount(0);
 });
@@ -242,6 +270,6 @@ test('signed-in free users only use bundled reference data and never request the
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
-  await expect(page.getByText('You could save $33.84', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   expect(requests).toEqual([]);
 });

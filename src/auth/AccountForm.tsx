@@ -36,9 +36,12 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
   const account = useRef<NativeAccount | null>(null);
   const generation = useRef(0);
   const locked = useRef(false);
-  useEffect(() => () => { generation.current++; account.current = null; }, []);
+  const pendingPassword = useRef('');
+  const confirmed = useRef(false);
+  useEffect(() => () => { generation.current++; account.current = null; pendingPassword.current = ''; }, []);
   const changeStep = (next: Step, message = '') => {
     setStep(next); setPassword(''); setRepeat(''); setCode(''); setError(''); setNotice(message); setAttributes({});
+    pendingPassword.current = ''; confirmed.current = false;
     if (next !== 'challenge') { setChallenge(undefined); account.current = null; }
   };
   const client = () => account.current ?? (account.current = new NativeAccount(configuration()));
@@ -58,12 +61,15 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
   const loginResult = async (result: LoginResult, active: () => boolean) => {
     if (!active()) return;
     setPassword(''); setRepeat(''); setCode('');
-    if ('session' in result) await onSession(result.session);
+    if ('session' in result) {
+      await onSession(result.session);
+      pendingPassword.current = ''; confirmed.current = false;
+    }
     else { setChallenge(result.challenge); setAttributes({}); setStep('challenge'); }
   };
   const newPassword = step === 'signup' || step === 'reset' || (step === 'challenge' && challenge?.kind === 'NEW_PASSWORD_REQUIRED');
   const needsPassword = step === 'signin' || newPassword;
-  const needsCode = step === 'confirm' || step === 'reset' || (step === 'challenge' && !newPassword);
+  const needsCode = (step === 'confirm' && !confirmed.current) || step === 'reset' || (step === 'challenge' && !newPassword);
   const submit = () => {
     const username = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) { setError('Enter a valid email address.'); return; }
@@ -80,10 +86,21 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
       if (step === 'challenge' && challenge) { await loginResult(await api.answer(challenge, newPassword ? password : code.trim(), attributes), active); return; }
       if (step === 'signup') {
         const response = await api.request('SignUp', { Username: username, Password: password, UserAttributes: [{ Name: 'email', Value: username }] });
-        if (active()) changeStep(response.UserConfirmed ? 'signin' : 'confirm', response.UserConfirmed ? 'Account created. You can now sign in.' : 'Check your email for your verification code.');
+        if (!active()) return;
+        const signupPassword = password;
+        changeStep('confirm', response.UserConfirmed ? 'Account created. Finishing sign-in…' : 'Check your email for your verification code.');
+        pendingPassword.current = signupPassword;
+        confirmed.current = !!response.UserConfirmed;
+        if (response.UserConfirmed) await loginResult(await api.signIn(username, signupPassword), active);
       } else if (step === 'confirm') {
-        await api.request('ConfirmSignUp', { Username: username, ConfirmationCode: code.trim() });
-        if (active()) changeStep('signin', 'Email verified. You can now sign in.');
+        if (!confirmed.current) {
+          await api.request('ConfirmSignUp', { Username: username, ConfirmationCode: code.trim() });
+          if (!active()) return;
+          confirmed.current = true;
+          setCode('');
+        }
+        if (pendingPassword.current) await loginResult(await api.signIn(username, pendingPassword.current), active);
+        else if (active()) changeStep('signin', 'Email verified. Sign in to continue.');
       } else if (step === 'forgot') {
         await api.request('ForgotPassword', { Username: username });
         if (active()) changeStep('reset', 'If this account can be recovered, a reset code will arrive by email.');
@@ -107,8 +124,8 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
         {step === 'challenge' && challenge?.attributes.map(name => <Input key={name} label={name.replace(/_/g, ' ')} value={attributes[name] ?? ''} onChange={value => setAttributes(previous => ({ ...previous, [name]: value }))} disabled={busy} />)}
         {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
         {busy && <ActivityIndicator accessibilityLabel="Connecting" />}
-        <Action label={actions[step]} disabled={busy} onPress={submit} />
-        {(step === 'confirm' || step === 'reset') && <Action label="Resend code" secondary disabled={busy} onPress={() => { void run(async active => {
+        <Action label={step === 'confirm' && confirmed.current ? 'Continue' : actions[step]} disabled={busy} onPress={submit} />
+        {((step === 'confirm' && !confirmed.current) || step === 'reset') && <Action label="Resend code" secondary disabled={busy} onPress={() => { void run(async active => {
           await client().request(step === 'confirm' ? 'ResendConfirmationCode' : 'ForgotPassword', { Username: email.trim() });
           if (active()) setNotice('A new code has been requested. Check your email.');
         }); }} />}

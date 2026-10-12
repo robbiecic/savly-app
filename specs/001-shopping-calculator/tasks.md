@@ -305,6 +305,11 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Give the account modal its own safe-area provider so the logo and form sit below the camera cutout.
 - [ ] Visually verify the account modal on an iPhone with a camera cutout in portrait and landscape.
 
+### Account verification to Premium (2026-10-11)
+
+- [x] After email verification, complete Cognito sign-in with the in-memory signup password and check Premium access without another credential form. Inactive access opens Get Savly Premium; active access opens Calculate. Already-confirmed registration follows the same route; an automatic sign-in failure can be retried without confirming again.
+- [x] Update account requirements, README, and simulated Cognito browser checks. TypeScript, all 157 unit/integration tests, and all 15 account-flow Chromium tests pass; the browser test export passed. Native registration and email delivery remain unverified.
+
 ### Trial savings preview (2026-10-11)
 
 - [x] Mask favorable savings after its first digit in default mode, hide its percentage, and place Get Premium directly under the result label.
