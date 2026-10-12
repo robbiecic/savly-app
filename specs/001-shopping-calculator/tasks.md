@@ -333,3 +333,9 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Describe the quote used by Your savings: built-in defaults, a sample, or an API quote whose source timestamp is old or unverified. Remove the Premium/sign-in upgrade claim from the warning; retain the 48-hour source-age rule and immutable saved results.
 - [x] Update requirements and verify TypeScript, all 159 unit/integration tests, web export, and the focused dated-default Chromium check. A live authenticated API response and native device display were not tested.
+
+### User journey walkthrough (2026-10-11)
+
+- [x] Capture 19 browser-prototype screens and arrange them side by side across six core journeys in PDF and HTML walkthroughs. Link the walkthrough from README.
+- [x] Review all six landscape PDF pages for layout and screenshot presence. Label simulated account verification and the browser billing fallback; native plan choice and purchases were not captured or device-tested.
+- [x] Add a single-page visual map with all six journeys as rows of side-by-side screens, available as PNG and PDF.

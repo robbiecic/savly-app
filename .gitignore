@@ -46,3 +46,10 @@ dist-auth-web/
 dist-auth-mobile/
 test-results/
 playwright-report/
+
+# User journey images
+docs/user-journeys/screenshots/
+docs/user-journeys/__pycache__/
+docs/user-journeys/*.png
+docs/user-journeys/*.html
+*.pdf
