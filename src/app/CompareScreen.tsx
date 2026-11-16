@@ -75,7 +75,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
     setResultOrigin('calculator'); setPage('result');
   };
   const toggleSettings = () => { Keyboard.dismiss(); setPage(current => current === 'settings' ? 'calculator' : 'settings'); };
-  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={toggleSettings} homeCountry={form.residence} locale={state.locale} />;
+  if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSaved={() => setPage('saved')} onSettings={toggleSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen} edges={['top']}>
     <StatusBar style="light" />
     <CloudHeaderBackground />

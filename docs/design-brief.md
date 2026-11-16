@@ -53,4 +53,4 @@ Carry the same visual system into purchase choices and optional login. Keep acco
 
 ## Share action
 
-Use a white outlined rounded heart button for “Save”; after saving, fill the heart and show “Saved”. Place the connected three-circle share icon in the result summary card as the sole share action. Keep the descriptive accessible share label “Share savings” for favorable results and “Share comparison” otherwise. Open the native share sheet directly. The public download landing page uses Savly branding and clear store buttons. See [sharing spec](../specs/003-sharing/spec.md).
+Use a compact heart row to open the save form; after saving, open Saved with the new item visible. Reopened saved results show the filled heart and saved name. Place the connected three-circle share icon in the result summary card as the sole share action. Keep the descriptive accessible share label “Share savings” for favorable results and “Share comparison” otherwise. Open the native share sheet directly. The public download landing page uses Savly branding and clear store buttons. See [sharing spec](../specs/003-sharing/spec.md).

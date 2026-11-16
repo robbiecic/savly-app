@@ -15,7 +15,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { D } from '../domain/decimal';
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResultAction } from '../components/ResultAction';
 import { Action, Field, ui } from '../components/controls';
@@ -26,7 +26,7 @@ import { colors } from '../theme/colors';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
 import type { SavedComparison } from '../storage/saved-comparisons';
 
-export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; onSettings: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
+export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, homeCountry, locale }: { entry: SavedComparison; onBack: () => void; onSaved: () => void; onSettings: () => void; fromSaved: boolean; homeCountry: string; locale: string }) {
   const { user, openSignUp } = useAuth();
   const billing = useBilling();
   const wide = useWideLayout();
@@ -46,6 +46,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     finally { setPhotoBusy(false); }
   };
   const [saved, setSaved] = useState(fromSaved);
+  const [saveOpen, setSaveOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const save = async () => {
@@ -54,6 +55,9 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     try {
       await savedComparisons.save({ ...entry, ...(photoUri ? { photoUri } : {}), form: { ...entry.form, itemName: name.trim() }, comparison: { ...comparison, itemName: name.trim() } });
       setSaved(true);
+      setSaveOpen(false);
+      Keyboard.dismiss();
+      onSaved();
     } catch { setSaveError('Couldn’t save on this device. Please try again.'); }
     finally { setSaving(false); }
   };
@@ -119,27 +123,38 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     {rateBadge && <Text style={styles.badge}>{rateBadge}</Text>}
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
-    {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
-    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" outlined />}
-
-    {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
-    {!saved && <View style={{ gap: 12 }}>
-      <Text style={ui.label}>Item photo (optional)</Text>
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
-      <ResultAction icon="camera" label="Take photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
-      <ResultAction icon="image" label="Add photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
+    <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'Saved on this device' : 'Save this comparison'}
+      accessibilityState={{ expanded: saveOpen, disabled: saved || saving }} disabled={saved || saving}
+      onPress={() => { if (saveOpen) Keyboard.dismiss(); setSaveOpen(open => !open); }} style={({ pressed }) => [styles.saveToggle, pressed && { opacity: 0.7 }]}>
+      <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false} aria-hidden>
+        <Path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
+          fill={saved ? '#09184A' : 'none'} stroke="#09184A" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+      <Text style={styles.saveToggleText}>{saved ? `Saved${name.trim() ? ` · ${name.trim()}` : ''}` : 'Save this comparison'}</Text>
+      {!saved && <Svg width={20} height={20} viewBox="0 0 24 24" accessible={false} aria-hidden>
+        <Path d={saveOpen ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} fill="none" stroke="#09184A" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>}
+    </Pressable>
+    {saved && !!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} size={88} />}
+    {!saved && saveOpen && <View style={styles.saveForm}>
+      <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" outlined />
+      <Text style={ui.label}>Photo (optional)</Text>
+      <View style={styles.photoActions}>
+        <ResultAction icon="camera" label="Camera" accessibilityLabel="Take photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('camera'); }} />
+        <ResultAction icon="image" label="Photo library" accessibilityLabel="Add photo" disabled={photoBusy || saving} onPress={() => { void choosePhoto('library'); }} />
       </View>
-      {!!photoUri && <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />}
+      {!!photoUri && <View style={styles.photoPreview}>
+        <ItemPhoto key={photoUri} uri={photoUri} name={name} size={88} />
+        <Action label="Remove photo" secondary disabled={photoBusy || saving} onPress={() => { setPhotoUri(undefined); setPhotoError(''); }} />
+      </View>}
       {photoBusy && <Text style={ui.muted}>Preparing photo…</Text>}
       {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
+      {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
+      <View style={{ flexDirection: 'row' }}><ResultAction icon="heart" label={saving ? 'Saving…' : 'Save'}
+        accessibilityLabel={saving ? 'Saving…' : 'Save'} disabled={saving || photoBusy} onPress={() => { void save(); }} /></View>
+      <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
     </View>}
-
-    {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
-    <View style={{ flexDirection: 'row', alignItems: 'stretch' }}><ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
-      accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
-      disabled={saved || saving || photoBusy} onPress={() => { void save(); }} /></View>
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
-    <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={({ pressed }) => [styles.detailsButton, pressed && { opacity: 0.7 }]}>
       <Text style={styles.detailsButtonText}>{details ? 'Hide details' : 'Expand details'}</Text>
       <Svg width={22} height={22} viewBox="0 0 24 24" accessible={false} aria-hidden>
@@ -213,6 +228,11 @@ const styles = StyleSheet.create({
   summaryShare: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   percentage: { color: '#09184A', fontSize: 14, fontWeight: '700', flexShrink: 1 },
   positivePercentage: { backgroundColor: '#A5F3D1', borderRadius: 18, paddingHorizontal: 12, paddingVertical: 7 },
+  saveToggle: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 12, borderRadius: 18, borderWidth: 1.5, borderColor: '#D9DEF5', backgroundColor: '#FFFFFF' },
+  saveToggleText: { flex: 1, minWidth: 0, color: '#09184A', fontSize: 16, fontWeight: '700' },
+  saveForm: { gap: 12, padding: 16, borderRadius: 20, backgroundColor: '#F7F8FC' },
+  photoActions: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  photoPreview: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   infoStrip: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 16, paddingVertical: 12 },
   infoIcon: { fontSize: 22, color: '#09184A' },
   infoText: { flex: 1, fontSize: 13, lineHeight: 19, color: '#09184A' },

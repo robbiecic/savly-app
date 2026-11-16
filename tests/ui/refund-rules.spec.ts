@@ -22,6 +22,7 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
   await expect(page.getByText('You could save $4X.XX', { exact: true })).toBeVisible();
   await expect(page.getByText('Compared without a VAT refund.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save this comparison', exact: true }).click();
   await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Bag');
   await expect(page.getByRole('button', { name: 'VAT refund rules', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
@@ -32,6 +33,7 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
   await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save this comparison', exact: true }).click();
   await expect(page.getByText(/^Purchase minimum met/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('Refund fee (28% assumed)', { exact: true })).toBeVisible();
@@ -40,7 +42,10 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await page.screenshot({ path: 'test-results/refund-result.png', fullPage: true });
   await page.getByRole('textbox', { name: 'Name for saved comparison' }).fill('Saved bag');
   await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('button', { name: 'Open Saved bag', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Saved on this device' })).toBeVisible();
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await page.getByRole('button', { name: 'VAT refund rules', exact: true }).click();
   await expect(page.getByText('Rules retained with this comparison; they may have changed.')).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Back', exact: true }).click();

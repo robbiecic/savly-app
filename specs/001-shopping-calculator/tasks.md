@@ -404,3 +404,16 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Remove the lower Share button and retain the summary-card icon for savings, extra-cost, equal-cost, and no-home-price results.
 - [x] Verify TypeScript, all 168 unit/integration tests, web export, and a Chromium phone preview. Savings and no-home-price results each expose one share action, no lower Share label, and the expected masked/estimate payload.
 - [ ] Verify the sole share icon and Save layout in native builds, including equal-cost and extra-cost results.
+
+### Compact save flow on Your savings (2026-11-15)
+
+- [x] Show a single Save this comparison row until the user chooses to save; then reveal the name, optional camera or photo library choice, a small removable preview, and the final Save action.
+- [x] Keep the draft when the section closes and leave it open with a retry message if saving fails.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and five focused Chromium flows covering mobile layout, draft retention, successful and failed saves, photo selection/removal, and reopening.
+- [ ] Verify camera and photo library permissions, keyboard layout, and the saved state on Android and iOS devices.
+
+### Open Saved after saving (2026-11-15)
+
+- [x] Navigate to the Saved tab after the device confirms a successful save, with the new comparison visible; keep validation and storage errors on the save form.
+- [x] Update the save/reopen browser flows and verify TypeScript, all 168 unit/integration tests, web export, and four focused Chromium save flows.
+- [ ] Verify the transition on Android and iOS devices.

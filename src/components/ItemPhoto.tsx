@@ -6,7 +6,7 @@ import { photoSource } from '../storage/item-photos';
 import { colors } from '../theme/colors';
 import { ui } from './controls';
 
-export function ItemPhoto({ uri, name }: { uri: string; name: string }) {
+export function ItemPhoto({ uri, name, size = 152 }: { uri: string; name: string; size?: number }) {
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const label = name || 'item';
@@ -15,7 +15,7 @@ export function ItemPhoto({ uri, name }: { uri: string; name: string }) {
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel={`View photo of ${label}`}
       accessibilityHint="Opens the full-screen photo" onPress={() => { Keyboard.dismiss(); setOpen(true); }}
-      style={({ pressed }) => [styles.preview, pressed && { opacity: 0.75 }]}>
+      style={({ pressed }) => [styles.preview, { width: size, height: size, borderRadius: size / 2 }, pressed && { opacity: 0.75 }]}>
       <Image source={source} accessibilityLabel={`Photo of ${label}`} accessible
         resizeMode="cover" style={styles.thumbnail} onError={() => setFailed(true)} />
     </Pressable>
