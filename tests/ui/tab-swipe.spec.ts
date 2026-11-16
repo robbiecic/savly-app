@@ -8,6 +8,18 @@ async function drag(page: Page, fromX: number, fromY: number, toX: number, toY: 
   await page.mouse.up();
 }
 
+async function touchDrag(page: Page, fromX: number, fromY: number, toX: number, toY: number) {
+  const device = await page.context().newCDPSession(page);
+  await device.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: fromX, y: fromY, id: 1 }] });
+  for (let step = 1; step <= 12; step++) {
+    await device.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{
+      x: fromX + (toX - fromX) * step / 12, y: fromY + (toY - fromY) * step / 12, id: 1,
+    }] });
+  }
+  await device.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await device.detach();
+}
+
 test('Swipes switch Calculate and Saved without losing the draft', async ({ page }) => {
   await page.route('https://api.frankfurter.dev/v2/rates?*', async route => {
     const base = new URL(route.request().url()).searchParams.get('base')!;
@@ -21,7 +33,7 @@ test('Swipes switch Calculate and Saved without losing the draft', async ({ page
   await page.getByRole('textbox', { name: 'Shopping price (EUR)' }).fill('120');
   await drag(page, 335, 182, 95, 180);
   await expect(page.getByRole('tab', { name: 'Saved' })).toHaveAttribute('aria-selected', 'true');
-  await drag(page, 25, 146, 345, 147);
+  await touchDrag(page, 70, 180, 330, 182);
   await expect(page.getByRole('tab', { name: 'Calculate' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)' })).toHaveValue('120');
   await drag(page, 250, 600, 240, 780);
