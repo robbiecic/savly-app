@@ -1,6 +1,7 @@
 # Task checklist
 
 - [x] Swipe left from Calculate to Saved and right from Saved to Calculate, preserving the draft and leaving vertical scroll and Settings/result/rules navigation alone.
+- [x] Verify gesture direction and scroll thresholds with unit tests, TypeScript, web export, and a focused Chromium swipe flow. Native touch behavior remains untested.
 
 - [x] Check the four-hour cache on every Calculate savings submission, refresh expired country/VAT/refund and FX data before creating the result, and retain validated stale data if the refresh fails.
 - [x] Verify the submission refresh path with changed VAT metadata and retry backoff, TypeScript, and all 165 unit/integration tests. Native device behavior was not tested.

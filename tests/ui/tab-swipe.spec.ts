@@ -19,9 +19,9 @@ test('Swipes switch Calculate and Saved without losing the draft', async ({ page
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'Calculate' })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('textbox', { name: 'Shopping price (EUR)' }).fill('120');
-  await drag(page, 335, 730, 95, 728);
+  await drag(page, 335, 182, 95, 180);
   await expect(page.getByRole('tab', { name: 'Saved' })).toHaveAttribute('aria-selected', 'true');
-  await drag(page, 70, 710, 330, 712);
+  await drag(page, 25, 146, 345, 147);
   await expect(page.getByRole('tab', { name: 'Calculate' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)' })).toHaveValue('120');
   await drag(page, 250, 600, 240, 780);

@@ -18,7 +18,7 @@ import { countryFlag, countryName } from '../features/comparison/countries';
 import { currencyForCountry } from '../data/country-catalog';
 import { residenceOptions } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
-import { isHorizontalTabSwipe, tabAfterSwipe, type MainTab } from './tab-swipe';
+import { isHorizontalTabSwipe, tabAfterSwipe } from './tab-swipe';
 
 
 export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
@@ -30,12 +30,14 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
   const swipeContext = useRef({ page, ready: state.ready, rules });
   swipeContext.current = { page, ready: state.ready, rules };
+  const shouldSwipe = (_event: unknown, gesture: { dx: number; dy: number; numberActiveTouches: number }) => {
+    const current = swipeContext.current;
+    return current.ready && !current.rules && (current.page === 'calculator' || current.page === 'saved') &&
+      gesture.numberActiveTouches <= 1 && isHorizontalTabSwipe(gesture.dx, gesture.dy, 18);
+  };
   const swipeResponder = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => {
-      const current = swipeContext.current;
-      return current.ready && !current.rules && (current.page === 'calculator' || current.page === 'saved') &&
-        gesture.numberActiveTouches <= 1 && isHorizontalTabSwipe(gesture.dx, gesture.dy, 18);
-    },
+    onMoveShouldSetPanResponder: shouldSwipe,
+    onMoveShouldSetPanResponderCapture: shouldSwipe,
     onPanResponderRelease: (_event, gesture) => {
       const current = swipeContext.current;
       if (current.page !== 'calculator' && current.page !== 'saved') return;
@@ -86,7 +88,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           {page === 'settings' ? <SettingsScreen country={form.residence} currency={form.homeCurrency} locale={state.locale}
             onChange={(country) => state.edit('residence', country)} onBack={goBack} onSignOut={onSignOut} storageError={state.storageError} /> : <>
           <View accessibilityRole="tablist" style={styles.tabs}>
-            {(['calculator', 'saved'] as MainTab[]).map(tab => <Pressable key={tab} accessibilityRole="tab"
+            {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
               style={[styles.tab, page === tab && styles.selectedTab]}>
               <Text style={[styles.tabText, page === tab && styles.selectedTabText]}>{tab === 'calculator' ? 'Calculate' : 'Saved'}</Text>
