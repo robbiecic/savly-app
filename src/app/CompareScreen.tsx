@@ -6,8 +6,8 @@ import { HomeSettingsButton } from '../components/HomeSettingsButton';
 import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Action, Card, Field, Select, ui } from '../components/controls';
 import { useComparison } from '../features/comparison/useComparison';
@@ -18,6 +18,7 @@ import { countryFlag, countryName } from '../features/comparison/countries';
 import { currencyForCountry } from '../data/country-catalog';
 import { residenceOptions } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
+import { isHorizontalTabSwipe, tabAfterSwipe, type MainTab } from './tab-swipe';
 
 
 export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
@@ -27,6 +28,21 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const [rules, setRules] = useState(false);
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
+  const swipeContext = useRef({ page, ready: state.ready, rules });
+  swipeContext.current = { page, ready: state.ready, rules };
+  const swipeResponder = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_event, gesture) => {
+      const current = swipeContext.current;
+      return current.ready && !current.rules && (current.page === 'calculator' || current.page === 'saved') &&
+        gesture.numberActiveTouches <= 1 && isHorizontalTabSwipe(gesture.dx, gesture.dy, 18);
+    },
+    onPanResponderRelease: (_event, gesture) => {
+      const current = swipeContext.current;
+      if (current.page !== 'calculator' && current.page !== 'saved') return;
+      const next = tabAfterSwipe(current.page, gesture.dx, gesture.dy);
+      if (next !== current.page) { Keyboard.dismiss(); setPage(next); }
+    },
+  })).current;
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
   const goBack = () => setPage('calculator');
@@ -61,7 +77,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
       <SavlyLogo />
       <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} expanded={page === 'settings'} onPress={toggleSettings} />
     </View>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} {...swipeResponder.panHandlers}>
       <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
@@ -70,7 +86,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           {page === 'settings' ? <SettingsScreen country={form.residence} currency={form.homeCurrency} locale={state.locale}
             onChange={(country) => state.edit('residence', country)} onBack={goBack} onSignOut={onSignOut} storageError={state.storageError} /> : <>
           <View accessibilityRole="tablist" style={styles.tabs}>
-            {(['calculator', 'saved'] as const).map(tab => <Pressable key={tab} accessibilityRole="tab"
+            {(['calculator', 'saved'] as MainTab[]).map(tab => <Pressable key={tab} accessibilityRole="tab"
               accessibilityState={{ selected: page === tab }} aria-selected={page === tab} onPress={() => { Keyboard.dismiss(); setPage(tab); }}
               style={[styles.tab, page === tab && styles.selectedTab]}>
               <Text style={[styles.tabText, page === tab && styles.selectedTabText]}>{tab === 'calculator' ? 'Calculate' : 'Saved'}</Text>
