@@ -13,7 +13,7 @@ JOURNEYS = [
         [
             ("01-welcome", "Open Savly", "Tap Try it out"),
             ("02-default-calculator", "Review defaults", "Open Calculate"),
-            ("03-settings-home-country", "Open Settings", "Tap the cog"),
+            ("03-settings-home-country", "Open Settings", "Tap the home-country badge"),
             ("04-home-country-picker", "Choose home country", "Select United States"),
             ("05-comparison-inputs", "Enter prices", "EUR 120 vs USD 150"),
             ("06-savings-summary", "See the result", "Masked savings preview"),

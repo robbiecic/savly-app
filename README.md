@@ -15,6 +15,8 @@ MVP also includes [sharing savings through WhatsApp and other apps](specs/003-sh
 
 Visual reference: [owner's design board](images/Savly-design-board.jpeg), translated into [the design brief](docs/design-brief.md).
 
+For a UK company and Android launch, follow the [Google Play launch plan](docs/google-play-launch-plan.md). It starts with Ltd formation, Tide eligibility and banking, and virtual-address checks before Play Console setup.
+
 ## How spec-driven development works here
 
 We describe the intended behavior in plain English, give concrete examples of success, implement a small piece, and check it against those examples. If behavior changes, update the spec and checks together. You make the product decisions; your coding assistant handles implementation and explains the results.
@@ -125,7 +127,7 @@ The UI supports portrait and landscape, using two columns where screen width and
 
 Startup uses available API reference data or clearly identified built-in defaults, without a “Sample prototype” badge. FX warnings appear only on Your savings after calculation, using the applied rate’s original source timestamp. They identify whether that result used an old API quote, a sample, or built-in defaults; an API fetch does not make an older source quote fresh. Bundled defaults retain their fixed date (2026-09-26), so loading them again cannot make them fresh. Four-hour cache refreshes remain unchanged. Production API authentication is still pending; unconfigured release builds use defaults.
 
-Set your home country by tapping the home-country text, flag, or **Settings** cog in the main header. The calculator automatically uses its currency and no longer offers an inline home-country selector. Your home country and flag stay visible in the header while scrolling. The selection is remembered across app launches; saved comparisons retain their original currencies and amounts.
+Set your home country by tapping the home-country text or flag in the main header. The calculator automatically uses its currency and no longer offers an inline home-country selector. Your home country and flag stay visible in the header while scrolling. The selection is remembered across app launches; saved comparisons retain their original currencies and amounts.
 
 Current refund policy: [country refund thresholds](specs/001-shopping-calculator/tourist-refunds.md) gate automatic refunds using `/v1/countries` scheme status, strict/inclusive minimums, tax basis and research dates. Passing the value check enables a labeled included-VAT assumption less the standard 28% refund fee; it does not guarantee eligibility. Missing/overdue metadata or unconfirmed regional rules compare without a refund. **VAT refund rules** on Calculate and Your savings shows thresholds, grouping, notes, sources and review dates. Submitted/saved results retain their original metadata and totals.
 

@@ -3,7 +3,7 @@
 Savly is an Android/iOS shopping savings app. Read README.md and the relevant specs before implementation.
 
 - Treat specs as the intended behavior. Update them when requirements change.
-- Build one complete milestone at a time and keep tasks.md accurate.
+- Build one complete milestone at a time and keep tasks.md accurate. 
 - Explain outcomes in plain language for an owner who is learning to code.
 - Keep calculations separate from UI and test financially meaningful examples.
 - Never present sample FX as live, VAT included as an assured refund, or a conversion as savings without a home-price comparison.

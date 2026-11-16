@@ -383,7 +383,7 @@ test('Startup identifies defaults without prototype branding or a premature stal
   await expect(page.getByRole('alert').filter({ hasText: /FX rate.*stale/ })).toHaveCount(0);
 });
 
-test('Settings cog toggles the page after repeatedly dismissing a Settings modal', async ({ page }) => {
+test('Home-country badge toggles Settings after repeatedly dismissing a modal', async ({ page }) => {
   await openCompare(page);
   const settings = page.getByRole('button', { name: 'Settings', exact: true });
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');

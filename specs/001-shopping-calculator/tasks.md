@@ -1,5 +1,11 @@
 # Task checklist
 
+- [x] Restore the empty shopping-price state in comparison validation, while keeping zero and malformed prices invalid.
+- [x] Verify TypeScript and all 159 unit/integration tests, including the previously failing AC14 case.
+
+- [x] Remove the Settings cog from the shared home-country header button across Calculate, Saved, Settings, and Your savings; keep the badge as the accessible tap target.
+- [x] Verify TypeScript and the web export. The focused browser check could not start because the sandbox denied the local test server's port bind; native screens were not device-tested.
+
 - [x] Move item name, photo actions, and Save/Share ahead of a collapsed Expand details section on Your savings.
 
 - [x] Keep one stale-rate badge on Your savings, with wording based on the quote used by the result. The former Premium/sign-in wording was superseded by source-aware messaging.
@@ -339,3 +345,8 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Capture 19 browser-prototype screens and arrange them side by side across six core journeys in PDF and HTML walkthroughs. Link the walkthrough from README.
 - [x] Review all six landscape PDF pages for layout and screenshot presence. Label simulated account verification and the browser billing fallback; native plan choice and purchases were not captured or device-tested.
 - [x] Add a single-page visual map with all six journeys as rows of side-by-side screens, available as PNG and PDF.
+
+### UK company and Google Play launch planning (2026-10-12)
+
+- [x] Research Companies House, Tide formation/banking/virtual-office rules, and Google Play organisation/merchant requirements; document a staged launch checklist in `docs/google-play-launch-plan.md` and link it from README.
+- [ ] Confirm Tide eligibility for the founder's actual residence and UK phone/app-store setup before incorporation. Complete company, merchant, production-app, and store-release steps in the launch plan.

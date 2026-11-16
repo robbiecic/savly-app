@@ -62,7 +62,7 @@ Use decimal arithmetic, retain precision in intermediate values, and round displ
 
 Place the item name or name field above Take photo / Add photo, followed by Save / Share on Your savings. Below these actions, an “Expand details” button reveals the cost breakdown, FX provenance, and refund assumptions; details start collapsed and can be hidden again. Keep the savings summary and rate badge visible.
 
-Your savings uses the same clickable home-country, flag, and Settings cog as Calculate and Saved. Tapping any part opens the existing Settings page.
+Your savings uses the same clickable home-country badge as Calculate and Saved. Tapping the badge opens the existing Settings page.
 
 On Your savings, savings and extra-cost summary amounts use the home currency symbol before the localized number (for example, “You could save $25.00” or “Costs €25.00 more”). Apply this to the before-refund summary too. Preserve exact stored digits and use the currency code as a fallback when a symbol is unavailable.
 
@@ -81,7 +81,7 @@ Refund eligibility is not verified by this version. Real schemes have conditions
 - **AC3:** With AC1 inputs but home price USD 100: show “Costs USD 19.46 more” (19.5%), not a positive savings claim.
 - **AC4:** Without a home price, show estimated net cost and no savings amount or percentage.
 - **AC5:** With EUR 120 and VAT 20%, a fixture or override refund of EUR 21 is invalid; explain that included VAT is EUR 20.
-- **AC6:** Empty price, zero price/rate/home price, negative values, invalid text, and excessive refunds show field-level errors for user input or a rate-unavailable state for invalid API data and prevent affected calculations. An omitted home price is valid.
+- **AC6:** An empty shopping price shows a prompt to enter one and prevents calculation. Zero price/rate/home price, negative values, invalid text, and excessive refunds show field-level errors for user input or a rate-unavailable state for invalid API data and prevent affected calculations. An omitted home price is valid.
 - **AC7:** Every rate shows its direction and provenance: “1 EUR = 1.10 USD · Sample rate” or “Manual rate.” Never label these live.
 - **AC8:** Zero VAT and zero refund work; VAT 20% produces an explicitly assumed refund of all included VAT only after the current scheme/value checks pass. Null VAT shows refund unavailable while still comparing without a refund. Same-currency conversions use rate 1.
 - **AC9:** Results announce estimated amounts, support screen readers and enlarged text, and communicate savings/extra cost with words as well as color. Target at least 44-point touch controls.
@@ -125,7 +125,7 @@ Startup no longer displays SAMPLE PROTOTYPE. Use API reference data when availab
 
 ## Home-country settings
 
-Home country (residency) is selected only on a dedicated Settings page, opened by tapping the home-country text, flag, or settings cog in the main header. The whole country-and-cog area is one Settings button, including Home / Not set before a country is selected. While Settings is open, tapping that button returns to Calculate and preserves the calculator draft; tapping again reopens Settings. This toggle remains usable after closing a Settings modal, including Manage Premium or the home-country picker. Expose its expanded state and show feedback while pressed. The calculator has no home-country selector or inline settings panel. Show the current home country with a small decorative flag in a fixed top-right header on Calculate, Saved, Settings, and Your savings. Until configured, show Home / Not set and direct users to Settings; never infer residency from locale.
+Home country (residency) is selected only on a dedicated Settings page, opened by tapping the home-country text or flag in the main header. The home-country badge is one Settings button, including Home / Not set before a country is selected, and has no cog icon. While Settings is open, tapping that button returns to Calculate and preserves the calculator draft; tapping again reopens Settings. This toggle remains usable after closing a Settings modal, including Manage Premium or the home-country picker. Expose its expanded state and show feedback while pressed. The calculator has no home-country selector or inline settings panel. Show the current home country with a small decorative flag in a fixed top-right header on Calculate, Saved, Settings, and Your savings. Until configured, show Home / Not set and direct users to Settings; never infer residency from locale.
 
 Reuse and persist existing home-country preferences. Derive the home currency from the selected country's reference metadata for all new calculations. Changing currency clears the entered home price and overrides; submitted/saved comparisons retain their original inputs and totals. Settings explains unsupported currency data and persistence errors. Keep Calculate/Saved navigation and the shopping-country dropdown unchanged.
 
