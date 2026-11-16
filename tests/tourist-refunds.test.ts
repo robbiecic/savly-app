@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import defaults from '../src/data/default-countries.json';
-import { validateReferenceData, parseSnapshot, DataError } from '../src/data/reference-data';
+import { validateReferenceData, validateTouristRefund, parseSnapshot, DataError } from '../src/data/reference-data';
 import { assessTouristRefund } from '../src/domain/tourist-refunds';
 import { compare, newForm } from '../src/features/comparison/model';
 import { SAMPLE_RESPONSES } from '../src/data/transport';
@@ -30,6 +30,17 @@ test('No scheme, unconfirmed region, absent rules and overdue rules remain disti
   assert.equal(assessTouristRefund({ vatRate: .2 }, '1000', now).status, 'unknown');
   assert.equal(assessTouristRefund(country('JP'), '5500', Date.parse('2026-10-31T23:59:59Z')).status, 'potential');
   assert.equal(assessTouristRefund(country('JP'), '5500', Date.parse('2026-11-01T00:00:00Z')).status, 'unknown');
+});
+test('UAE net purchase threshold and unconfirmed Gulf schemes stay distinct', () => {
+  const date = Date.parse('2026-11-15T12:00:00Z');
+  const base = { notes: 'Authority guidance', sources: [{ title: 'Authority', url: 'https://example.com/' }], reviewedOn: '2026-11-15', reviewAfter: '2027-02-15' };
+  const ae = validateTouristRefund({ ...base, status: 'available', minimumPurchase: {
+    amount: 250, currency: 'AED', comparison: 'gte', taxBasis: 'tax_exclusive', aggregation: 'same_store_same_day',
+  } }, 'AED');
+  assert.equal(assessTouristRefund({ vatRate: 0.05, touristRefund: ae }, '262.49', date).status, 'excluded');
+  assert.equal(assessTouristRefund({ vatRate: 0.05, touristRefund: ae }, '262.50', date).status, 'potential');
+  const unconfirmed = validateTouristRefund({ ...base, status: 'unconfirmed', minimumPurchase: null }, 'SAR');
+  assert.equal(assessTouristRefund({ vatRate: 0.15, touristRefund: unconfirmed }, '1000', date).status, 'unknown');
 });
 test('Savings exclude blocked refunds and unknown refunds; manual amounts remain explicit', () => {
   const below = comparison('FR', '100');

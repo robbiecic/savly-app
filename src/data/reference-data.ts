@@ -70,7 +70,7 @@ function minimum(value: unknown, currency: string): MinimumPurchase {
 }
 export function validateTouristRefund(value: unknown, currency: string): TouristRefund {
   const row = record(value);
-  if (!['available', 'no_national_scheme', 'regional_only'].includes(String(row.status)) || !Array.isArray(row.sources) || !row.sources.length) throw invalid();
+  if (!['available', 'no_national_scheme', 'regional_only', 'unconfirmed'].includes(String(row.status)) || !Array.isArray(row.sources) || !row.sources.length) throw invalid();
   const minimumPurchase = row.minimumPurchase === null ? null : minimum(row.minimumPurchase, currency);
   if ((row.status === 'available') !== (minimumPurchase !== null)) throw invalid();
   const reviewedOn = date(row.reviewedOn), reviewAfter = date(row.reviewAfter);

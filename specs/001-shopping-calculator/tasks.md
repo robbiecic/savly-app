@@ -1,5 +1,7 @@
 # Task checklist
 
+- [x] Accept fxService's `unconfirmed` tourist-refund status for Oman, Saudi Arabia, and Yemen, keep automatic refunds unavailable, and check the UAE AED 250 net purchase boundary.
+
 - [x] Remove the generic “Estimated cost” badge from Your savings while retaining specific FX source and age warnings.
 - [x] Verify TypeScript, the web export, and the focused Frankfurter browser flow with no generic badge on a current rate. Native screens were not device-tested.
 

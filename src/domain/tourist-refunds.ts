@@ -8,7 +8,7 @@ export interface MinimumPurchase {
   readonly aggregation: 'single_invoice' | 'same_supplier' | 'same_store' | 'same_store_same_day' | 'same_retailer_three_days' | 'export_voucher' | 'no_minimum';
 }
 export interface TouristRefund {
-  readonly status: 'available' | 'no_national_scheme' | 'regional_only';
+  readonly status: 'available' | 'no_national_scheme' | 'regional_only' | 'unconfirmed';
   readonly minimumPurchase: MinimumPurchase | null;
   readonly notes: string;
   readonly sources: readonly { readonly title: string; readonly url: string }[];
@@ -40,6 +40,7 @@ export function assessTouristRefund(country: { vatRate: number | null; touristRe
   if (!rule) return { status: 'unknown', reason: 'Refund rules are unavailable. Comparison excludes any refund.' };
   if (needsRefundReview(rule, now)) return { status: 'unknown', reason: 'Refund rules need confirmation: their review date is overdue or unverified. Comparison excludes any refund.' };
   if (rule.status === 'no_national_scheme') return { status: 'excluded', reason: 'No national tourist VAT refund scheme. No automatic refund included.' };
+  if (rule.status === 'unconfirmed') return { status: 'unknown', reason: 'Tourist refund rules are not confirmed. No automatic refund included.' };
   if (rule.status === 'regional_only') return { status: 'unknown', reason: 'Refunds are regional only. The purchase region is not confirmed, so no automatic refund is included.' };
   const min = rule.minimumPurchase;
   if (!min || country.vatRate === null) return { status: 'unknown', reason: 'The minimum purchase or VAT rate is unavailable. Comparison excludes any refund.' };

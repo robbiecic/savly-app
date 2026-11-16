@@ -34,7 +34,7 @@ export function RefundRulesScreen({ country, locale, onClose, saved = false, def
         <Text style={ui.muted}>{saved ? 'Rules retained with this comparison; they may have changed.' : defaults ? 'Bundled reference rules, reviewed on the dates below.' : 'Reference rules from the countries API.'}</Text>
         {!rule ? <Card><Text style={ui.text}>Refund rules are unavailable for this country. A VAT rate alone does not establish refund eligibility.</Text></Card> : <>
           <Card>
-            <Text accessibilityRole="header" style={ui.title}>{rule.status === 'available' ? 'Tourist refund scheme available' : rule.status === 'regional_only' ? 'Regional schemes only' : 'No national tourist refund scheme'}</Text>
+            <Text accessibilityRole="header" style={ui.title}>{rule.status === 'available' ? 'Tourist refund scheme available' : rule.status === 'regional_only' ? 'Regional schemes only' : rule.status === 'unconfirmed' ? 'Tourist refund rules unconfirmed' : 'No national tourist refund scheme'}</Text>
             {needsRefundReview(rule, now) && <Text accessibilityRole="alert" style={ui.error}>These rules need confirmation. Their review date is overdue or unverified.</Text>}
             <Text style={ui.text}>{rule.minimumPurchase ? minimumLabel(rule.minimumPurchase) : 'No country-wide minimum is provided. This does not mean a zero minimum.'}</Text>
             <Text style={ui.text}>{rule.notes}</Text>
