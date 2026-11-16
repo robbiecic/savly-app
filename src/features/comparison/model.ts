@@ -121,7 +121,7 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
 }
 export function fxLabel(fx: FxQuote, format: (value: string) => string = (value) => value): string {
   const displayed = new D(fx.rate).toSignificantDigits(8).toFixed();
-  const label = fx.kind === 'manual' ? 'Manual rate' : fx.source === 'Built-in defaults' ? 'Default FX rate' : fx.source === 'Owner-provided defaults' ? 'Owner-provided default FX rate (quote date unknown)' : fx.kind === 'sample' ? 'Sample rate' : fx.source;
+  const label = fx.kind === 'manual' ? 'Manual rate' : fx.source === 'Built-in defaults' ? 'Default FX rate' : fx.source === 'Owner-provided defaults' ? 'Default FX rate (quote date unknown)' : fx.kind === 'sample' ? 'Sample rate' : 'FX rate';
   return `1 ${fx.from} = ${format(displayed)} ${fx.to} · ${label}`;
 }
 export function savingsLabel(value: Calculation, format: (value: string) => string = (value) => value,

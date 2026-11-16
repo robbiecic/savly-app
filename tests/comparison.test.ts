@@ -29,6 +29,14 @@ test('FX direction: direct, inverted, same currency and no triangulation', () =>
   assert.equal(automaticFx(s, 'EUR', 'EUR')?.rate, '1');
   assert.equal(automaticFx(snapshot, 'EUR', 'JPY'), null);
   assert.match(fxLabel(automaticFx(s, 'USD', 'EUR')!), /1 USD = 0.8 EUR · Sample rate/);
+  assert.equal(fxLabel({ from: 'EUR', to: 'USD', rate: '1.25', kind: 'reference', source: 'Frankfurter', asOf: '2026-11-15' }), '1 EUR = 1.25 USD · FX rate');
+});
+test('Shared estimate text keeps the rate date without naming its provider', () => {
+  const sample = ready();
+  const comparison = { ...sample, result: { ...sample.result, fx: { ...sample.result.fx, kind: 'reference' as const, source: 'Frankfurter', asOf: '2026-11-15' } }, sample: false };
+  const message = shareMessage(comparison, shareLink());
+  assert.match(message, /Estimated using FX rates dated 2026-11-15/);
+  assert.doesNotMatch(message, /Frankfurter/);
 });
 test('Reverse quotes remain calculable when reciprocals repeat beyond 18 decimal places', () => {
   const value = ready({ country: 'US', homeCurrency: 'EUR', price: '110', refundOverride: '0', homePrice: '' });

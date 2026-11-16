@@ -18,8 +18,8 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink, p
     : comparison.sample ? 'Sample estimate'
     : r.fx.from === r.fx.to ? 'Estimated cost · No currency conversion'
     : r.fx.kind === 'manual' ? 'Estimated using a manual rate'
-    : r.fx.source === 'Frankfurter' ? `Estimated using Frankfurter daily reference rates dated ${r.fx.asOf}`
-    : `Estimated using rates as of ${r.fx.asOf}`;
+    : r.fx.asOf ? `Estimated using FX rates dated ${r.fx.asOf}`
+    : 'Estimated using FX rates with an unverified date';
   if (previewAmount && r.savings && r.savings.outcome !== 'same') return [
     r.savings.outcome === 'save'
       ? `I could save ${previewAmount} with Savly (preview).`

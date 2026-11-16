@@ -18,7 +18,7 @@ Request `GET https://api.frankfurter.dev/v2/rates?base=<HOME_CURRENCY>&quotes=<O
 
 Frankfurter gives quote currency per one base currency. The calculator needs home currency per shopping currency, so invert the relevant home-base quote with decimal arithmetic. Same-currency conversion is one. Preserve the original pair, value, direction, source, date, and inversion in results, sharing, and saved snapshots. Do not triangulate missing pairs. Send no item names, prices, residency, refund inputs, or savings to Frankfurter; all calculations run on-device. The public API needs no key. [Frankfurter API documentation](https://frankfurter.dev/).
 
-Frankfurter rates are daily references, not live card settlement rates. Display `Frankfurter` and its source date. Fetch time does not make a published rate newer. Show an age warning only when the source date proves the rate is older than 48 hours; a date without a time is evaluated conservatively. Never substitute sample FX after a failed request.
+Frankfurter rates are daily references, not live card settlement rates. Display a generic FX rate label and the rate date; keep `Frankfurter` in internal provenance only. Fetch time does not make a published rate newer. Show an age warning only when the source date proves the rate is older than 48 hours; a date without a time is evaluated conservatively. Never substitute sample FX after a failed request.
 
 ## Cache and failure behavior
 

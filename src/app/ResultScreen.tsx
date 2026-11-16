@@ -164,7 +164,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     </View>
     <View style={{ gap: 10 }}>
       <Text selectable style={ui.text}>{fxLabel(r.fx, number)}</Text>
-      {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Frankfurter' ? 'Frankfurter reference date' : r.fx.source === 'Built-in defaults' ? 'Default rate timestamp' : comparison.sample ? 'Sample source timestamp' : 'Source timestamp'}: {r.fx.asOf}</Text>}
+      {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate date' : comparison.sample ? 'Sample rate date' : 'FX rate date'}: {r.fx.asOf}</Text>}
       {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
       <Action label="VAT refund rules" secondary onPress={() => setRules(true)} />
       <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>

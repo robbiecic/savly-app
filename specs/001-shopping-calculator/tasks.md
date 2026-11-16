@@ -367,3 +367,21 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Research Companies House, Tide formation/banking/virtual-office rules, and Google Play organisation/merchant requirements; document a staged launch checklist in `docs/google-play-launch-plan.md` and link it from README.
 - [ ] Confirm Tide eligibility for the founder's actual residence and UK phone/app-store setup before incorporation. Complete company, merchant, production-app, and store-release steps in the launch plan.
+
+### Compare screen visual refresh (2026-11-15)
+
+- [x] Match the proposed Calculate screen's blue header, rounded white panel, pill tabs, icon-led input rows, and navy actions while preserving calculator behavior and source labels.
+- [x] Verify TypeScript, 167 unit/integration tests, and web export; inspect a 390 × 844 Chromium preview.
+- [ ] Verify the refreshed screen on Android and iOS devices, including the soft keyboard and enlarged text.
+
+### Source-neutral FX wording (2026-11-15)
+
+- [x] Remove the FX provider name from Compare, Your savings, shared summaries, and rate-loading errors; keep provider provenance and quote dates in saved calculations.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and the focused Chromium rate flow; check shared text with a provider-bearing result.
+- [ ] Verify source-neutral copy on Android and iOS devices, including a reopened saved comparison and native sharing.
+
+### Clouded Compare header (2026-11-15)
+
+- [x] Reuse the splash photo's open-sky area behind the Compare header and keep the fixed controls readable.
+- [x] Inspect phone and landscape Chromium crops; adjust the phone crop to show clouds without the cathedral spire.
+- [ ] Verify the header and status bar safe area on Android and iOS devices.

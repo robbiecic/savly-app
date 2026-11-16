@@ -24,11 +24,11 @@ export function staleFxBadge(fx: FxQuote, now = Date.now()): string | null {
   if (fx.source === 'Frankfurter') {
     const dayStart = fx.asOf ? Date.parse(fx.asOf) : NaN;
     return Number.isFinite(dayStart) && dayStart <= now
-      ? 'Frankfurter daily reference rate is over 48 hours old. Check its source date in the details.'
-      : 'Frankfurter daily reference date is unverified. Check its source date in the details.';
+      ? 'FX rate is over 48 hours old. Check its date in the details.'
+      : 'FX rate date is unverified. Check its date in the details.';
   }
   const sourceTime = fx.asOf ? Date.parse(fx.asOf) : NaN;
   return Number.isFinite(sourceTime) && sourceTime <= now
-    ? 'API FX rate is over 48 hours old. Check its source timestamp in the details.'
-    : 'API FX rate date is unverified. Check its source timestamp in the details.';
+    ? 'FX rate is over 48 hours old. Check its date in the details.'
+    : 'FX rate date is unverified. Check its date in the details.';
 }

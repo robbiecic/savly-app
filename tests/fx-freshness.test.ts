@@ -38,10 +38,10 @@ test('Same-currency comparisons do not use stale FX', () => {
 });
 test('Stale warning names the quote used by the result, not the current account access', () => {
   const fx = { from: 'EUR', to: 'USD', rate: '1.1', kind: 'reference' as const, source: 'CityIndex', asOf: new Date(now - FX_STALE_AFTER_MS - 1).toISOString() };
-  assert.match(staleFxBadge(fx, now) ?? '', /API FX rate is over 48 hours old/);
+  assert.match(staleFxBadge(fx, now) ?? '', /FX rate is over 48 hours old/);
   assert.doesNotMatch(staleFxBadge(fx, now) ?? '', /Premium|sign-in/);
   assert.equal(staleFxBadge({ ...fx, asOf: new Date(now - FX_STALE_AFTER_MS).toISOString() }, now), null);
-  assert.match(staleFxBadge({ ...fx, asOf: null }, now) ?? '', /API FX rate date is unverified/);
+  assert.match(staleFxBadge({ ...fx, asOf: null }, now) ?? '', /FX rate date is unverified/);
   assert.match(staleFxBadge({ ...fx, source: 'Built-in defaults', kind: 'sample' }, now) ?? '', /built-in default rates/);
   assert.match(staleFxBadge({ ...fx, kind: 'sample' }, now) ?? '', /sample rate/);
 });
