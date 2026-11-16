@@ -28,6 +28,7 @@ test('Frankfurter fetches by home currency and reuses the four-hour local cache'
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('200');
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
+  await expect(page.getByText('Estimated cost', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('1 EUR = 1.25 USD · Frankfurter', { exact: true })).toBeVisible();
   await expect(page.getByText('Frankfurter reference date: 2026-11-15', { exact: true })).toBeVisible();

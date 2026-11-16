@@ -60,7 +60,7 @@ Use decimal arithmetic, retain precision in intermediate values, and round displ
 
 ## Result summary
 
-Place the item name or name field above Take photo / Add photo, followed by Save / Share on Your savings. Below these actions, an “Expand details” button reveals the cost breakdown, FX provenance, and refund assumptions; details start collapsed and can be hidden again. Keep the savings summary and rate badge visible.
+Place the item name or name field above Take photo / Add photo, followed by Save / Share on Your savings. Below these actions, an “Expand details” button reveals the cost breakdown, FX provenance, and refund assumptions; details start collapsed and can be hidden again. Keep the savings summary visible. Show a rate badge only for stale, unverified, default, or sample FX; do not show a generic “Estimated cost” badge for a current Frankfurter rate.
 
 Your savings uses the same clickable home-country badge as Calculate and Saved. Tapping the badge opens the existing Settings page.
 

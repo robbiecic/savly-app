@@ -1,5 +1,8 @@
 # Task checklist
 
+- [x] Remove the generic “Estimated cost” badge from Your savings while retaining specific FX source and age warnings.
+- [x] Verify TypeScript, the web export, and the focused Frankfurter browser flow with no generic badge on a current rate. Native screens were not device-tested.
+
 - [x] Make Frankfurter v2 the primary FX source for all users and build modes, keyed by home currency with a four-hour validated cache.
 - [x] Give home and shopping pickers the same 249-country catalog. Map 248 entries to 152 current tender currencies from Unicode CLDR; keep Antarctica visible with currency unavailable. Preserve known VAT/refund metadata and mark missing VAT unknown.
 - [x] Verify live Frankfurter response coverage for EUR and AED, TypeScript, all 163 unit/integration tests, Android/iOS/web exports, and a focused browser flow for home-currency changes, cache reuse, UAE selection, and FX provenance.

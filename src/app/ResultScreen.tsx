@@ -59,6 +59,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState(false);
   const r = comparison.result;
+  const rateBadge = staleFxBadge(r.fx, now) ?? (r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : null);
   const number = (value: string) => formatResultNumber(value, locale);
   const summaryMoney = (value: string) => formatSummaryMoney(value, r.homeCurrency, locale);
   const favorable = r.savings?.outcome === 'save';
@@ -109,7 +110,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
         : 'Go back to Calculate and enter the price at home to compare savings.'}</Text>
     </View>}
 
-    <Text style={styles.badge}>{staleFxBadge(r.fx, now) ?? (r.fx.source === 'Built-in defaults' ? 'Estimate · Default rates' : comparison.sample ? 'Sample estimate' : 'Estimated cost')}</Text>
+    {rateBadge && <Text style={styles.badge}>{rateBadge}</Text>}
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
     {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
