@@ -4,9 +4,9 @@ import type { DataMode } from '../domain/refunds';
 export interface Rate {
   readonly pair: string;
   readonly rate: number;
-  readonly pipSize: number;
+  readonly pipSize: number | null;
   readonly asOf: string | null;
-  readonly source: 'CityIndex' | 'Owner-provided defaults';
+  readonly source: 'CityIndex' | 'Frankfurter' | 'Owner-provided defaults';
 }
 export interface Country {
   readonly country: string;
@@ -107,11 +107,14 @@ export function validateReferenceData(ratesResponse: unknown, countriesResponse:
       const pair = code(row.pair, 6);
       if (pair.slice(0, 3) === pair.slice(3)) throw invalid();
       const ownerDefault = allowDefaults && row.source === 'Owner-provided defaults' && row.asOf === null;
-      if (!ownerDefault && (row.source !== 'CityIndex' || typeof row.asOf !== 'string' ||
+      const frankfurter = row.source === 'Frankfurter' && row.pipSize === null && typeof row.asOf === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(row.asOf) && Number.isFinite(Date.parse(row.asOf)) &&
+        new Date(row.asOf).toISOString().slice(0, 10) === row.asOf;
+      if (!ownerDefault && !frankfurter && (row.source !== 'CityIndex' || typeof row.asOf !== 'string' ||
           !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(row.asOf) ||
           !Number.isFinite(Date.parse(row.asOf)) ||
           new Date(row.asOf).toISOString() !== (row.asOf.includes('.') ? row.asOf : row.asOf.replace('Z', '.000Z')))) throw invalid();
-      return Object.freeze({ pair, rate: positive(row.rate), pipSize: positive(row.pipSize), asOf: row.asOf, source: row.source }) as Rate;
+      return Object.freeze({ pair, rate: positive(row.rate), pipSize: frankfurter ? null : positive(row.pipSize), asOf: row.asOf, source: row.source }) as Rate;
     }), (row) => row.pair),
     countries: unique(countries.map((value): Country => {
       const row = record(value);

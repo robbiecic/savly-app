@@ -15,6 +15,8 @@ import { ResultScreen } from './ResultScreen';
 import { SavedScreen } from './SavedScreen';
 import type { SavedComparison } from '../storage/saved-comparisons';
 import { countryFlag, countryName } from '../features/comparison/countries';
+import { currencyForCountry } from '../data/country-catalog';
+import { residenceOptions } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
 
 
@@ -39,7 +41,8 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const { form, view, reference } = state;
   const snapshot = reference?.snapshot;
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
-  const countries = snapshot?.countries.map((row) => ({ value: row.country, label: `${countryName(row.country, state.locale)} · ${row.currency}`, flag: countryFlag(row.country) })) ?? [];
+  const countries = residenceOptions(state.locale).map(option => ({ ...option,
+    label: `${option.label} · ${currencyForCountry(option.value) ?? 'Currency unavailable'}` }));
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
   const calculate = () => {
     if (state.pending || view.status !== 'ready') return;
@@ -51,7 +54,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const toggleSettings = () => { Keyboard.dismiss(); setPage(current => current === 'settings' ? 'calculator' : 'settings'); };
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={toggleSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen}>
-    {rules && shopping && <RefundRulesScreen country={shopping} locale={state.locale} defaults={snapshot?.environment === 'prototype'} onClose={() => setRules(false)} />}
+    {rules && shopping && <RefundRulesScreen country={shopping} locale={state.locale} defaults={snapshot?.environment === 'prototype' || snapshot?.environment.includes(':guest:')} onClose={() => setRules(false)} />}
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo />
       <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} expanded={page === 'settings'} onPress={toggleSettings} />
@@ -78,7 +81,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           </View>
           <Card>
             <Text accessibilityRole="header" style={ui.title}>Compare a price</Text>
-            {snapshot && <Text style={ui.muted}>{snapshot.environment === 'prototype' ? 'Using built-in default countries, VAT and FX rates.' : 'Countries, VAT and FX rates loaded from the API.'}</Text>}
+            {snapshot && <Text style={ui.muted}>{snapshot.environment.includes(':guest:') ? 'Frankfurter daily reference FX rates. VAT and refund metadata are available only for some countries.' : 'Frankfurter daily reference FX rates with available country, VAT and refund metadata.'}</Text>}
             <View style={wide ? responsive.columns : responsive.stack}>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Shopping price (${shopping?.currency ?? 'local currency'})`} value={form.price} onChange={(v) => state.edit('price', v)} numeric locale={state.locale} placeholder="Price overseas, including taxes" error={error('price')} />

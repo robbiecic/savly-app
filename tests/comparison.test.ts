@@ -129,8 +129,8 @@ test('Home currency follows reference country data and clears amounts when units
   assert.equal(result.homeCurrency, 'EUR');
   assert.equal(withHomeCurrency(old, snapshot), old);
   assert.equal(withHomeCurrency({ ...old, residence: '' }, snapshot).homeCurrency, '');
-  assert.equal(withHomeCurrency({ ...old, residence: 'CA' }, snapshot).homeCurrency, '');
-  assert.equal(withHomeCurrency(old, { ...snapshot, countries: snapshot.countries.filter(c => c.country !== 'US') }).homeCurrency, '');
+  assert.equal(withHomeCurrency({ ...old, residence: 'CA' }, snapshot).homeCurrency, 'CAD');
+  assert.equal(withHomeCurrency(old, { ...snapshot, countries: snapshot.countries.filter(c => c.country !== 'US') }).homeCurrency, 'USD');
   assert.equal(withHomeCurrency({ ...old, homeCurrency: 'GBP' }, snapshot).homeCurrency, 'USD');
 });
 

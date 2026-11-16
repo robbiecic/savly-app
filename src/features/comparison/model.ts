@@ -6,6 +6,7 @@ import { calculate, type Calculation, type FxQuote } from '../../domain/calculat
 import { D, InputError, positive } from '../../domain/decimal';
 import { type RefundRule } from '../../domain/refunds';
 import { selectedCountry, type Snapshot } from '../../data/reference-data';
+import { currencyForCountry } from '../../data/country-catalog';
 import type { ReferenceState } from '../../data/reference-store';
 
 // feePercent is retained as zero for compatibility with stored comparison forms.
@@ -23,7 +24,7 @@ export function editForm(form: ComparisonForm, field: keyof ComparisonForm, valu
 }
 // Reconcile legacy saved preferences and reference-data changes as well as user edits.
 export function withHomeCurrency(form: ComparisonForm, snapshot: Snapshot | null): ComparisonForm {
-  const currency = snapshot?.countries.find((row) => row.country === form.residence)?.currency ?? '';
+  const currency = snapshot?.countries.find((row) => row.country === form.residence)?.currency ?? currencyForCountry(form.residence) ?? '';
   if (currency === form.homeCurrency) return form;
   return { ...form, homeCurrency: currency, homePrice: '', fxOverride: '', refundOverride: '' };
 }
@@ -85,7 +86,8 @@ export function compare(form: ComparisonForm, reference: ReferenceState | null, 
   const snapshot = reference.snapshot;
   if (!snapshot) return { status: 'unavailable', message: 'Rates are unavailable. Try again when you’re connected.' };
   const country = selectedCountry(snapshot, form.country);
-  if (!country) return { status: 'invalid', field: 'country', message: 'This shopping country is no longer supported. Choose another country.' };
+  if (!country) return { status: 'invalid', field: 'country', message: currencyForCountry(form.country) === null
+    ? 'Currency data is unavailable for this shopping country.' : 'This shopping country is no longer supported. Choose another country.' };
   if (!availableCurrencies(snapshot).includes(form.homeCurrency)) return { status: 'invalid', field: 'homeCurrency', message: form.residence ? 'Currency data is unavailable for this home country.' : 'Set your home country in Settings to calculate savings.' };
   if (!form.price.trim()) return { status: 'empty', message: 'Enter a shopping price to calculate savings.' };
   try {

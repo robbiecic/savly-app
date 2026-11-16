@@ -1,5 +1,11 @@
 # Task checklist
 
+- [x] Make Frankfurter v2 the primary FX source for all users and build modes, keyed by home currency with a four-hour validated cache.
+- [x] Give home and shopping pickers the same 249-country catalog. Map 248 entries to 152 current tender currencies from Unicode CLDR; keep Antarctica visible with currency unavailable. Preserve known VAT/refund metadata and mark missing VAT unknown.
+- [x] Verify live Frankfurter response coverage for EUR and AED, TypeScript, all 163 unit/integration tests, Android/iOS/web exports, and a focused browser flow for home-currency changes, cache reuse, UAE selection, and FX provenance.
+- [ ] Update seven older browser checks that still assert former prototype amounts, warnings, or expanded-detail layout (19 of 26 passed in the full run); keep this separate from the focused Frankfurter check.
+- [ ] Verify Frankfurter and expanded country selection on Android and iOS devices, including home-country switching, offline cached rates, Antarctica's unavailable state, and source-date display before store release.
+
 - [x] Restore the empty shopping-price state in comparison validation, while keeping zero and malformed prices invalid.
 - [x] Verify TypeScript and all 159 unit/integration tests, including the previously failing AC14 case.
 
@@ -85,7 +91,7 @@ Verification scope: model tests and Chromium browser checks passed. Native shari
 - [ ] Integrate production billing/entitlement validation and private cloud history.
 - [ ] Verify premium/history criteria PH1–PH9 and account deletion/recovery.
 
-- [ ] Integrate existing fxService endpoints; confirm deployment URL, CityIndex usage rights, pair coverage, and Cognito access for guests.
+- [ ] Verify signed-in Premium access to the existing fxService country/VAT endpoint on devices; Frankfurter now supplies FX for every user and guests use bundled country metadata.
 - [x] Consume the fxService tourist-refund scheme and minimum-purchase contract; complete personal eligibility/provider-fee modeling remains outside this milestone.
 - [ ] Configure sharing domain, fallback page, live store links, and Universal/App Links.
 - [ ] Verify WhatsApp text/link delivery and installed/uninstalled routing (SH1–SH6).
