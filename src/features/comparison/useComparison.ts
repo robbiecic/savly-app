@@ -9,6 +9,7 @@ import { frankfurterBaseCurrency } from '../../data/frankfurter-transport';
 import type { ReferenceState } from '../../data/reference-store';
 import { PreferenceStore, initialPreferences } from '../../storage/preferences';
 import { withHomeCurrency, compare, editForm, newForm, resetOverrides, type ComparisonForm } from './model';
+import { prepareCalculation } from './prepareCalculation';
 
 const preferenceStore = new PreferenceStore(AsyncStorage);
 export function useComparison() {
@@ -32,6 +33,10 @@ export function useComparison() {
   const [startupAttempt, setStartupAttempt] = useState(0);
   const [storageError, setStorageError] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const preparingRef = useRef(false);
+  const currentInput = useRef({ form, session, baseCurrency });
+  currentInput.current = { form, session, baseCurrency };
   useEffect(() => {
     let mounted = true;
     setStartupError(false);
@@ -89,9 +94,23 @@ export function useComparison() {
   // New calculations always use reference data; manual support remains for legacy snapshots.
   const view = useMemo(() => compare(resetOverrides(withHomeCurrency(settledForm, reference?.snapshot ?? null)), ready ? reference : null, locale, now), [settledForm, reference, ready, locale, now]);
   return {
-    form, reference, ready, view, pending, now, storageError, retrying, locale, startupError,
+    form, reference, ready, view, pending, preparing, now, storageError, retrying, locale, startupError,
     retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
     edit: (field: Exclude<keyof ComparisonForm, 'fxOverride' | 'refundOverride' | 'feePercent'>, value: string) => setForm(current => withHomeCurrency(editForm(current, field, value), reference?.snapshot ?? null)),
     retry: async () => { setRetrying(true); try { setReference({ base: baseCurrency, session, state: await (await getReferenceStore(session, baseCurrency)).retry() }); } finally { setRetrying(false); } },
+    prepareCalculation: async () => {
+      if (preparingRef.current || pending || view.status !== 'ready') return null;
+      preparingRef.current = true; setPreparing(true);
+      const submittedForm = form;
+      try {
+        const store = await getReferenceStore(session, baseCurrency);
+        const prepared = await prepareCalculation(store, submittedForm, locale);
+        const current = currentInput.current;
+        if (current.form !== submittedForm || current.session !== session || current.baseCurrency !== baseCurrency) return null;
+        setReference({ base: baseCurrency, session, state: store.state() });
+        if (prepared.form.homeCurrency !== submittedForm.homeCurrency) return null;
+        return prepared.view.status === 'ready' ? prepared : null;
+      } finally { preparingRef.current = false; setPreparing(false); }
+    },
   };
 }

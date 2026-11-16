@@ -44,11 +44,13 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const countries = residenceOptions(state.locale).map(option => ({ ...option,
     label: `${option.label} · ${currencyForCountry(option.value) ?? 'Currency unavailable'}` }));
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
-  const calculate = () => {
-    if (state.pending || view.status !== 'ready') return;
+  const calculate = async () => {
+    if (state.pending || state.preparing || view.status !== 'ready') return;
     Keyboard.dismiss();
+    const prepared = await state.prepareCalculation();
+    if (!prepared || prepared.view.status !== 'ready') return;
     setEntry({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), savedAt: new Date().toISOString(),
-      form: { ...form }, comparison: JSON.parse(JSON.stringify(view.comparison)) });
+      form: { ...prepared.form }, comparison: JSON.parse(JSON.stringify(prepared.view.comparison)) });
     setResultOrigin('calculator'); setPage('result');
   };
   const toggleSettings = () => { Keyboard.dismiss(); setPage(current => current === 'settings' ? 'calculator' : 'settings'); };
@@ -89,7 +91,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             </View>
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric locale={state.locale} placeholder="Price at home, including taxes" error={error('homePrice')} />
-            <Action label="Calculate savings" disabled={state.pending || view.status !== 'ready'} onPress={calculate} />
+            <Action label={state.preparing ? 'Updating reference data…' : 'Calculate savings'} disabled={state.pending || state.preparing || view.status !== 'ready'} onPress={() => { void calculate(); }} />
             </View></View>
             {shopping && <Action label="VAT refund rules" flag={countryFlag(shopping.country)} secondary onPress={() => { Keyboard.dismiss(); setRules(true); }} />}
           </Card>

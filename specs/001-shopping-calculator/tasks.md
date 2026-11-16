@@ -1,5 +1,8 @@
 # Task checklist
 
+- [x] Check the four-hour cache on every Calculate savings submission, refresh expired country/VAT/refund and FX data before creating the result, and retain validated stale data if the refresh fails.
+- [x] Verify the submission refresh path with changed VAT metadata and retry backoff, TypeScript, and all 165 unit/integration tests. Native device behavior was not tested.
+
 - [x] Accept fxService's `unconfirmed` tourist-refund status for Oman, Saudi Arabia, and Yemen, keep automatic refunds unavailable, and check the UAE AED 250 net purchase boundary.
 
 - [x] Remove the generic “Estimated cost” badge from Your savings while retaining specific FX source and age warnings.

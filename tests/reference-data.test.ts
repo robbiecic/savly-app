@@ -3,6 +3,8 @@ import { test } from 'node:test';
 import { CACHE_TTL_MS, ReferenceStore, type Scheduler, type Storage } from '../src/data/reference-store';
 import { DataError, selectedCountry, validateReferenceData } from '../src/data/reference-data';
 import { createHttpTransport, createMockTransport, SAMPLE_RESPONSES, type ReferencePath } from '../src/data/transport';
+import { newForm } from '../src/features/comparison/model';
+import { prepareCalculation } from '../src/features/comparison/prepareCalculation';
 
 class FakeTime implements Scheduler {
   wall = Date.parse('2026-09-29T12:00:00Z');
@@ -71,6 +73,44 @@ test('At exactly four hours simultaneous consumers share one refresh cycle', asy
   assert.equal(h.calls.length, 4);
   assert.ok(results.every((result) => result.snapshot === results[0].snapshot));
   assert.equal(h.storage.writes, 2);
+});
+test('Calculate checks the country cache, waits for expired VAT/refund data, and uses the refreshed snapshot', async () => {
+  const h = setup();
+  h.clock.wall = Date.parse('2026-10-07T12:00:00Z');
+  const form = { ...newForm({ country: 'FR', residence: 'US', homeCurrency: 'USD', feePercent: '0' }), price: '120', homePrice: '150' };
+  const first = await prepareCalculation(h.store, form, 'en-US', h.clock.now);
+  assert.equal(first.view.status, 'ready');
+  if (first.view.status !== 'ready') return;
+  assert.equal(first.view.comparison.result.includedVat, '20.00');
+  assert.equal(first.view.comparison.refundAssessment?.status, 'potential');
+  assert.deepEqual(h.calls, ['/v1/rates', '/v1/countries']);
+  await prepareCalculation(h.store, form, 'en-US', h.clock.now);
+  assert.deepEqual(h.calls, ['/v1/rates', '/v1/countries']);
+
+  h.clock.advance(CACHE_TTL_MS);
+  h.responses['/v1/countries'].countries = h.responses['/v1/countries'].countries.map(row =>
+    row.country === 'FR' ? { ...row, vatRate: 0.1, touristRefund: {
+      ...row.touristRefund!, minimumPurchase: { ...row.touristRefund!.minimumPurchase!, amount: 200 },
+    } } : row);
+  const refreshed = await prepareCalculation(h.store, form, 'en-US', h.clock.now);
+  assert.deepEqual(h.calls, ['/v1/rates', '/v1/countries', '/v1/rates', '/v1/countries']);
+  assert.equal(refreshed.view.status, 'ready');
+  if (refreshed.view.status !== 'ready') return;
+  assert.equal(refreshed.view.comparison.result.includedVat, '10.91');
+  assert.equal(refreshed.view.comparison.refundAssessment?.status, 'excluded');
+  assert.equal(refreshed.view.comparison.refundCountry?.touristRefund?.minimumPurchase?.amount, 200);
+  assert.notEqual(refreshed.view.comparison.snapshotId, first.view.comparison.snapshotId);
+
+  h.clock.advance(CACHE_TTL_MS);
+  h.fail(new Error('offline'));
+  const stale = await prepareCalculation(h.store, form, 'en-US', h.clock.now);
+  assert.equal(h.calls.length, 6);
+  assert.equal(stale.view.status, 'ready');
+  if (stale.view.status !== 'ready') return;
+  assert.equal(stale.view.comparison.snapshotId, refreshed.view.comparison.snapshotId);
+  h.fail(null);
+  await prepareCalculation(h.store, form, 'en-US', h.clock.now);
+  assert.equal(h.calls.length, 8, 'A Calculate tap checks again despite automatic retry backoff');
 });
 test('A new store restores the persisted snapshot without resetting fetchedAt or making requests', async () => {
   const h = setup();
