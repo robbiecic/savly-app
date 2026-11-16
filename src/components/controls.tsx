@@ -26,7 +26,7 @@ export function Action({ label, onPress, secondary = false, disabled = false, ex
     <Text style={[ui.buttonText, secondary && { color: colors.ink }]}>{flag && <Text accessible={false} aria-hidden>{flag} </Text>}{label}</Text>
   </Pressable>;
 }
-export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder, locale = 'en-US', tileIcon }: { locale?: string; label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string; tileIcon?: 'tag' | 'home' }) {
+export function Field({ label, value, onChange, error, numeric = false, prominent = false, placeholder, locale = 'en-US', tileIcon, outlined = false }: { locale?: string; label: string; value: string; onChange: (value: string) => void; error?: string; numeric?: boolean; prominent?: boolean; placeholder?: string; tileIcon?: 'tag' | 'home'; outlined?: boolean }) {
   const input = useRef<TextInput>(null);
   const reveal = useContext(RevealInputContext);
   return <View style={tileIcon ? { gap: 4, flexDirection: 'row', alignItems: 'center', borderRadius: 22, backgroundColor: '#F2F3FA', minHeight: 96, paddingHorizontal: 20, paddingVertical: 12 } : { gap: 8 }}>
@@ -35,7 +35,7 @@ export function Field({ label, value, onChange, error, numeric = false, prominen
     <Text style={[ui.label, tileIcon && { fontWeight: '500', fontSize: 14 }]}>{label}</Text>
     <TextInput ref={input} onFocus={() => reveal?.(input.current)} onBlur={() => reveal?.(null)} accessibilityLabel={label} accessibilityHint={error} value={numeric ? formatNumberInput(value, locale) : value} onChangeText={(text) => onChange(numeric ? unformatNumberInput(text, locale) : text)} keyboardType={numeric ? 'decimal-pad' : 'default'}
       placeholder={placeholder} placeholderTextColor="#737A89" maxLength={numeric ? 52 : 100}
-      style={[ui.input, prominent && { fontSize: 36, fontWeight: '600', paddingVertical: 20 }, tileIcon && { borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0, minHeight: 42, fontSize: value ? 28 : 18, fontWeight: value ? '700' : '400' }, !!error && { borderColor: '#A32828' }]} />
+      style={[ui.input, prominent && { fontSize: 36, fontWeight: '600', paddingVertical: 20 }, tileIcon && { borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0, minHeight: 42, fontSize: value ? 28 : 18, fontWeight: value ? '700' : '400' }, outlined && { borderWidth: 2, borderColor: '#D9DEF5', borderRadius: 16 }, !!error && { borderColor: '#A32828' }]} />
     {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
     </View>
   </View>;

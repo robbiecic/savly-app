@@ -385,3 +385,10 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Reuse the splash photo's open-sky area behind the Compare header and keep the fixed controls readable.
 - [x] Inspect phone and landscape Chromium crops; adjust the phone crop to show clouds without the cathedral spire.
 - [ ] Verify the header and status bar safe area on Android and iOS devices.
+
+### Your savings visual refresh (2026-11-15)
+
+- [x] Carry the Compare screen's cloud header, white rounded panel, navy title, mint savings panel, pale notice, outlined actions, and rounded details toggle into Your savings.
+- [x] Verify TypeScript, all 168 unit/integration tests and web export; inspect a favorable result at 390 × 844 and an extra-cost result at 844 × 390 in Chromium. The focused trial save/reopen browser flow passed.
+- [ ] Update the older browser assertions for unmasked historical amounts and an exact equal-cost fixture. Three checks attempted during this visual change failed on those expectations; they do not form a passing result suite.
+- [ ] Verify the updated result screen on Android and iOS devices, including keyboard and enlarged text.

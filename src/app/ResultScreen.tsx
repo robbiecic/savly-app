@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { useBilling } from '../billing/BillingProvider';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
+import { CloudHeaderBackground } from '../components/CloudHeaderBackground';
 import { staleFxBadge } from '../data/fx-freshness';
 import { useCurrentTime } from '../hooks/useCurrentTime';
 import { responsive, useWideLayout } from '../components/responsive';
@@ -13,10 +14,11 @@ import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
 import Svg, { Path } from 'react-native-svg';
 import { D } from '../domain/decimal';
 import { useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
 import { KeyboardAvoidingView, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResultAction } from '../components/ResultAction';
-import { Action, Card, Field, ui } from '../components/controls';
+import { Action, Field, ui } from '../components/controls';
 import { fxLabel, savingsLabel } from '../features/comparison/model';
 import { openShare, shareMessage } from '../features/comparison/sharing';
 import { appShareLink } from '../config/sharing';
@@ -75,30 +77,30 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     const outcome = await openShare(message, (content) => Share.share(content));
     setShareError(outcome === 'failed'); setSharing(false);
   };
-  return <SafeAreaView style={styles.screen}>
+  return <SafeAreaView style={styles.screen} edges={['top']}>
+    <StatusBar style="light" />
+    <CloudHeaderBackground />
     {rules && <RefundRulesScreen country={comparison.refundCountry ?? { country: entry.form.country, currency: r.shoppingCurrency, vatRate: null }} locale={locale} saved onClose={() => setRules(false)} />}
     <View style={[styles.brandHeader, wide && responsive.wideContent]}>
-      <SavlyLogo />
-      <HomeSettingsButton country={homeCountry} locale={locale} onPress={onSettings} />
+      <SavlyLogo light />
+      <HomeSettingsButton country={homeCountry} locale={locale} onPress={onSettings} pill />
     </View>
-    <View style={[styles.header, wide && responsive.wideContent]}>
+    <View style={[styles.backRow, wide && responsive.wideContent]}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back to calculator" onPress={onBack}
         style={({ pressed }) => [styles.back, pressed && { opacity: 0.5 }]}>
         <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false} aria-hidden>
-          <Path d="m14 6-6 6 6 6" fill="none" stroke={colors.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          <Path d="m14 6-6 6 6 6" fill="none" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Pressable>
-      <Text accessibilityRole="header" style={[ui.title, styles.headerTitle]}>Your savings</Text>
-      <View style={{ width: 48 }} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
-    <KeyboardFormScrollView contentContainerStyle={[styles.content, wide && responsive.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
-    <Card>
-      {!!summary && <View style={[styles.summary, favorable && { backgroundColor: '#E0F3E6' }]}>
-        <Text style={[styles.summaryText, favorable && { color: '#176534' }]}>{summary}</Text>
+    <KeyboardFormScrollView style={styles.scroll} contentContainerStyle={[styles.content, wide && responsive.wideContent, wide && styles.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
+    <Text accessibilityRole="header" style={styles.pageTitle}>Your savings</Text>
+      {!!summary && <View style={[styles.summary, favorable && styles.summaryPositive]}>
+        <Text style={[styles.summaryText, favorable && { color: '#073545' }]}>{summary}</Text>
         {previewAmount && r.savings && r.savings.outcome !== 'same' && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
         {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
-        {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={ui.text}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
+        {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={[styles.percentage, favorable && styles.positivePercentage]}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
       </View>}
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null
@@ -114,7 +116,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
     {saved && !!name.trim() && <Text style={ui.title}>{name.trim()}</Text>}
-    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" />}
+    {!saved && <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" outlined />}
 
     {!!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} />}
     {!saved && <View style={{ gap: 12 }}>
@@ -139,8 +141,13 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     </View>
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
     <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
-    <Action label={details ? 'Hide details' : 'Expand details'} secondary expanded={details} onPress={() => setDetails(!details)} />
-    {details && <View style={responsive.stack}>
+    <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={({ pressed }) => [styles.detailsButton, pressed && { opacity: 0.7 }]}>
+      <Text style={styles.detailsButtonText}>{details ? 'Hide details' : 'Expand details'}</Text>
+      <Svg width={22} height={22} viewBox="0 0 24 24" accessible={false} aria-hidden>
+        <Path d={details ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} fill="none" stroke="#09184A" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </Pressable>
+    {details && <View style={[responsive.stack, styles.detailsPanel]}>
     <View style={{ gap: 16 }}>
       <View style={styles.row}><Text style={ui.text}>Shopping in</Text><Text style={ui.text}>{entry.form.country}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Home Country</Text><Text style={ui.text}>{entry.form.residence}</Text></View>
@@ -172,19 +179,30 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
     </View>
     </View>}
-  </Card></KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
+  </KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({
-  brandHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingHorizontal: 20, paddingVertical: 8, width: '100%', maxWidth: 620, alignSelf: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, width: '100%', maxWidth: 620, alignSelf: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 20 },
+  brandHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, width: '100%', maxWidth: 1080, alignSelf: 'center' },
+  backRow: { paddingHorizontal: 18, width: '100%', maxWidth: 1080, alignSelf: 'center' },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 44, gap: 24, width: '100%', maxWidth: 620, alignSelf: 'center' },
-  badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
+  screen: { flex: 1, backgroundColor: '#3C90D1' },
+  scroll: { flex: 1 },
+  content: { marginTop: 16, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 44, gap: 18, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
+  wideContent: { marginTop: 8 },
+  pageTitle: { fontSize: 32, lineHeight: 38, fontWeight: '800', letterSpacing: -1.2, color: '#09184A', marginBottom: 12 },
+  badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, alignSelf: 'flex-start' },
   total: { color: colors.ink, fontSize: 32, fontWeight: '700', paddingTop: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
-  summary: { padding: 20, borderRadius: 16, backgroundColor: '#F0F2F7', gap: 8 },
-  summaryText: { color: colors.ink, fontWeight: '700', fontSize: 24 },
+  summary: { padding: 22, borderRadius: 22, backgroundColor: '#F0F2F7', gap: 10, minHeight: 116, justifyContent: 'center' },
+  summaryPositive: { backgroundColor: '#DDF9ED' },
+  summaryText: { color: colors.ink, fontWeight: '800', fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  percentage: { color: '#09184A', fontSize: 14, fontWeight: '700', alignSelf: 'flex-start' },
+  positivePercentage: { backgroundColor: '#A5F3D1', borderRadius: 18, paddingHorizontal: 12, paddingVertical: 7 },
+  infoStrip: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 16, paddingVertical: 12 },
+  infoIcon: { fontSize: 22, color: '#09184A' },
+  infoText: { flex: 1, fontSize: 13, lineHeight: 19, color: '#09184A' },
+  detailsButton: { minHeight: 60, borderRadius: 20, backgroundColor: '#F0F1FA', paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18 },
+  detailsButtonText: { color: '#09184A', fontSize: 17, fontWeight: '700' },
+  detailsPanel: { backgroundColor: '#F7F8FC', borderRadius: 20, padding: 18 },
 });

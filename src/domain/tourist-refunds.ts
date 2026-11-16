@@ -39,9 +39,9 @@ export function assessTouristRefund(country: { vatRate: number | null; touristRe
   const rule = country.touristRefund;
   if (!rule) return { status: 'unknown', reason: 'Refund rules are unavailable. Comparison excludes any refund.' };
   if (needsRefundReview(rule, now)) return { status: 'unknown', reason: 'Refund rules need confirmation: their review date is overdue or unverified. Comparison excludes any refund.' };
-  if (rule.status === 'no_national_scheme') return { status: 'excluded', reason: 'No national tourist VAT refund scheme. No automatic refund included.' };
-  if (rule.status === 'unconfirmed') return { status: 'unknown', reason: 'Tourist refund rules are not confirmed. No automatic refund included.' };
-  if (rule.status === 'regional_only') return { status: 'unknown', reason: 'Refunds are regional only. The purchase region is not confirmed, so no automatic refund is included.' };
+  if (rule.status === 'no_national_scheme') return { status: 'excluded', reason: 'No national tourist VAT refund scheme. ' };
+  if (rule.status === 'unconfirmed') return { status: 'unknown', reason: 'Tourist refund rules are not confirmed. ' };
+  if (rule.status === 'regional_only') return { status: 'unknown', reason: 'No national tourist VAT refund scheme.' };
   const min = rule.minimumPurchase;
   if (!min || country.vatRate === null) return { status: 'unknown', reason: 'The minimum purchase or VAT rate is unavailable. Comparison excludes any refund.' };
   // Compare gross against an exact equivalent gross threshold, avoiding division/rounding at net boundaries.

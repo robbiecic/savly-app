@@ -3,11 +3,12 @@ import { useBilling } from '../billing/BillingProvider';
 import { RefundRulesScreen } from './RefundRulesScreen';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { HomeSettingsButton } from '../components/HomeSettingsButton';
+import { CloudHeaderBackground } from '../components/CloudHeaderBackground';
 import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, BackHandler, PanResponder, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Action, Card, Field, Select, ui } from '../components/controls';
@@ -20,7 +21,6 @@ import { currencyForCountry } from '../data/country-catalog';
 import { residenceOptions } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
 import { isHorizontalTabSwipe, tabAfterSwipe } from './tab-swipe';
-import { LinearGradient } from 'expo-linear-gradient';
 import { CompareIcon } from '../components/CompareIcon';
 
 
@@ -28,8 +28,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const billing = useBilling();
   const subject = useAuth().user?.sub;
   const wide = useWideLayout();
-  const { width } = useWindowDimensions();
-  const skyImageWidth = width * 2.4;
   const [rules, setRules] = useState(false);
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
@@ -80,11 +78,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   if (page === 'result' && entry) return <ResultScreen key={entry.id} entry={entry} fromSaved={resultOrigin === 'saved'} onBack={goBack} onSettings={toggleSettings} homeCountry={form.residence} locale={state.locale} />;
   return <SafeAreaView style={styles.screen} edges={['top']}>
     <StatusBar style="light" />
-    <View pointerEvents="none" style={styles.sky}>
-      <Image source={require('../../assets/welcome-travel.png')} resizeMode="stretch"
-        style={{ position: 'absolute', width: skyImageWidth, height: skyImageWidth * 1672 / 941, top: -skyImageWidth * 0.19, left: 0 }} />
-      <LinearGradient colors={['rgba(5, 37, 93, 0.35)', 'rgba(5, 37, 93, 0.08)']} style={StyleSheet.absoluteFill} />
-    </View>
+    <CloudHeaderBackground />
     {rules && shopping && <RefundRulesScreen country={shopping} locale={state.locale} defaults={snapshot?.environment === 'prototype' || snapshot?.environment.includes(':guest:')} onClose={() => setRules(false)} />}
     <View style={[styles.heading, styles.fixedHeader, wide && responsive.wideContent]}>
       <SavlyLogo light />
@@ -145,7 +139,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
 const styles = StyleSheet.create({
   fixedHeader: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 10, width: '100%', maxWidth: 1080, alignSelf: 'center' },
   screen: { flex: 1, backgroundColor: '#3C90D1' },
-  sky: { position: 'absolute', top: 0, left: 0, right: 0, height: 230, overflow: 'hidden', backgroundColor: '#3C90D1' },
   scroll: { flex: 1 },
   content: { marginTop: 54, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
   wideContent: { marginTop: 24 },

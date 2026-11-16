@@ -24,9 +24,9 @@ export function ResultAction({ label, accessibilityLabel = label, icon, filled =
 }
 const styles = StyleSheet.create({
   button: { flex: 1, minWidth: 0, minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingHorizontal: 10, paddingVertical: 14, borderWidth: 1, borderColor: colors.border,
-    borderRadius: 14, backgroundColor: colors.surface },
-  label: { flexShrink: 1, fontSize: 14, fontWeight: '600', color: colors.ink },
+    gap: 8, paddingHorizontal: 10, paddingVertical: 14, borderWidth: 1.5, borderColor: '#D9DEF5',
+    borderRadius: 18, backgroundColor: colors.surface },
+  label: { flexShrink: 1, fontSize: 15, fontWeight: '700', color: colors.ink },
   pressed: { backgroundColor: '#F0F2F7' },
   disabled: { opacity: 0.55 },
 });
