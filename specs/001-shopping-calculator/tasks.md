@@ -392,3 +392,15 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Verify TypeScript, all 168 unit/integration tests and web export; inspect a favorable result at 390 × 844 and an extra-cost result at 844 × 390 in Chromium. The focused trial save/reopen browser flow passed.
 - [ ] Update the older browser assertions for unmasked historical amounts and an exact equal-cost fixture. Three checks attempted during this visual change failed on those expectations; they do not form a passing result suite.
 - [ ] Verify the updated result screen on Android and iOS devices, including keyboard and enlarged text.
+
+### Savings-card share icon (2026-11-15)
+
+- [x] Add the connected three-circle share icon at the lower right of savings and extra-cost summaries, alongside the percentage when visible, using the existing masked share payload and share sheet.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and a 390 × 844 Chromium preview; the icon opened the existing share path with a masked trial amount and no full savings amount.
+- [ ] Verify icon placement and share behavior in native builds, including Premium percentage layouts.
+
+### One share action on Your savings (2026-11-15)
+
+- [x] Remove the lower Share button and retain the summary-card icon for savings, extra-cost, equal-cost, and no-home-price results.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and a Chromium phone preview. Savings and no-home-price results each expose one share action, no lower Share label, and the expected masked/estimate payload.
+- [ ] Verify the sole share icon and Save layout in native builds, including equal-cost and extra-cost results.

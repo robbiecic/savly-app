@@ -11,7 +11,7 @@ import { responsive, useWideLayout } from '../components/responsive';
 import { ItemPhoto } from '../components/ItemPhoto';
 import { pickPhoto } from '../features/photos/pick-photo';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { D } from '../domain/decimal';
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -100,7 +100,10 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
         <Text style={[styles.summaryText, favorable && { color: '#073545' }]}>{summary}</Text>
         {previewAmount && r.savings && r.savings.outcome !== 'same' && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
         {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
-        {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={[styles.percentage, favorable && styles.positivePercentage]}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
+        <View style={styles.summaryFooter}>
+          {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={[styles.percentage, favorable && styles.positivePercentage]}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
+          <SummaryShareButton favorable={favorable} sharing={sharing} onPress={() => { void share(); }} />
+        </View>
       </View>}
     {!summary && <View style={styles.summary}>
       <Text style={styles.summaryText}>{r.priceDifference != null
@@ -110,6 +113,7 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
       <Text style={ui.text}>{comparison.homePrice
         ? 'Final savings are unavailable because the VAT refund is unknown. Any price difference shown excludes a VAT refund.'
         : 'Go back to Calculate and enter the price at home to compare savings.'}</Text>
+      <View style={styles.summaryFooter}><SummaryShareButton favorable={false} sharing={sharing} onPress={() => { void share(); }} /></View>
     </View>}
 
     {rateBadge && <Text style={styles.badge}>{rateBadge}</Text>}
@@ -131,14 +135,9 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
     </View>}
 
     {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
-    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
-      <ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
-        accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
-        disabled={saved || saving || photoBusy} onPress={() => { void save(); }} />
-      <ResultAction icon="share" label={sharing ? 'Sharing…' : 'Share'}
-        accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
-        disabled={sharing} onPress={() => { void share(); }} />
-    </View>
+    <View style={{ flexDirection: 'row', alignItems: 'stretch' }}><ResultAction icon="heart" filled={saved} label={saved ? 'Saved' : saving ? 'Saving…' : 'Save'}
+      accessibilityLabel={saved ? 'Saved on this device' : saving ? 'Saving…' : 'Save'}
+      disabled={saved || saving || photoBusy} onPress={() => { void save(); }} /></View>
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
     <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
     <Pressable accessibilityRole="button" accessibilityState={{ expanded: details }} onPress={() => setDetails(!details)} style={({ pressed }) => [styles.detailsButton, pressed && { opacity: 0.7 }]}>
@@ -182,6 +181,19 @@ export function ResultScreen({ entry, onBack, onSettings, fromSaved, homeCountry
   </KeyboardFormScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 
+function SummaryShareButton({ favorable, sharing, onPress }: { favorable: boolean; sharing: boolean; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={sharing ? 'Opening share sheet…' : favorable ? 'Share savings' : 'Share comparison'}
+    accessibilityHint="Open the share sheet" accessibilityState={{ disabled: sharing }} disabled={sharing} onPress={onPress}
+    style={({ pressed }) => [styles.summaryShare, (pressed || sharing) && { opacity: 0.6 }]}>
+    <Svg width={25} height={25} viewBox="0 0 24 24" accessible={false} aria-hidden>
+      <Path d="M8.3 11 15.6 6.8M8.3 13 15.6 17.2" fill="none" stroke="#09184A" strokeWidth={1.8} strokeLinecap="round" />
+      <Circle cx={6} cy={12} r={2.3} fill="#FFFFFF" stroke="#09184A" strokeWidth={1.8} />
+      <Circle cx={18} cy={5.5} r={2.3} fill="#FFFFFF" stroke="#09184A" strokeWidth={1.8} />
+      <Circle cx={18} cy={18.5} r={2.3} fill="#FFFFFF" stroke="#09184A" strokeWidth={1.8} />
+    </Svg>
+  </Pressable>;
+}
+
 const styles = StyleSheet.create({
   brandHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, width: '100%', maxWidth: 1080, alignSelf: 'center' },
   backRow: { paddingHorizontal: 18, width: '100%', maxWidth: 1080, alignSelf: 'center' },
@@ -197,7 +209,9 @@ const styles = StyleSheet.create({
   summary: { padding: 22, borderRadius: 22, backgroundColor: '#F0F2F7', gap: 10, minHeight: 116, justifyContent: 'center' },
   summaryPositive: { backgroundColor: '#DDF9ED' },
   summaryText: { color: colors.ink, fontWeight: '800', fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
-  percentage: { color: '#09184A', fontSize: 14, fontWeight: '700', alignSelf: 'flex-start' },
+  summaryFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, minHeight: 44 },
+  summaryShare: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  percentage: { color: '#09184A', fontSize: 14, fontWeight: '700', flexShrink: 1 },
   positivePercentage: { backgroundColor: '#A5F3D1', borderRadius: 18, paddingHorizontal: 12, paddingVertical: 7 },
   infoStrip: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 16, paddingVertical: 12 },
   infoIcon: { fontSize: 22, color: '#09184A' },

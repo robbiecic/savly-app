@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { colors } from '../theme/colors';
 
 export function ResultAction({ label, accessibilityLabel = label, icon, filled = false, disabled = false, onPress }: {
-  label: string; accessibilityLabel?: string; icon: 'heart' | 'share' | 'camera' | 'image'; filled?: boolean; disabled?: boolean; onPress: () => void;
+  label: string; accessibilityLabel?: string; icon: 'heart' | 'camera' | 'image'; filled?: boolean; disabled?: boolean; onPress: () => void;
 }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} accessibilityState={{ disabled }}
     disabled={disabled} onPress={onPress}
@@ -13,9 +13,7 @@ export function ResultAction({ label, accessibilityLabel = label, icon, filled =
         ? 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z'
         : icon === 'camera'
           ? 'M3 7h4l2-3h6l2 3h4v13H3ZM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z'
-          : icon === 'image'
-            ? 'M3 3h18v18H3ZM3 17l5-5 4 4 3-3 6 6M17 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z'
-            : 'M12 15V3m-4 4 4-4 4 4M5 12v8h14v-8'}
+          : 'M3 3h18v18H3ZM3 17l5-5 4 4 3-3 6 6M17 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z'}
         fill={icon === 'heart' && filled ? colors.ink : 'none'} stroke={colors.ink}
         strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
