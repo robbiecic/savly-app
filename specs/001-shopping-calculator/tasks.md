@@ -491,3 +491,9 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Keep Get Savly Premium primary and Back to calculator secondary for guests and signed-in nonmembers. Update the Settings specification.
 - [x] Verify TypeScript, all 168 unit/integration tests, web export, three focused Chromium Settings flows, and a focused signed-in nonmember browser check.
 - [ ] Verify the active-Premium button state and navigation in an Android or iOS development build. Browser billing previews cannot activate an entitlement.
+
+### Manage Savly Premium visual refresh (2026-11-17)
+
+- [x] Match Calculate's cloud header, white Savly logo, rounded white panel, navy title, pale plan tile, navy store action, and pale cancellation row. Keep Close available in the fixed header and preserve all plan-state wording and billing actions.
+- [x] Update the Premium management specification. Verify TypeScript, all 168 unit/integration tests, Android and iOS JavaScript exports, and diff whitespace checks.
+- [ ] Visually verify Monthly, Annual, Lifetime, Test Store, and missing-details states in a native development build. The browser preview cannot activate Premium; local CoreSimulator services were unavailable during this change.
