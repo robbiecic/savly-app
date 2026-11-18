@@ -453,5 +453,13 @@ The allowance regression was split into independent calculator scenarios; all th
 
 ### Restore native Saved swipe reveal (2026-11-17)
 
-- [x] Capture a rightward drag on the native card container before the inner tap control can open the comparison; keep short drags reversible and require a near-full drag to delete.
+- [x] Capture a rightward drag on the native card container before the inner tap control can open the comparison; measure completion from the touch point to the card's right edge, keep short drags reversible, and require a minimum 48-pixel drag.
+- [x] Verify TypeScript, all 167 unit/integration tests, iOS and Android exports, and four focused Chromium flows including a touch-event swipe. Inspect the revealed red bin at phone width.
 - [ ] Verify native touch reveal and deletion on Android and iOS hardware or a working simulator.
+
+### Require both prices before calculating (2026-11-17)
+
+- [x] Disable Calculate savings until valid shopping and home prices are present and validation is settled; keep older saved snapshots readable.
+- [x] Update calculator requirements, design guidance, and browser coverage for empty and invalid prices.
+- [ ] Verify TypeScript, unit/integration tests, web export, and relevant browser flows.
+- [ ] Verify the enabled and disabled button states on Android and iOS devices.

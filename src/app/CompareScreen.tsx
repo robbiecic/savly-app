@@ -42,13 +42,15 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
     return () => subscription.remove();
   }, [page, resultOrigin]);
   const { form, view, reference } = state;
+  const canCalculate = !state.pending && !state.preparing && view.status === 'ready' &&
+    form.price.trim() !== '' && form.homePrice.trim() !== '';
   const snapshot = reference?.snapshot;
   const shopping = snapshot?.countries.find((row) => row.country === form.country);
   const countries = residenceOptions(state.locale).map(option => ({ ...option,
     label: `${option.label} · ${currencyForCountry(option.value) ?? 'Currency unavailable'}` }));
   const error = (field: string) => !state.pending && view.status === 'invalid' && view.field === field ? view.message : undefined;
   const calculate = async () => {
-    if (state.pending || state.preparing || view.status !== 'ready') return;
+    if (!canCalculate) return;
     Keyboard.dismiss();
     const prepared = await state.prepareCalculation();
     if (!prepared || prepared.view.status !== 'ready') return;
@@ -96,7 +98,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
             <View style={[responsive.stack, wide && responsive.column]}>
             <Field label={`Home price (${form.homeCurrency || 'home currency'})`} value={form.homePrice} onChange={(v) => state.edit('homePrice', v)} numeric locale={state.locale} placeholder="Price at home, including taxes" error={error('homePrice')} tileIcon="home" />
             </View></View>
-            <Pressable accessibilityRole="button" accessibilityState={{ disabled: state.pending || state.preparing || view.status !== 'ready' }} disabled={state.pending || state.preparing || view.status !== 'ready'} onPress={() => { void calculate(); }} style={({ pressed }) => [styles.calculateButton, (pressed || state.pending || state.preparing || view.status !== 'ready') && { opacity: 0.65 }]}>
+            <Pressable accessibilityRole="button" accessibilityState={{ disabled: !canCalculate }} disabled={!canCalculate} onPress={() => { void calculate(); }} style={({ pressed }) => [styles.calculateButton, (pressed || !canCalculate) && { opacity: 0.65 }]}>
               <Text style={styles.calculateText}>{state.preparing ? 'Updating reference data…' : 'Calculate savings'}</Text><CompareIcon name="arrow" color="#FFFFFF" size={28} />
             </Pressable>
             {shopping && <Pressable accessibilityRole="button" accessibilityLabel="VAT refund rules" onPress={() => { Keyboard.dismiss(); setRules(true); }} style={({ pressed }) => [styles.rulesButton, pressed && { opacity: 0.65 }]}>

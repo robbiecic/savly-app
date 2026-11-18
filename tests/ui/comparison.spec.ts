@@ -75,6 +75,7 @@ test('AC12–15: submitted result, automatic assumptions, no card fee and restar
   await page.reload();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await calculate(page);
   await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toBeVisible();
   await back(page);
@@ -114,14 +115,34 @@ test('Equal and unfavorable comparisons', async ({ page }) => {
   await back(page);
 });
 
-test('Missing home price and automatic price updates', async ({ page }) => {
-  await comparison(page);
-  await back(page);
-  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('');
+test('Calculate requires shopping and home prices; price edits update the result', async ({ page }) => {
+  await openCompare(page);
+  await setHomeCountry(page, 'United States');
+  const calculateButton = page.getByRole('button', { name: 'Calculate savings', exact: true });
+  const shoppingPrice = page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true });
+  const homePrice = page.getByRole('textbox', { name: 'Home price (USD)', exact: true });
+  await expect(calculateButton).toBeDisabled();
+  await shoppingPrice.fill('120');
+  await expect(calculateButton).toBeDisabled();
+  await homePrice.fill('150');
+  await expect(calculateButton).toBeEnabled();
   await calculate(page);
-  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('Add a home price to compare potential savings.', { exact: true })).toBeVisible();
   await back(page);
+  await homePrice.fill('');
+  await expect(calculateButton).toBeDisabled();
+  await homePrice.fill('150');
+  await shoppingPrice.fill('');
+  await expect(calculateButton).toBeDisabled();
+  await shoppingPrice.fill('120');
+  await expect(calculateButton).toBeEnabled();
+  await shoppingPrice.fill('0');
+  await expect(calculateButton).toBeDisabled();
+  await shoppingPrice.fill('120');
+  await expect(calculateButton).toBeEnabled();
+  await homePrice.fill('0');
+  await expect(calculateButton).toBeDisabled();
+  await homePrice.fill('150');
+  await expect(calculateButton).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Edit assumptions', exact: true })).toHaveCount(0);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
   await calculate(page);
@@ -163,6 +184,7 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   });
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
+  await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('150');
   await calculate(page);
   await expect(page.getByText('FX rates are stale. This estimate used built-in default rates.', { exact: true })).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
@@ -179,6 +201,7 @@ test('Unknown refund and missing FX never invent a total; invalid input hides sh
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
   await setHomeCountry(page, 'France');
+  await page.getByRole('textbox', { name: 'Home price (EUR)', exact: true }).fill('150');
   await calculate(page);
   await expect(page.getByText('EUR 105.60', { exact: true })).toBeVisible();
   await back(page);
@@ -307,6 +330,25 @@ test('Saved card needs a full right swipe to delete only that item', async ({ pa
   await page.mouse.move(secondBox!.x + secondBox!.width - 5, middleY, { steps: 12 });
   await page.mouse.up();
   await expect(second).toHaveCount(0);
+});
+test('Touch swipe on a Saved card reveals delete and completes from the middle', async ({ page }) => {
+  await page.addInitScript(saved => localStorage.setItem('savly:saved:1', JSON.stringify({ version: 1, items: [saved] })), savedFixture('Travel bag'));
+  await openCompare(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  const item = page.getByTestId('saved-item-saved-travel-bag');
+  const box = await item.boundingBox();
+  expect(box).not.toBeNull();
+  const startX = box!.x + box!.width / 2;
+  const y = box!.y + box!.height / 2;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y }] });
+  for (let step = 1; step <= 8; step++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: startX + (box!.width / 2 - 5) * step / 8, y }] });
+  }
+  await page.screenshot({ path: 'test-results/savly-touch-swipe-reveal-390.png' });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect(item).toHaveCount(0);
 });
 test('Horizontal page drags do not switch Calculate and Saved tabs', async ({ page }) => {
   await openCompare(page);
