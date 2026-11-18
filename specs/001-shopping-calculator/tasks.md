@@ -468,5 +468,5 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Mask derived amounts and exact FX rates in expanded result details for guests and nonmembers, including reopened Saved comparisons. Keep their entered prices and estimate context readable.
 - [x] Keep equal and unavailable preview shares free of exact calculation values.
-- [ ] Verify TypeScript, unit/integration tests, web export, and focused Chromium detail and share flows.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and four focused Chromium flows for Saved details, a new Spain result, FX provenance, and refund rules. Unit tests cover equal and unavailable preview shares.
 - [ ] Verify the restricted and Premium detail views on Android and iOS devices.

@@ -36,8 +36,8 @@ test('Rules navigation preserves the draft and result; strict minimum changes sa
   await expect(page.getByText(/^Purchase minimum met/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
   await expect(page.getByText('Refund fee (28% assumed)', { exact: true })).toBeVisible();
-  await expect(page.getByText('Refund fee (28% assumed)', { exact: true }).locator('..').getByText(/−USD [0-9]X\.XX/)).toBeVisible();
-  await expect(page.getByText('Net VAT refund (estimate)', { exact: true }).locator('..').getByText(/USD [0-9]X\.XX/)).toBeVisible();
+  await expect(page.getByText('Refund fee (28% assumed)', { exact: true }).locator('..')).toContainText('−USD 6.XX');
+  await expect(page.getByText('Net VAT refund (estimate)', { exact: true }).locator('..')).toContainText('USD 1X.XX');
   await page.screenshot({ path: 'test-results/refund-result.png', fullPage: true });
   await expect(page.getByRole('textbox', { name: 'Name for saved comparison' })).toHaveCount(0);
 });
