@@ -7,8 +7,8 @@ import { CloudHeaderBackground } from '../components/CloudHeaderBackground';
 import { SettingsScreen } from './SettingsScreen';
 import { responsive, useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView } from '../components/KeyboardFormScrollView';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Action, Card, Field, Select, ui } from '../components/controls';
@@ -20,7 +20,6 @@ import { countryFlag, countryName } from '../features/comparison/countries';
 import { currencyForCountry } from '../data/country-catalog';
 import { residenceOptions } from '../features/comparison/countries';
 import { colors } from '../theme/colors';
-import { isHorizontalTabSwipe, tabAfterSwipe } from './tab-swipe';
 import { CompareIcon } from '../components/CompareIcon';
 
 
@@ -31,23 +30,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
   const [rules, setRules] = useState(false);
   const state = useComparison();
   const [page, setPage] = useState<'calculator' | 'result' | 'saved' | 'settings'>('calculator');
-  const swipeContext = useRef({ page, ready: state.ready, rules });
-  swipeContext.current = { page, ready: state.ready, rules };
-  const shouldSwipe = (_event: unknown, gesture: { dx: number; dy: number; numberActiveTouches: number }) => {
-    const current = swipeContext.current;
-    return current.ready && !current.rules && (current.page === 'calculator' || current.page === 'saved') &&
-      gesture.numberActiveTouches <= 1 && isHorizontalTabSwipe(gesture.dx, gesture.dy, 18);
-  };
-  const swipeResponder = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: shouldSwipe,
-    onMoveShouldSetPanResponderCapture: shouldSwipe,
-    onPanResponderRelease: (_event, gesture) => {
-      const current = swipeContext.current;
-      if (current.page !== 'calculator' && current.page !== 'saved') return;
-      const next = tabAfterSwipe(current.page, gesture.dx, gesture.dy);
-      if (next !== current.page) { Keyboard.dismiss(); setPage(next); }
-    },
-  })).current;
   const [entry, setEntry] = useState<SavedComparison | null>(null);
   const [resultOrigin, setResultOrigin] = useState<'calculator' | 'saved'>('calculator');
   const goBack = () => setPage('calculator');
@@ -84,7 +66,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
       <SavlyLogo light />
       <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} expanded={page === 'settings'} onPress={toggleSettings} pill />
     </View>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined} {...swipeResponder.panHandlers}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
       <KeyboardFormScrollView style={styles.scroll} contentContainerStyle={[styles.content, wide && responsive.wideContent, wide && styles.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
@@ -131,7 +113,6 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           </>}
           </>}
         </>}
-        <Text style={[ui.muted, styles.disclaimer]}>Estimates to help you decide. Always check the final price and refund conditions.</Text>
       </KeyboardFormScrollView>
     </KeyboardAvoidingView>
   </SafeAreaView>;

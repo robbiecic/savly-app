@@ -6,16 +6,20 @@ import { photoSource } from '../storage/item-photos';
 import { colors } from '../theme/colors';
 import { ui } from './controls';
 
-export function ItemPhoto({ uri, name, size = 152 }: { uri: string; name: string; size?: number }) {
+export function ItemPhoto({ uri, name, size = 152, interactive = true }: { uri: string; name: string; size?: number; interactive?: boolean }) {
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const label = name || 'item';
   const source = { uri: photoSource(uri) };
   if (failed) return <Text style={ui.muted}>Photo unavailable on this device.</Text>;
+  const previewStyle = [styles.preview, { width: size, height: size, borderRadius: size / 2 }];
+  if (!interactive) return <View pointerEvents="none" style={previewStyle}>
+    <Image source={source} accessible={false} resizeMode="cover" style={styles.thumbnail} onError={() => setFailed(true)} />
+  </View>;
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel={`View photo of ${label}`}
       accessibilityHint="Opens the full-screen photo" onPress={() => { Keyboard.dismiss(); setOpen(true); }}
-      style={({ pressed }) => [styles.preview, { width: size, height: size, borderRadius: size / 2 }, pressed && { opacity: 0.75 }]}>
+      style={({ pressed }) => [...previewStyle, pressed && { opacity: 0.75 }]}>
       <Image source={source} accessibilityLabel={`Photo of ${label}`} accessible
         resizeMode="cover" style={styles.thumbnail} onError={() => setFailed(true)} />
     </Pressable>

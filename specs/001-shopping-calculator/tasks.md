@@ -1,6 +1,6 @@
 # Task checklist
 
-- [x] Swipe left from Calculate to Saved and right from Saved to Calculate, preserving the draft and leaving vertical scroll and Settings/result/rules navigation alone.
+- [x] Initially added horizontal Calculate/Saved tab swipes; removed them on 2026-11-17 in favor of tap-only tab navigation and Saved-item swipe deletion.
 - [x] Verify gesture direction and scroll thresholds with unit tests, TypeScript, web export, and a focused Chromium flow using mouse and simulated touch drags. Native device touch behavior remains untested.
 
 - [x] Check the four-hour cache on every Calculate savings submission, refresh expired country/VAT/refund and FX data before creating the result, and retain validated stale data if the refresh fails.
@@ -420,7 +420,7 @@ The allowance regression was split into independent calculator scenarios; all th
 
 ### Saved tab visual refresh (2026-11-17)
 
-- [x] Match Calculate's cloud header and tabs with a navy Saved title, pale rounded item tiles, compact photo or bag icon, and prominent Open/Delete actions. Restyle the empty and clear-confirmation states.
+- [x] Match Calculate's cloud header and tabs with a navy Saved title, pale rounded item tiles, and a compact photo or bag icon. Restyle the empty and clear-confirmation states. The original Open/Delete actions were replaced by card taps and swipe deletion in the later milestone below.
 - [x] Preserve local snapshots, photo viewing, reopening, deletion, and confirmed clearing without changing calculations.
 - [x] Verify TypeScript, all 168 unit/integration tests, web export, and three focused Chromium flows. Inspect the 390 × 844 Saved screen and correct the older tab-order browser assertion.
 - [ ] Verify the Saved layout on Android and iOS devices, including landscape and enlarged text.
@@ -436,3 +436,17 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Remove Sample estimate, Historical estimate, and date text from Saved cards while retaining the timestamp and provenance in each saved snapshot.
 - [x] Verify TypeScript and diff whitespace checks.
+
+### Saved-item swipe deletion and tap-only tabs (2026-11-17)
+
+- [x] Slide an individual Saved card right to reveal a scaling red trash bin; delete only after a near-full swipe and return shorter swipes to their starting position.
+- [x] Remove horizontal page gestures between Calculate and Saved while keeping tab taps and the calculator draft.
+- [x] Verify TypeScript, all 167 unit/integration tests, web export, and focused Chromium checks for partial/full card swipes and no page-swipe tab changes. Inspect the red-bin reveal at phone width.
+- [ ] Verify touch swipes, gesture cancellation, and enlarged-text layouts on Android and iOS devices.
+
+### Tap Saved cards to open (2026-11-17)
+
+- [x] Make the entire Saved card, including its photo, open the stored comparison. Remove per-item Open and Delete buttons; provide a screen-reader delete action on the card.
+- [x] Keep the full-right-swipe deletion gesture and update the Saved design and interaction specs.
+- [ ] Verify card taps, photo taps, full-right-swipe deletion, and visual layout in Chromium; run TypeScript, unit/integration tests, and web export.
+- [ ] Verify card taps, accessibility actions, and touch swipes on Android and iOS devices.

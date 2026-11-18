@@ -249,6 +249,7 @@ test('Saved snapshots remain accessible without Premium and support reopening an
   await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('heading', { name: 'Your saved items', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open Travel bag', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Delete Travel bag', exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'test-results/savly-saved-390.png' });
   await page.getByRole('tab', { name: 'Calculate', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('999');
@@ -259,8 +260,62 @@ test('Saved snapshots remain accessible without Premium and support reopening an
   await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   await back(page);
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
-  await page.getByRole('button', { name: 'Delete Travel bag', exact: true }).click();
+  const card = await page.getByTestId('saved-item-saved-travel-bag').boundingBox();
+  expect(card).not.toBeNull();
+  await page.mouse.move(card!.x + 18, card!.y + card!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(card!.x + 18 + card!.width * 0.92, card!.y + card!.height / 2, { steps: 12 });
+  await page.mouse.up();
   await expect(page.getByText('No saved comparisons yet.', { exact: true })).toBeVisible();
+});
+test('Saved card needs a full right swipe to delete only that item', async ({ page }) => {
+  const items = [savedFixture('Travel bag'), savedFixture('Photo bag')];
+  await page.addInitScript(saved => localStorage.setItem('savly:saved:1', JSON.stringify({ version: 1, items: saved })), items);
+  await openCompare(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  const first = page.getByTestId('saved-item-saved-travel-bag');
+  const second = page.getByTestId('saved-item-saved-photo-bag');
+  await expect(first).toBeVisible();
+  await expect(second).toBeVisible();
+  const swipeFirst = async (fraction: number, previewPath?: string) => {
+    const box = await first.boundingBox();
+    expect(box).not.toBeNull();
+    const startX = box!.x + 18;
+    const y = box!.y + box!.height / 2;
+    await page.mouse.move(startX, y);
+    await page.mouse.down();
+    await page.mouse.move(startX + box!.width * fraction, y, { steps: 12 });
+    if (previewPath) await page.screenshot({ path: previewPath });
+    await page.mouse.up();
+  };
+  await swipeFirst(0.5, 'test-results/savly-swipe-reveal-390.png');
+  await expect(first).toBeVisible();
+  await expect(second).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect.poll(() => page.getByTestId('saved-card-saved-travel-bag').evaluate(element =>
+    new DOMMatrix(getComputedStyle(element).transform).m41)).toBeLessThan(1);
+  await swipeFirst(0.92, 'test-results/savly-swipe-full-390.png');
+  await expect(first).toHaveCount(0);
+  await expect(second).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+});
+test('Horizontal page drags do not switch Calculate and Saved tabs', async ({ page }) => {
+  await openCompare(page);
+  const calculateTitle = await page.getByRole('heading', { name: 'Compare a price', exact: true }).boundingBox();
+  expect(calculateTitle).not.toBeNull();
+  await page.mouse.move(calculateTitle!.x + calculateTitle!.width - 8, calculateTitle!.y + 15);
+  await page.mouse.down();
+  await page.mouse.move(calculateTitle!.x + 8, calculateTitle!.y + 15, { steps: 10 });
+  await page.mouse.up();
+  await expect(page.getByRole('tab', { name: 'Calculate', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  const savedTitle = await page.getByRole('heading', { name: 'Your saved items', exact: true }).boundingBox();
+  expect(savedTitle).not.toBeNull();
+  await page.mouse.move(savedTitle!.x + 8, savedTitle!.y + 15);
+  await page.mouse.down();
+  await page.mouse.move(savedTitle!.x + savedTitle!.width - 8, savedTitle!.y + 15, { steps: 10 });
+  await page.mouse.up();
+  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
 });
 test('Without Premium the save form and storage write are unavailable', async ({ page }) => {
   await comparison(page);
@@ -319,7 +374,9 @@ test('Previously saved item photos remain visible and reopen after reload', asyn
   await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
   await back(page);
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
+  await expect(page.getByTestId('saved-item-saved-photo-bag').locator('img')).toBeVisible();
+  await page.getByTestId('saved-item-saved-photo-bag').locator('img').click();
+  await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'View photo of Photo bag', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Full-screen photo of Photo bag', exact: true })).toBeVisible();
   await page.setViewportSize({ width: 844, height: 390 });
@@ -331,7 +388,7 @@ test('Previously saved item photos remain visible and reopen after reload', asyn
   await page.reload();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
+  await expect(page.getByTestId('saved-item-saved-photo-bag').locator('img')).toBeVisible();
   await page.getByRole('button', { name: 'Open Photo bag', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
