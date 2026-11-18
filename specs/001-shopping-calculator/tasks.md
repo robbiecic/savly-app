@@ -417,3 +417,22 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Navigate to the Saved tab after the device confirms a successful save, with the new comparison visible; keep validation and storage errors on the save form.
 - [x] Update the save/reopen browser flows and verify TypeScript, all 168 unit/integration tests, web export, and four focused Chromium save flows.
 - [ ] Verify the transition on Android and iOS devices.
+
+### Saved tab visual refresh (2026-11-17)
+
+- [x] Match Calculate's cloud header and tabs with a navy Saved title, pale rounded item tiles, compact photo or bag icon, and prominent Open/Delete actions. Restyle the empty and clear-confirmation states.
+- [x] Preserve local snapshots, photo viewing, reopening, deletion, and confirmed clearing without changing calculations.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, and three focused Chromium flows. Inspect the 390 × 844 Saved screen and correct the older tab-order browser assertion.
+- [ ] Verify the Saved layout on Android and iOS devices, including landscape and enlarged text.
+
+### Premium-only new saves (2026-11-17)
+
+- [x] Disable Save this comparison and hide its name/photo form when the `savly_premium` entitlement is inactive. Recheck access on the final Save action and explain the requirement on Your savings.
+- [x] Keep existing saved comparisons and photos available for reopening and deletion after access ends; update browser fixtures for the browser preview, which cannot activate a Premium purchase.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, five focused Chromium flows, and a phone-sized disabled-state preview.
+- [ ] Verify enabled saving, entitlement expiry while the form is open, and the disabled state in native builds with real/test Premium access.
+
+### Saved card copy (2026-11-17)
+
+- [x] Remove Sample estimate, Historical estimate, and date text from Saved cards while retaining the timestamp and provenance in each saved snapshot.
+- [x] Verify TypeScript and diff whitespace checks.

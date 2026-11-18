@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { savedFixture } from './saved-fixture';
 
 async function openCompare(page: Page) {
   await page.goto('/');
@@ -30,12 +31,13 @@ async function comparison(page: Page) {
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveCount(0);
   await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
 }
-async function openSaveForm(page: Page) {
-  await page.getByRole('button', { name: 'Save this comparison', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toBeVisible();
+async function seedSaved(page: Page, name: string, withPhoto = false) {
+  const item = savedFixture(name, withPhoto);
+  await page.addInitScript(saved => localStorage.setItem('savly:saved:1', JSON.stringify({ version: 1, items: [saved] })), item);
 }
 
-test('trial savings teaser opens account creation and stays masked in Saved', async ({ page }) => {
+test('trial savings teaser opens account creation; old Saved results stay masked', async ({ page }) => {
+  await seedSaved(page, 'Trial bag');
   await comparison(page);
   const teaser = page.getByText('You could save $3X.XX', { exact: true });
   await expect(teaser).toBeVisible();
@@ -44,15 +46,11 @@ test('trial savings teaser opens account creation and stays masked in Saved', as
   await expect(page.getByRole('heading', { name: 'Create your account', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await expect(teaser).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
+  await expect(page.getByText('Savly Premium is required to save new comparisons.', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toHaveCount(0);
-  await openSaveForm(page);
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Trial bag');
-  await page.getByRole('button', { name: 'Save this comparison', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toHaveCount(0);
-  await openSaveForm(page);
-  await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toHaveValue('Trial bag');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await back(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open Trial bag', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Open Trial bag', exact: true }).click();
   await expect(teaser).toBeVisible();
@@ -242,13 +240,16 @@ test('Home country selects currency automatically and migrates saved currency ch
   await expect(page.getByRole('textbox', { name: 'Home price (EUR)', exact: true })).toBeVisible();
 });
 
-test('Save persists the displayed snapshot and supports reopening and deletion', async ({ page }) => {
+test('Saved snapshots remain accessible without Premium and support reopening and deletion', async ({ page }) => {
+  await seedSaved(page, 'Travel bag');
   await comparison(page);
-  await openSaveForm(page);
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Travel bag');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
+  await back(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
   await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { name: 'Your saved items', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open Travel bag', exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/savly-saved-390.png' });
   await page.getByRole('tab', { name: 'Calculate', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('999');
   await page.reload();
@@ -261,32 +262,22 @@ test('Save persists the displayed snapshot and supports reopening and deletion',
   await page.getByRole('button', { name: 'Delete Travel bag', exact: true }).click();
   await expect(page.getByText('No saved comparisons yet.', { exact: true })).toBeVisible();
 });
-test('Failed saves remain retryable and do not claim success', async ({ page }) => {
-  await page.addInitScript(() => {
-    const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(key, value) {
-      if (key === 'savly:saved:1') throw new Error('Disk full');
-      return original.call(this, key, value);
-    };
-  });
+test('Without Premium the save form and storage write are unavailable', async ({ page }) => {
   await comparison(page);
-  await openSaveForm(page);
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByText('Enter an item name to save this comparison.')).toBeVisible();
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Bag');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByText('Couldn’t save on this device. Please try again.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
+  await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('savly:saved:1'))).toBeNull();
 });
 
-test('Country dropdown precedes tabs; tab switching preserves the calculator draft', async ({ page }) => {
+test('Tabs precede the country dropdown; switching preserves the calculator draft', async ({ page }) => {
   await openCompare(page);
   const country = page.getByRole('button', { name: 'Shopping country: France · EUR', exact: true });
   const tab = page.getByRole('tab', { name: 'Calculate', exact: true });
   await expect(country).toBeVisible();
   const countryBox = await country.boundingBox();
   const tabBox = await tab.boundingBox();
-  expect(countryBox!.y + countryBox!.height).toBeLessThanOrEqual(tabBox!.y);
+  expect(tabBox!.y + tabBox!.height).toBeLessThanOrEqual(countryBox!.y);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('123');
   await expect(page.getByRole('tab', { name: 'Scan', exact: true })).toHaveCount(0);
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
@@ -322,20 +313,13 @@ test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund an
   await expect(page.getByText('Calculated from USDEUR at 0.8887.', { exact: true })).toBeVisible();
 });
 
-test('Item photo can be added, removed, saved and reopened after reload', async ({ page }) => {
+test('Previously saved item photos remain visible and reopen after reload', async ({ page }) => {
+  await seedSaved(page, 'Photo bag', true);
   await comparison(page);
-  await openSaveForm(page);
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Photo bag');
-  await page.getByRole('button', { name: 'Save', exact: true }).scrollIntoViewIfNeeded();
-  await page.screenshot({ path: 'test-results/savly-save-form-390.png' });
-  await expect(page.getByRole('button', { name: 'Take photo', exact: true })).toBeVisible();
-  const addPhoto = async () => {
-    const chooser = page.waitForEvent('filechooser');
-    await page.getByRole('button', { name: 'Add photo', exact: true }).click();
-    await (await chooser).setFiles('assets/favicon.png');
-    await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
-  };
-  await addPhoto();
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
+  await back(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'View photo of Photo bag', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Full-screen photo of Photo bag', exact: true })).toBeVisible();
   await page.setViewportSize({ width: 844, height: 390 });
@@ -344,12 +328,6 @@ test('Item photo can be added, removed, saved and reopened after reload', async 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Close photo', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Full-screen photo of Photo bag', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Remove photo', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toHaveCount(0);
-  await addPhoto();
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('img', { name: 'Photo of Photo bag', exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('tab', { name: 'Saved', exact: true }).click();
@@ -383,12 +361,11 @@ test('Rotation reflows welcome, calculator and savings while retaining the draft
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await calculate(page);
   await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
-  await openSaveForm(page);
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).fill('Landscape bag');
-  await page.getByRole('textbox', { name: 'Name for saved comparison', exact: true }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Save this comparison', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/savly-result-landscape.png' });
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole('textbox', { name: 'Name for saved comparison', exact: true })).toHaveValue('Landscape bag');
+  await expect(page.getByRole('button', { name: 'Save this comparison', exact: true })).toBeDisabled();
   await back(page);
   await expect(home).toHaveValue('150');
   await expect(page.getByRole('textbox', { name: 'Item name (optional)', exact: true })).toHaveCount(0);

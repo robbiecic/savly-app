@@ -49,7 +49,9 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
   const [saveOpen, setSaveOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const canSave = billing.active;
   const save = async () => {
+    if (!canSave || saved || saving) return;
     if (!name.trim()) { setSaveError('Enter an item name to save this comparison.'); return; }
     setSaving(true); setSaveError('');
     try {
@@ -124,8 +126,8 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
     {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
     {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
     <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'Saved on this device' : 'Save this comparison'}
-      accessibilityState={{ expanded: saveOpen, disabled: saved || saving }} disabled={saved || saving}
-      onPress={() => { if (saveOpen) Keyboard.dismiss(); setSaveOpen(open => !open); }} style={({ pressed }) => [styles.saveToggle, pressed && { opacity: 0.7 }]}>
+      accessibilityState={{ expanded: canSave && saveOpen, disabled: saved || saving || !canSave }} disabled={saved || saving || !canSave}
+      onPress={() => { if (saveOpen) Keyboard.dismiss(); setSaveOpen(open => !open); }} style={({ pressed }) => [styles.saveToggle, (pressed || (!saved && !canSave)) && { opacity: 0.55 }]}>
       <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false} aria-hidden>
         <Path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
           fill={saved ? '#09184A' : 'none'} stroke="#09184A" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
@@ -135,8 +137,9 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
         <Path d={saveOpen ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} fill="none" stroke="#09184A" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       </Svg>}
     </Pressable>
+    {!saved && !canSave && <Text style={ui.muted}>Savly Premium is required to save new comparisons.</Text>}
     {saved && !!photoUri && <ItemPhoto key={photoUri} uri={photoUri} name={name} size={88} />}
-    {!saved && saveOpen && <View style={styles.saveForm}>
+    {!saved && canSave && saveOpen && <View style={styles.saveForm}>
       <Field label="Name for saved comparison" value={name} onChange={setName} placeholder="e.g. Travel bag" outlined />
       <Text style={ui.label}>Photo (optional)</Text>
       <View style={styles.photoActions}>
@@ -151,7 +154,7 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
       {!!photoError && <Text accessibilityRole="alert" style={ui.error}>{photoError}</Text>}
       {!!saveError && <Text accessibilityRole="alert" style={ui.error}>{saveError}</Text>}
       <View style={{ flexDirection: 'row' }}><ResultAction icon="heart" label={saving ? 'Saving…' : 'Save'}
-        accessibilityLabel={saving ? 'Saving…' : 'Save'} disabled={saving || photoBusy} onPress={() => { void save(); }} /></View>
+        accessibilityLabel={saving ? 'Saving…' : 'Save'} disabled={saving || photoBusy || !canSave} onPress={() => { void save(); }} /></View>
       <Text style={ui.muted}>Saved comparisons stay on this device. No cloud backup.</Text>
     </View>}
     {shareError && <Text accessibilityRole="alert" style={ui.error}>Sharing couldn’t open. Please try again.</Text>}
