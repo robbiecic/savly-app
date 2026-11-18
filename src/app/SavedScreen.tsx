@@ -3,7 +3,8 @@ import { CompareIcon } from '../components/CompareIcon';
 import { ItemPhoto } from '../components/ItemPhoto';
 import { completesSavedDeleteSwipe } from './saved-swipe';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ui } from '../components/controls';
 import { savedComparisons } from '../storage/mobile-saved-comparisons';
@@ -73,25 +74,42 @@ function SavedItem({ item, wide, busy, onOpen, onDelete }: {
   item: SavedComparison; wide: boolean; busy: boolean; onOpen: () => void; onDelete: () => Promise<boolean>;
 }) {
   const [width, setWidth] = useState(0);
+  const frame = useRef<View>(null);
+  const frameRight = useRef(0);
   const drag = useRef(new Animated.Value(0)).current;
+  const webStartX = useRef<number | null>(null);
+  const swipeTravel = useRef(0);
+  const suppressPress = useRef(false);
   const reset = () => Animated.spring(drag, { toValue: 0, useNativeDriver: true, speed: 22, bounciness: 4 }).start();
+  const finishSwipe = (distance: number) => {
+    if (!completesSavedDeleteSwipe(distance, swipeTravel.current)) { reset(); return; }
+    Animated.timing(drag, { toValue: width, duration: 130, useNativeDriver: true }).start(({ finished }) => {
+      if (!finished) { reset(); return; }
+      void onDelete().then(deleted => { if (!deleted) reset(); });
+    });
+  };
   const responder = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => !busy && width > 0 && gesture.numberActiveTouches <= 1 &&
-      gesture.dx > 18 && gesture.dx > Math.abs(gesture.dy) * 1.3,
-    onPanResponderMove: (_event, gesture) => drag.setValue(Math.max(0, Math.min(width, gesture.dx))),
-    onPanResponderRelease: (_event, gesture) => {
-      // PanResponder begins after the first 18 px, so include that movement.
-      if (!completesSavedDeleteSwipe(gesture.dx + 18, width)) { reset(); return; }
-      Animated.timing(drag, { toValue: width, duration: 130, useNativeDriver: true }).start(({ finished }) => {
-        if (!finished) { reset(); return; }
-        void onDelete().then(deleted => { if (!deleted) reset(); });
-      });
+    onStartShouldSetPanResponderCapture: () => {
+      suppressPress.current = false;
+      frame.current?.measureInWindow((x, _y, measuredWidth) => { frameRight.current = x + measuredWidth; });
+      return false;
     },
+    onMoveShouldSetPanResponderCapture: (_event, gesture) => {
+      const swiping = !busy && width > 0 && gesture.numberActiveTouches === 1 &&
+        gesture.dx > 12 && gesture.dx > Math.abs(gesture.dy) * 1.3;
+      if (swiping) suppressPress.current = true;
+      return swiping;
+    },
+    onPanResponderMove: (_event, gesture) => drag.setValue(Math.max(0, Math.min(width, gesture.dx))),
+    onPanResponderGrant: (_event, gesture) => {
+      swipeTravel.current = frameRight.current > gesture.x0 ? frameRight.current - gesture.x0 : width;
+    },
+    onPanResponderRelease: (_event, gesture) => finishSwipe(gesture.dx),
     onPanResponderTerminate: reset,
     onPanResponderTerminationRequest: () => false,
   }), [busy, width, drag, onDelete]);
   const binScale = drag.interpolate({ inputRange: [0, Math.max(width, 1)], outputRange: [0.65, 1.5], extrapolate: 'clamp' });
-  return <View testID={`saved-item-${item.id}`} onLayout={event => setWidth(event.nativeEvent.layout.width)} style={[styles.itemFrame, wide && styles.wideItem]}>
+  return <View ref={frame} testID={`saved-item-${item.id}`} onLayout={event => setWidth(event.nativeEvent.layout.width)} style={[styles.itemFrame, wide && styles.wideItem]}>
     <View pointerEvents="none" style={styles.deleteReveal}>
       <Animated.View style={{ transform: [{ scale: binScale }] }}>
         <Svg width={34} height={34} viewBox="0 0 24 24" accessible={false}>
@@ -99,12 +117,33 @@ function SavedItem({ item, wide, busy, onOpen, onDelete }: {
         </Svg>
       </Animated.View>
     </View>
-    <Animated.View testID={`saved-card-${item.id}`} {...responder.panHandlers} style={{ width: '100%', transform: [{ translateX: drag }] }}>
+    <Animated.View testID={`saved-card-${item.id}`} {...(Platform.OS === 'web' ? {} : responder.panHandlers)}
+      style={[{ width: '100%', transform: [{ translateX: drag }] }, Platform.OS === 'web' && ({ touchAction: 'pan-y' } as unknown as ViewStyle)]}>
       <Pressable accessibilityRole="button" accessibilityLabel={'Open ' + item.comparison.itemName}
         accessibilityHint="Swipe right all the way to delete this item" accessibilityState={{ disabled: busy }} disabled={busy}
         accessibilityActions={[{ name: 'delete', label: 'Delete ' + item.comparison.itemName }]}
         onAccessibilityAction={event => { if (event.nativeEvent.actionName === 'delete') void onDelete(); }}
-        onPress={onOpen} style={({ pressed }) => [styles.item, (pressed || busy) && styles.dimmed]}>
+        {...(Platform.OS === 'web' ? {
+          onPointerDown: (event: { nativeEvent: { clientX: number }; currentTarget: { getBoundingClientRect: () => { right: number } } }) => {
+            webStartX.current = event.nativeEvent.clientX;
+            swipeTravel.current = event.currentTarget.getBoundingClientRect().right - event.nativeEvent.clientX;
+            suppressPress.current = false;
+          },
+          onPointerMove: (event: { nativeEvent: { clientX: number } }) => {
+            if (webStartX.current === null) return;
+            const distance = event.nativeEvent.clientX - webStartX.current;
+            if (distance > 18) { suppressPress.current = true; drag.setValue(Math.min(width, distance)); }
+          },
+          onPointerUp: (event: { nativeEvent: { clientX: number } }) => {
+            if (webStartX.current === null) return;
+            const distance = event.nativeEvent.clientX - webStartX.current;
+            webStartX.current = null;
+            suppressPress.current = distance > 18;
+            if (suppressPress.current) finishSwipe(distance);
+          },
+          onPointerCancel: () => { webStartX.current = null; suppressPress.current = true; reset(); },
+        } : {})}
+        onPress={() => { if (!suppressPress.current) onOpen(); }} style={({ pressed }) => [styles.item, (pressed || busy) && styles.dimmed]}>
         <View style={styles.itemHeading}>
           {!!item.photoUri ? <ItemPhoto uri={item.photoUri} name={item.comparison.itemName} size={68} interactive={false} /> : <View style={styles.itemIcon}><CompareIcon name="bag" size={28} /></View>}
           <View style={styles.itemInfo}>

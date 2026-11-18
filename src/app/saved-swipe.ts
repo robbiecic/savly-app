@@ -1,3 +1,3 @@
-export function completesSavedDeleteSwipe(distance: number, width: number): boolean {
-  return width > 0 && distance >= width * 0.85;
+export function completesSavedDeleteSwipe(distance: number, travelToRightEdge: number): boolean {
+  return travelToRightEdge > 0 && distance >= Math.max(48, travelToRightEdge * 0.85);
 }

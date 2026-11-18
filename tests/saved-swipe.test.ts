@@ -10,4 +10,7 @@ test('Saved item deletion requires a nearly full right swipe', () => {
   assert.equal(completesSavedDeleteSwipe(272, 320), true);
   assert.equal(completesSavedDeleteSwipe(320, 320), true);
   assert.equal(completesSavedDeleteSwipe(100, 0), false);
+  assert.equal(completesSavedDeleteSwipe(84, 100), false);
+  assert.equal(completesSavedDeleteSwipe(85, 100), true);
+  assert.equal(completesSavedDeleteSwipe(30, 30), false);
 });

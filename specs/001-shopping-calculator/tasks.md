@@ -448,5 +448,10 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Make the entire Saved card, including its photo, open the stored comparison. Remove per-item Open and Delete buttons; provide a screen-reader delete action on the card.
 - [x] Keep the full-right-swipe deletion gesture and update the Saved design and interaction specs.
-- [ ] Verify card taps, photo taps, full-right-swipe deletion, and visual layout in Chromium; run TypeScript, unit/integration tests, and web export.
+- [x] Verify card taps, photo taps, partial/full-right-swipe deletion, and the phone-width Saved layout in Chromium; TypeScript, all 167 unit/integration tests, web export, and four focused Chromium flows passed.
 - [ ] Verify card taps, accessibility actions, and touch swipes on Android and iOS devices.
+
+### Restore native Saved swipe reveal (2026-11-17)
+
+- [x] Capture a rightward drag on the native card container before the inner tap control can open the comparison; keep short drags reversible and require a near-full drag to delete.
+- [ ] Verify native touch reveal and deletion on Android and iOS hardware or a working simulator.

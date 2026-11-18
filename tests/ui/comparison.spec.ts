@@ -298,6 +298,15 @@ test('Saved card needs a full right swipe to delete only that item', async ({ pa
   await expect(first).toHaveCount(0);
   await expect(second).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Saved', exact: true })).toHaveAttribute('aria-selected', 'true');
+  const secondBox = await second.boundingBox();
+  expect(secondBox).not.toBeNull();
+  const middleX = secondBox!.x + secondBox!.width / 2;
+  const middleY = secondBox!.y + secondBox!.height / 2;
+  await page.mouse.move(middleX, middleY);
+  await page.mouse.down();
+  await page.mouse.move(secondBox!.x + secondBox!.width - 5, middleY, { steps: 12 });
+  await page.mouse.up();
+  await expect(second).toHaveCount(0);
 });
 test('Horizontal page drags do not switch Calculate and Saved tabs', async ({ page }) => {
   await openCompare(page);
