@@ -30,7 +30,7 @@ test('Frankfurter fetches by home currency and reuses the four-hour local cache'
   await page.getByRole('button', { name: 'Calculate savings', exact: true }).click();
   await expect(page.getByText('Estimated cost', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('1 EUR = 1.25 USD · FX rate', { exact: true })).toBeVisible();
+  await expect(page.getByText('EUR → USD · Exact FX rate requires Savly Premium', { exact: true })).toBeVisible();
   await expect(page.getByText('FX rate date: 2026-11-15', { exact: true })).toBeVisible();
   await expect(page.getByText('Frankfurter', { exact: false })).toHaveCount(0);
   await page.getByRole('button', { name: 'Back to calculator', exact: true }).click();

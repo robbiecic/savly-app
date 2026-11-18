@@ -463,3 +463,10 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Update calculator requirements, design guidance, and browser coverage for empty and invalid prices.
 - [x] Verify TypeScript, all 167 unit/integration tests, web export, and the focused Chromium button-state flow. A broader browser run reached live FX data and older exact sample-amount assertions failed; those failures are unrelated to button enablement.
 - [ ] Verify the enabled and disabled button states on Android and iOS devices.
+
+### Mask expanded details without Premium (2026-11-17)
+
+- [x] Mask derived amounts and exact FX rates in expanded result details for guests and nonmembers, including reopened Saved comparisons. Keep their entered prices and estimate context readable.
+- [x] Keep equal and unavailable preview shares free of exact calculation values.
+- [ ] Verify TypeScript, unit/integration tests, web export, and focused Chromium detail and share flows.
+- [ ] Verify the restricted and Premium detail views on Android and iOS devices.

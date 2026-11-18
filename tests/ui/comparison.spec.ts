@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { savedFixture } from './saved-fixture';
+import { countryCurrencyCodes } from '../../src/data/country-catalog';
 
 async function openCompare(page: Page) {
   await page.goto('/');
@@ -56,11 +57,28 @@ test('trial savings teaser opens account creation; old Saved results stay masked
   await expect(teaser).toBeVisible();
 });
 
+test('Expanded details of a Saved item mask calculated amounts and the FX rate without Premium', async ({ page }) => {
+  await seedSaved(page, 'Trial bag');
+  await openCompare(page);
+  await page.getByRole('tab', { name: 'Saved', exact: true }).click();
+  await page.getByRole('button', { name: 'Open Trial bag', exact: true }).click();
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
+  await expect(page.getByText('Shopping price', { exact: true }).locator('..').getByText('EUR 120.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('Home comparison price', { exact: true }).locator('..').getByText('USD 150.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('Converted price', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
+  await expect(page.getByText('With VAT refund', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
+  await expect(page.getByText('EUR → USD · Exact FX rate requires Savly Premium', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 116.16', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('USD 132.00', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Included VAT: EUR 20.00', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('1 EUR = 1.1 USD · Sample rate', { exact: true })).toHaveCount(0);
+});
+
 test('AC12–15: submitted result, automatic assumptions, no card fee and restart settings', async ({ page }) => {
   await comparison(page);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
-  await expect(page.getByText('1 EUR = 1.1 USD · Default FX rate', { exact: true })).toBeVisible();
+  await expect(page.getByText('With VAT refund', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
+  await expect(page.getByText('EUR → USD · Exact FX rate requires Savly Premium', { exact: true })).toBeVisible();
   await back(page);
   await expect(page.getByRole('button', { name: 'Edit assumptions', exact: true })).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Additional bank fee (%)', exact: true })).toHaveCount(0);
@@ -71,7 +89,7 @@ test('AC12–15: submitted result, automatic assumptions, no card fee and restar
   await expect(page.getByRole('button', { name: 'Reset FX and refund to automatic', exact: true })).toHaveCount(0);
   await calculate(page);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
+  await expect(page.getByText('With VAT refund', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Try it out', exact: true }).click();
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('120');
@@ -95,7 +113,7 @@ test('Share payload matches the display; cancellation leaves it intact', async (
   await expect.poll(() => page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).toContain('$3X.XX');
   expect(await page.evaluate(() => (window as unknown as { sharedText: string }).sharedText)).not.toContain('33.84');
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
+  await expect(page.getByText('With VAT refund', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
   await expect(page.getByText('Sharing couldn’t open. Please try again.', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/delivered/i)).toHaveCount(0);
 });
@@ -190,7 +208,7 @@ test('Refreshing the cache does not make dated default FX fresh', async ({ page 
   await expect(page.getByText('FX rates are stale. This estimate used built-in default rates.', { exact: true })).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'FX rate is stale' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 132.00', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Without VAT refund', { exact: true }).locator('..').getByText('USD 1XX.XX', { exact: true })).toBeVisible();
   await page.evaluate(() => { (window as unknown as { storageBlocked: boolean }).storageBlocked = false; });
   await back(page);
   await page.getByRole('button', { name: 'Retry rates', exact: true }).click();
@@ -204,7 +222,7 @@ test('Unknown refund and missing FX never invent a total; invalid input hides sh
   await setHomeCountry(page, 'France');
   await page.getByRole('textbox', { name: 'Home price (EUR)', exact: true }).fill('150');
   await calculate(page);
-  await expect(page.getByText('EUR 105.60', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your savings', exact: true })).toBeVisible();
   await back(page);
   await setHomeCountry(page, 'Japan');
   await expect(page.getByText('Conversion unavailable.', { exact: true }).first()).toBeVisible();
@@ -221,7 +239,7 @@ test('Calculator starts and computes when optional Intl constructors are unavail
     Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', { configurable: true, value: undefined });
   });
   await comparison(page);
-  await expect(page.getByText('USD 116.16', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $3X.XX', { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -394,30 +412,27 @@ test('Tabs precede the country dropdown; switching preserves the calculator draf
   await expect(page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true })).toHaveValue('123');
 });
 
-test('AC19 Spain worked example shows stale FX, gross refund, fee, net refund and savings', async ({ page }) => {
+test('Spain worked example masks its full calculation without Premium', async ({ page }) => {
+  await page.route('https://api.frankfurter.dev/v2/rates?*', async route => {
+    const base = new URL(route.request().url()).searchParams.get('base')!;
+    await route.fulfill({ json: countryCurrencyCodes.filter(quote => quote !== base).map(quote => ({
+      date: '2026-09-26', base, quote, rate: base === 'USD' && quote === 'EUR' ? 0.8887 : 1,
+    })) });
+  });
   await page.addInitScript(() => {
     localStorage.setItem('savly:preferences:1', JSON.stringify({ version: 1, country: 'ES', homeCurrency: 'USD', residence: 'US', feePercent: '0' }));
-    localStorage.setItem('savly:reference:1:prototype:sample:guest-2', JSON.stringify({
-      adapterVersion: 1, environment: 'prototype', mode: 'sample', id: 'spain-example', fetchedAt: Date.now() - 14_400_001,
-      rates: [{ pair: 'USDEUR', rate: 0.8887, pipSize: 0.0001, source: 'CityIndex', asOf: '2026-09-26T12:00:00Z' }],
-      countries: [{ country: 'ES', currency: 'EUR', vatRate: 0.21 }, { country: 'US', currency: 'USD', vatRate: null }],
-    }));
-    const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(key, value) {
-      if (key.startsWith('savly:reference')) throw new Error('Simulated failed refresh');
-      return original.call(this, key, value);
-    };
   });
   await openCompare(page);
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('450');
   await page.getByRole('textbox', { name: 'Home price (USD)', exact: true }).fill('500');
   await calculate(page);
-  for (const label of ['You could save $5X.XX', 'login to get accurate rates', 'USD -6.36',
-    'Net VAT refund (estimate)', 'USD 87.88', 'Refund fee (28% assumed)', '−USD 24.61', 'USD 63.27', 'USD 443.08']) {
-    await expect(page.getByText(label, { exact: true })).toBeVisible();
-  }
-  await page.getByRole('button', { name: 'Rate details & assumptions', exact: true }).click();
-  await expect(page.getByText('Calculated from USDEUR at 0.8887.', { exact: true })).toBeVisible();
+  await expect(page.getByText('You could save $5X.XX', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Expand details', exact: true }).click();
+  await expect(page.getByText('Refund fee (28% assumed)', { exact: true }).locator('..').getByText('−USD 2X.XX', { exact: true })).toBeVisible();
+  await expect(page.getByText('With VAT refund', { exact: true }).locator('..').getByText('USD 4XX.XX', { exact: true })).toBeVisible();
+  await expect(page.getByText('EUR → USD · Exact FX rate requires Savly Premium', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 443.08', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Calculated from USDEUR at 0.8887.', { exact: true })).toHaveCount(0);
 });
 
 test('Previously saved item photos remain visible and reopen after reload', async ({ page }) => {

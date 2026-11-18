@@ -20,10 +20,14 @@ export function shareMessage(comparison: DisplayedComparison, link: ShareLink, p
     : r.fx.kind === 'manual' ? 'Estimated using a manual rate'
     : r.fx.asOf ? `Estimated using FX rates dated ${r.fx.asOf}`
     : 'Estimated using FX rates with an unverified date';
-  if (previewAmount && r.savings && r.savings.outcome !== 'same') return [
-    r.savings.outcome === 'save'
+  if (previewAmount !== undefined) return [
+    r.savings?.outcome === 'save'
       ? `I could save ${previewAmount} with Savly (preview).`
-      : `This would cost ${previewAmount} more than at home with Savly (preview).`,
+      : r.savings?.outcome === 'more'
+        ? `This would cost ${previewAmount} more than at home with Savly (preview).`
+        : r.savings?.outcome === 'same'
+          ? 'This item has the same estimated cost at home and abroad with Savly (preview).'
+          : 'Here’s my overseas shopping estimate from Savly (preview).',
     ...(comparison.itemName ? [`Item: ${comparison.itemName.replace(/[\r\n]+/g, ' ')}`] : []),
     source,
     ...(isFxStale(r.fx) ? ['Rates out of date · FX rate over 48 hours old or date unverified'] : []),

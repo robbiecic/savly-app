@@ -37,3 +37,17 @@ test('trial share omits the full savings result and its calculation breakdown', 
   assert.match(message, /Sample estimate/);
   for (const exact of ['33.84', '22.6%', '116.16', '15.84', '150.00']) assert.ok(!message.includes(exact), exact);
 });
+
+test('trial share of equal or unavailable savings omits exact calculation details', async () => {
+  const store = new ReferenceStore({ mode: 'sample', environment: 'test', transport: createMockTransport(path => SAMPLE_RESPONSES[path]),
+    storage: { async getItem() { return null; }, async setItem() {} } });
+  const snapshot = await store.get();
+  for (const homePrice of ['116.16', '']) {
+    const result = compare({ ...newForm(), residence: 'US', price: '120', homePrice }, snapshot, 'en-US');
+    assert.equal(result.status, 'ready');
+    if (result.status !== 'ready') continue;
+    const message = shareMessage(result.comparison, shareLink(), '');
+    assert.match(message, /preview/);
+    for (const exact of ['116.16', '132.00', '15.84', '1 EUR = 1.1 USD']) assert.ok(!message.includes(exact), exact);
+  }
+});

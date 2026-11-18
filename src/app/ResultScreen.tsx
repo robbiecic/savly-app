@@ -75,10 +75,11 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
   const displaySummaryMoney = (value: string) => previewAmount ? maskSavingsAmount(summaryMoney(value)) : summaryMoney(value);
   const summary = savingsLabel(r, number, displaySummaryMoney);
   const money = (value: string) => `${r.homeCurrency} ${number(value)}`;
+  const detailMoney = (value: string) => previewAmount ? maskSavingsAmount(money(value)) : money(value);
   const share = async () => {
     // Capture exactly the displayed snapshot before opening the native sheet.
     const message = shareMessage({ ...comparison, itemName: name.trim() }, appShareLink,
-      previewAmount && r.savings && r.savings.outcome !== 'same' ? displaySummaryMoney(r.savings.amount.replace('-', '')) : undefined);
+      previewAmount ? r.savings && r.savings.outcome !== 'same' ? displaySummaryMoney(r.savings.amount.replace('-', '')) : '' : undefined);
     setSharing(true); setShareError(false);
     const outcome = await openShare(message, (content) => Share.share(content));
     setShareError(outcome === 'failed'); setSharing(false);
@@ -170,28 +171,28 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
       <View style={styles.row}><Text style={ui.text}>Home Country</Text><Text style={ui.text}>{entry.form.residence}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Date calculated</Text><Text style={ui.text}>{new Date(entry.savedAt).toLocaleDateString()}</Text></View>
       <View style={styles.row}><Text style={ui.text}>Shopping price</Text><Text style={ui.text}>{r.shoppingCurrency} {number(comparison.price)}</Text></View>
-      <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{money(r.convertedCost)}</Text></View>
-      {new D(r.cardFee).gt(0) && <View style={styles.row}><Text style={ui.text}>Card fee (saved estimate)</Text><Text style={ui.text}>{money(r.cardFee)}</Text></View>}
-      <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{money(r.withoutRefund)}</Text></View>
-      {r.priceDifference != null && <View style={styles.row}><Text style={ui.text}>Price difference before refund</Text><Text style={ui.text}>{money(r.priceDifference)}</Text></View>}
+      <View style={styles.row}><Text style={ui.text}>Converted price</Text><Text style={ui.text}>{detailMoney(r.convertedCost)}</Text></View>
+      {new D(r.cardFee).gt(0) && <View style={styles.row}><Text style={ui.text}>Card fee (saved estimate)</Text><Text style={ui.text}>{detailMoney(r.cardFee)}</Text></View>}
+      <View><Text style={ui.muted}>Without VAT refund</Text><Text style={styles.total}>{detailMoney(r.withoutRefund)}</Text></View>
+      {r.priceDifference != null && <View style={styles.row}><Text style={ui.text}>Price difference before refund</Text><Text style={ui.text}>{detailMoney(r.priceDifference)}</Text></View>}
       {!!r.refundBreakdown && <>
-        <View style={styles.row}><Text style={ui.text}>VAT refund before fee (estimate)</Text><Text style={ui.text}>{money(r.refundBreakdown.grossHome)}</Text></View>
-        <View style={styles.row}><Text style={ui.text}>Refund fee ({number(new D(r.refundBreakdown.feeRate).mul(100).toFixed())}% assumed)</Text><Text style={ui.text}>−{money(r.refundBreakdown.feeHome)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>VAT refund before fee (estimate)</Text><Text style={ui.text}>{detailMoney(r.refundBreakdown.grossHome)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>Refund fee ({number(new D(r.refundBreakdown.feeRate).mul(100).toFixed())}% assumed)</Text><Text style={ui.text}>−{detailMoney(r.refundBreakdown.feeHome)}</Text></View>
       </>}
       {r.refundHome !== null && r.withRefund !== null ? <>
-        <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{money(r.refundHome)}</Text></View>
-        <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{money(r.withRefund)}</Text></View>
+        <View style={styles.row}><Text style={ui.text}>{r.refundBreakdown ? 'Net VAT refund (estimate)' : 'Estimated VAT refund'}</Text><Text style={ui.text}>{detailMoney(r.refundHome)}</Text></View>
+        <View><Text style={ui.muted}>With VAT refund</Text><Text style={styles.total}>{detailMoney(r.withRefund)}</Text></View>
         <Text style={ui.muted}>{r.refund.kind === 'vat-assumption' ? 'Assumes included VAT is refundable; any modeled fee is shown above. Eligibility is not verified' : 'Estimated refund, subject to eligibility'}{r.refund.kind === 'manual' ? ' · Manual amount' : ''}.</Text>
       </> : <Text style={ui.muted}>{r.refund.kind === 'vat-unavailable' ? 'VAT refund unavailable: no VAT rate supplied. The comparison uses the overseas price without a refund.' : 'Refund estimate unavailable. This comparison excludes a refund.'}</Text>}
       {!!comparison.homePrice && <View style={styles.row}><Text style={ui.text}>Home comparison price</Text><Text style={ui.text}>{money(comparison.homePrice)}</Text></View>}
       {!comparison.homePrice && <Text style={ui.muted}>Add a home price to compare potential savings.</Text>}
     </View>
     <View style={{ gap: 10 }}>
-      <Text selectable style={ui.text}>{fxLabel(r.fx, number)}</Text>
+      <Text selectable={!previewAmount} style={ui.text}>{previewAmount ? `${r.fx.from} → ${r.fx.to} · Exact FX rate requires Savly Premium` : fxLabel(r.fx, number)}</Text>
       {!!r.fx.asOf && <Text style={ui.muted}>{r.fx.source === 'Built-in defaults' ? 'Default rate date' : comparison.sample ? 'Sample rate date' : 'FX rate date'}: {r.fx.asOf}</Text>}
-      {!!r.fx.inverted && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
+      {!!r.fx.inverted && !previewAmount && <Text style={ui.muted}>Calculated from {r.fx.originalPair} at {r.fx.originalRate ? number(r.fx.originalRate) : r.fx.originalRate}.</Text>}
       <Action label="VAT refund rules" secondary onPress={() => setRules(true)} />
-      <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>
+      <Text style={ui.muted}>Included VAT: {r.includedVat === null ? 'Unknown' : previewAmount ? maskSavingsAmount(`${r.shoppingCurrency} ${number(r.includedVat)}`) : `${r.shoppingCurrency} ${number(r.includedVat)}`}</Text>
       {r.refund.kind === 'sample' && r.refund.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
       {r.assumptions.map((text) => <Text key={text} style={ui.muted}>{text}</Text>)}
     </View>
