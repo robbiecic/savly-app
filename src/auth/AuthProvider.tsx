@@ -7,10 +7,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Action, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
-import { colors } from '../theme/colors';
 import { refreshSession, resolveCognitoConfig, type CognitoConfig, type Session } from './cognito';
 import { refreshNativeSession } from './native-cognito';
 import { AccountForm } from './AccountForm';
+import { CloudHeaderBackground } from '../components/CloudHeaderBackground';
 
 type Auth = { session: Session | null; user: Session['user'] | null; openSignIn: () => void; openSignUp: (onComplete?: () => void) => void; signOut: () => Promise<boolean> };
 const AuthContext = createContext<Auth | null>(null);
@@ -131,10 +131,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </>}
     <Modal visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       onRequestClose={close}>
-      {visible && <StatusBar style="dark" />}
+      {visible && <StatusBar style="light" />}
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-          <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SavlyLogo /></View>
+        <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#3C90D1' }}>
+          <CloudHeaderBackground />
+          <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 10, width: '100%', maxWidth: 1080, alignSelf: 'center' }}><SavlyLogo light /></View>
           {visible && <AccountForm initialStep={initialStep} configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}
         </SafeAreaView>
       </SafeAreaProvider>

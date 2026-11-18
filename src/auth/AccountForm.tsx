@@ -1,6 +1,8 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
-import { Action, Card, ui } from '../components/controls';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ui } from '../components/controls';
+import { CompareIcon } from '../components/CompareIcon';
+import { useWideLayout } from '../components/responsive';
 import { KeyboardFormScrollView, RevealInputContext } from '../components/KeyboardFormScrollView';
 import { CONNECTION_ERROR, type CognitoConfig, type Session } from './cognito';
 import { AccountError, NativeAccount, type Challenge, type LoginResult } from './native-cognito';
@@ -11,18 +13,30 @@ function Input({ label, value, onChange, secret = false, code = false, email = f
 }) {
   const ref = useRef<TextInput>(null);
   const reveal = useContext(RevealInputContext);
-  return <View style={{ gap: 8 }}><Text style={ui.label}>{label}</Text>
+  return <View style={styles.inputTile}>
+    <View style={styles.inputIcon}><CompareIcon name={email ? 'mail' : secret ? 'lock' : code ? 'key' : 'tag'} /></View>
+    <View style={styles.inputContent}><Text style={styles.inputLabel}>{label}</Text>
     <TextInput ref={ref} accessibilityLabel={label} value={value} onChangeText={onChange} editable={!disabled}
-      onFocus={() => reveal?.(ref.current)} onBlur={() => reveal?.(null)} style={ui.input}
+      onFocus={() => reveal?.(ref.current)} onBlur={() => reveal?.(null)} style={styles.input}
       secureTextEntry={secret} autoCapitalize="none" autoCorrect={false}
       keyboardType={email ? 'email-address' : code ? 'number-pad' : 'default'}
       autoComplete={email ? 'email' : code ? 'one-time-code' : secret ? (label === 'Password' ? 'current-password' : 'new-password') : 'off'} />
+    </View>
   </View>;
+}
+
+function AccountAction({ label, onPress, disabled = false, secondary = false }: { label: string; onPress: () => void; disabled?: boolean; secondary?: boolean }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
+    style={({ pressed }) => [secondary ? styles.secondaryAction : styles.primaryAction, (pressed || disabled) && styles.dimmed]}>
+    <Text style={secondary ? styles.secondaryText : styles.primaryText}>{label}</Text>
+    <CompareIcon name="arrow" size={secondary ? 22 : 28} color={secondary ? '#09184A' : '#FFFFFF'} />
+  </Pressable>;
 }
 const titles: Record<Step, string> = { signin: 'Welcome back', signup: 'Create your account', confirm: 'Verify your email', forgot: 'Reset your password', reset: 'Choose a new password', challenge: 'Complete sign-in' };
 const actions: Record<Step, string> = { signin: 'Sign in', signup: 'Create account', confirm: 'Verify email', forgot: 'Send reset code', reset: 'Save new password', challenge: 'Continue' };
 
 export function AccountForm({ configuration, onSession, onClose, initialStep = 'signin' }: { initialStep?: 'signin' | 'signup'; configuration: () => CognitoConfig; onSession: (session: Session) => Promise<void>; onClose: () => void }) {
+  const wide = useWideLayout();
   const [step, setStep] = useState<Step>(initialStep);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -111,29 +125,50 @@ export function AccountForm({ configuration, onSession, onClose, initialStep = '
     });
   };
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
-    <KeyboardFormScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 20, width: '100%', maxWidth: 620, alignSelf: 'center' }}>
-      <Card>
-        <Text accessibilityRole="header" style={ui.title}>{titles[step]}</Text>
-        <Text style={ui.text}>{step === 'signin' ? 'Sign in with your email and password.' : step === 'signup' ? 'Create a Savly account with your email address.' : step === 'challenge' ? (newPassword ? 'Choose a new password to finish signing in.' : challenge?.kind === 'SOFTWARE_TOKEN_MFA' ? 'Enter the code from your authenticator app.' : 'Enter the verification code sent to your phone.') : email.trim()}</Text>
-        {!!notice && <Text accessibilityLiveRegion="polite" style={ui.text}>{notice}</Text>}
+    <KeyboardFormScrollView style={styles.scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, wide && styles.wideContent]}>
+        <View style={styles.intro}>
+          <Text accessibilityRole="header" style={styles.pageTitle}>{titles[step]}</Text>
+          <Text style={styles.subtitle}>{step === 'signin' ? 'Sign in with your email and password.' : step === 'signup' ? 'Create a Savly account with your email address.' : step === 'challenge' ? (newPassword ? 'Choose a new password to finish signing in.' : challenge?.kind === 'SOFTWARE_TOKEN_MFA' ? 'Enter the code from your authenticator app.' : 'Enter the verification code sent to your phone.') : email.trim()}</Text>
+        </View>
+        {!!notice && <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text>}
         {['signin', 'signup', 'forgot'].includes(step) && <Input label="Email address" email value={email} onChange={setEmail} disabled={busy} />}
         {needsCode && <Input label="Verification code" code value={code} onChange={setCode} disabled={busy} />}
         {needsPassword && <Input label={newPassword ? 'New password' : 'Password'} secret value={password} onChange={setPassword} disabled={busy} />}
-        {newPassword && <><Text style={ui.muted}>Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.</Text>
+        {newPassword && <><Text style={styles.hint}>Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.</Text>
           <Input label="Confirm password" secret value={repeat} onChange={setRepeat} disabled={busy} /></>}
         {step === 'challenge' && challenge?.attributes.map(name => <Input key={name} label={name.replace(/_/g, ' ')} value={attributes[name] ?? ''} onChange={value => setAttributes(previous => ({ ...previous, [name]: value }))} disabled={busy} />)}
         {!!error && <Text accessibilityRole="alert" style={ui.error}>{error}</Text>}
-        {busy && <ActivityIndicator accessibilityLabel="Connecting" />}
-        <Action label={step === 'confirm' && confirmed.current ? 'Continue' : actions[step]} disabled={busy} onPress={submit} />
-        {((step === 'confirm' && !confirmed.current) || step === 'reset') && <Action label="Resend code" secondary disabled={busy} onPress={() => { void run(async active => {
+        {busy && <ActivityIndicator accessibilityLabel="Connecting" color="#0B2156" />}
+        <AccountAction label={step === 'confirm' && confirmed.current ? 'Continue' : actions[step]} disabled={busy} onPress={submit} />
+        {((step === 'confirm' && !confirmed.current) || step === 'reset') && <AccountAction label="Resend code" secondary disabled={busy} onPress={() => { void run(async active => {
           await client().request(step === 'confirm' ? 'ResendConfirmationCode' : 'ForgotPassword', { Username: email.trim() });
           if (active()) setNotice('A new code has been requested. Check your email.');
         }); }} />}
-        {step === 'signin' && <><Action label="Create an account" secondary disabled={busy} onPress={() => changeStep('signup')} />
-          <Action label="Forgot password?" secondary disabled={busy} onPress={() => changeStep('forgot')} /></>}
-        {step !== 'signin' && <Action label="Back to sign in" secondary disabled={busy} onPress={() => changeStep('signin')} />}
-        <Action label="Back" secondary disabled={busy} onPress={onClose} />
-      </Card>
+        {step === 'signin' && <><AccountAction label="Create an account" secondary disabled={busy} onPress={() => changeStep('signup')} />
+          <AccountAction label="Forgot password?" secondary disabled={busy} onPress={() => changeStep('forgot')} /></>}
+        {step !== 'signin' && <AccountAction label="Back to sign in" secondary disabled={busy} onPress={() => changeStep('signin')} />}
+        <AccountAction label="Back" secondary disabled={busy} onPress={onClose} />
     </KeyboardFormScrollView>
   </KeyboardAvoidingView>;
 }
+
+const styles = StyleSheet.create({
+  scroll: { flex: 1 },
+  content: { marginTop: 54, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
+  wideContent: { marginTop: 24 },
+  intro: { gap: 8, marginTop: 12, marginBottom: 6 },
+  pageTitle: { fontSize: 32, lineHeight: 38, fontWeight: '800', letterSpacing: -1.2, color: '#09184A' },
+  subtitle: { fontSize: 17, lineHeight: 24, color: '#09184A' },
+  inputTile: { flexDirection: 'row', alignItems: 'center', borderRadius: 22, backgroundColor: '#F2F3FA', minHeight: 96, paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
+  inputIcon: { width: 42 },
+  inputContent: { flex: 1, minWidth: 0 },
+  inputLabel: { color: '#09184A', fontSize: 14, fontWeight: '500' },
+  input: { minHeight: 42, paddingHorizontal: 0, paddingVertical: 0, color: '#09184A', fontSize: 20, backgroundColor: 'transparent' },
+  hint: { color: '#596277', fontSize: 14, lineHeight: 21 },
+  notice: { borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 18, paddingVertical: 14, color: '#09184A', fontSize: 14, lineHeight: 21 },
+  primaryAction: { minHeight: 62, borderRadius: 22, backgroundColor: '#0B2156', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18, paddingHorizontal: 16 },
+  primaryText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700', flexShrink: 1 },
+  secondaryAction: { minHeight: 60, borderRadius: 20, backgroundColor: '#F0F1FA', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 22 },
+  secondaryText: { color: '#09184A', fontSize: 17, fontWeight: '700', flexShrink: 1 },
+  dimmed: { opacity: 0.65 },
+});

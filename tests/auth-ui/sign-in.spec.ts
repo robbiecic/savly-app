@@ -53,6 +53,20 @@ async function newPassword(page: Page) {
   await page.getByLabel('New password', { exact: true }).fill('MyNewPassword123!');
   await page.getByLabel('Confirm password', { exact: true }).fill('MyNewPassword123!');
 }
+test('sign-in layout matches Calculate at phone width', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await open(page);
+  await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true }).last()).toHaveCSS('background-color', 'rgb(11, 33, 86)');
+  await expect(page.getByRole('button', { name: 'Create an account', exact: true })).toHaveCSS('background-color', 'rgb(240, 241, 250)');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.waitForTimeout(500); // Let the native-style modal slide finish before capturing its layout.
+  await page.screenshot({ path: 'test-results/savly-sign-in-320.png' });
+  await page.getByRole('button', { name: 'Create an account', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Create your account', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back to sign in', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
+});
 test('in-app SRP sign-in, memory-only web session, and sign-out', async ({ page, context }) => {
   const calls = await provider(context);
   await open(page); await credentials(page);
