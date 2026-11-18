@@ -470,3 +470,10 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Keep equal and unavailable preview shares free of exact calculation values.
 - [x] Verify TypeScript, all 168 unit/integration tests, web export, and four focused Chromium flows for Saved details, a new Spain result, FX provenance, and refund rules. Unit tests cover equal and unavailable preview shares.
 - [ ] Verify the restricted and Premium detail views on Android and iOS devices.
+
+### Match Your savings styling with Calculate (2026-11-17)
+
+- [x] Align the result panel spacing, navy title and neutral summary surface with Calculate. Use the same rounded navy button and arrow for Get Premium, and pale rounded notices and details row.
+- [x] Verify TypeScript, all 168 unit/integration tests, and web export.
+- [x] Inspect 320 × 720 Chromium screenshots of Calculate and Your savings after adjusting the cloud crop; the spire stays out of the header. The trial action and small-screen flows pass.
+- [ ] Verify the result layout and actions on Android and iOS devices. A separate equal-cost browser test still expects a historical fixed amount; current FX data produced a small extra cost.

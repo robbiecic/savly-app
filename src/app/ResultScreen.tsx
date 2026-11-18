@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ResultAction } from '../components/ResultAction';
+import { CompareIcon } from '../components/CompareIcon';
 import { Action, Field, ui } from '../components/controls';
 import { fxLabel, savingsLabel } from '../features/comparison/model';
 import { openShare, shareMessage } from '../features/comparison/sharing';
@@ -105,7 +106,11 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
     <Text accessibilityRole="header" style={styles.pageTitle}>Your savings</Text>
       {!!summary && <View style={[styles.summary, favorable && styles.summaryPositive]}>
         <Text style={[styles.summaryText, favorable && { color: '#073545' }]}>{summary}</Text>
-        {previewAmount && r.savings && r.savings.outcome !== 'same' && <Action label="Get Premium" onPress={() => user ? billing.checkEntitlement() : openSignUp()} />}
+        {previewAmount && r.savings && r.savings.outcome !== 'same' && <Pressable accessibilityRole="button"
+          onPress={() => user ? billing.checkEntitlement() : openSignUp()}
+          style={({ pressed }) => [styles.premiumButton, pressed && { opacity: 0.65 }]}>
+          <Text style={styles.premiumButtonText}>Get Premium</Text><CompareIcon name="arrow" color="#FFFFFF" size={28} />
+        </Pressable>}
         {(r.refund.kind === 'vat-unavailable' || (r.refund.kind === 'scheme' && r.refund.assessment.status !== 'potential')) && <Text style={ui.text}>Compared without a VAT refund.</Text>}
         <View style={styles.summaryFooter}>
           {r.savings && r.savings.outcome !== 'same' && !previewAmount && <Text style={[styles.percentage, favorable && styles.positivePercentage]}>{number(r.savings.percentage.replace('-', ''))}% {favorable ? 'less' : 'more'} than at home</Text>}
@@ -124,8 +129,8 @@ export function ResultScreen({ entry, onBack, onSaved, onSettings, fromSaved, ho
     </View>}
 
     {rateBadge && <Text style={styles.badge}>{rateBadge}</Text>}
-    {comparison.refundAssessment && <Text style={ui.muted}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text>}
-    {r.refund.kind === 'manual' && <Text style={ui.muted}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text>}
+    {comparison.refundAssessment && <View style={styles.notice}><Text style={styles.noticeText}>{comparison.refundAssessment.status === 'potential' ? 'Purchase minimum met. Refund assumes all included VAT is returned; eligibility and provider fees still need confirmation.' : comparison.refundAssessment.reason}</Text></View>}
+    {r.refund.kind === 'manual' && <View style={styles.notice}><Text style={styles.noticeText}>Manual refund amount applied instead of the automatic scheme check. Eligibility is not verified.</Text></View>}
     <Pressable accessibilityRole="button" accessibilityLabel={saved ? 'Saved on this device' : 'Save this comparison'}
       accessibilityState={{ expanded: canSave && saveOpen, disabled: saved || saving || !canSave }} disabled={saved || saving || !canSave}
       onPress={() => { if (saveOpen) Keyboard.dismiss(); setSaveOpen(open => !open); }} style={({ pressed }) => [styles.saveToggle, (pressed || (!saved && !canSave)) && { opacity: 0.55 }]}>
@@ -219,15 +224,19 @@ const styles = StyleSheet.create({
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   screen: { flex: 1, backgroundColor: '#3C90D1' },
   scroll: { flex: 1 },
-  content: { marginTop: 16, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 44, gap: 18, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
+  content: { marginTop: 8, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
   wideContent: { marginTop: 8 },
-  pageTitle: { fontSize: 32, lineHeight: 38, fontWeight: '800', letterSpacing: -1.2, color: '#09184A', marginBottom: 12 },
+  pageTitle: { fontSize: 32, lineHeight: 38, fontWeight: '800', letterSpacing: -1.2, color: '#09184A', marginTop: 12, marginBottom: 6 },
   badge: { color: '#3F506B', fontSize: 12, fontWeight: '700', backgroundColor: '#E9EDF5', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, alignSelf: 'flex-start' },
   total: { color: colors.ink, fontSize: 32, fontWeight: '700', paddingTop: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
-  summary: { padding: 22, borderRadius: 22, backgroundColor: '#F0F2F7', gap: 10, minHeight: 116, justifyContent: 'center' },
+  summary: { padding: 22, borderRadius: 22, backgroundColor: '#F0F1FA', gap: 10, minHeight: 116, justifyContent: 'center' },
   summaryPositive: { backgroundColor: '#DDF9ED' },
-  summaryText: { color: colors.ink, fontWeight: '800', fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  summaryText: { color: '#09184A', fontWeight: '800', fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  premiumButton: { minHeight: 62, borderRadius: 22, backgroundColor: '#0B2156', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18, paddingHorizontal: 16 },
+  premiumButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
+  notice: { borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 18, paddingVertical: 14 },
+  noticeText: { color: '#09184A', fontSize: 14, lineHeight: 21 },
   summaryFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, minHeight: 44 },
   summaryShare: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   percentage: { color: '#09184A', fontSize: 14, fontWeight: '700', flexShrink: 1 },
@@ -240,7 +249,7 @@ const styles = StyleSheet.create({
   infoStrip: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 18, backgroundColor: '#F0F1FA', paddingHorizontal: 16, paddingVertical: 12 },
   infoIcon: { fontSize: 22, color: '#09184A' },
   infoText: { flex: 1, fontSize: 13, lineHeight: 19, color: '#09184A' },
-  detailsButton: { minHeight: 60, borderRadius: 20, backgroundColor: '#F0F1FA', paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18 },
+  detailsButton: { minHeight: 60, borderRadius: 20, backgroundColor: '#F0F1FA', paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 18 },
   detailsButtonText: { color: '#09184A', fontSize: 17, fontWeight: '700' },
   detailsPanel: { backgroundColor: '#F7F8FC', borderRadius: 20, padding: 18 },
 });

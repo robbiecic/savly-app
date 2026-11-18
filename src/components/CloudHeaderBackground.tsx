@@ -7,7 +7,7 @@ export function CloudHeaderBackground() {
   const imageWidth = width * 2.4;
   return <View pointerEvents="none" style={styles.sky}>
     <Image source={require('../../assets/welcome-travel.png')} resizeMode="stretch" accessible={false}
-      style={{ position: 'absolute', width: imageWidth, height: imageWidth * 1672 / 941, top: -imageWidth * 0.19, left: 0 }} />
+      style={{ position: 'absolute', width: imageWidth, height: imageWidth * 1672 / 941, top: -imageWidth * 0.14, left: 0 }} />
     <LinearGradient colors={['rgba(5, 37, 93, 0.35)', 'rgba(5, 37, 93, 0.08)']} style={StyleSheet.absoluteFill} />
   </View>;
 }
