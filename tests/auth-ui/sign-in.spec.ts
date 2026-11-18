@@ -182,6 +182,16 @@ test('signed-in trial savings upgrades through the entitlement check', async ({ 
   await expect(page.getByRole('heading', { name: 'Premium billing is unavailable in this build', exact: true })).toBeVisible();
 });
 
+test('signed-in nonmembers see Get Savly Premium as the primary Settings action', async ({ page, context }) => {
+  await provider(context);
+  await open(page); await credentials(page);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).last().click();
+  await continueAfterWebEntitlementCheck(page);
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Get Savly Premium', exact: true })).toHaveCSS('background-color', 'rgb(11, 33, 86)');
+  await expect(page.getByRole('button', { name: 'Back to calculator', exact: true })).toHaveCSS('background-color', 'rgb(240, 241, 250)');
+});
+
 test('Try it out opens restricted mode; Settings signup opens Premium after verification', async ({ page, context }) => {
   const calls = await provider(context);
   await page.goto('/');

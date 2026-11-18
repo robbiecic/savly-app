@@ -47,7 +47,7 @@ function OptionLabel({ label, flag, selected = false }: { label: string; flag?: 
     <Text style={[ui.text, { flexShrink: 1 }]}>{label}{selected ? ' ✓' : ''}</Text>
   </View>;
 }
-export function Select({ label, value, options, onChange, error, compact = false, tile = false }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string; compact?: boolean; tile?: boolean }) {
+export function Select({ label, value, options, onChange, error, compact = false, tile = false, tileIcon = 'bag' }: { label: string; value: string; options: Option[]; onChange: (value: string) => void; error?: string; compact?: boolean; tile?: boolean; tileIcon?: 'bag' | 'home' }) {
   const wide = useWideLayout();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -57,7 +57,7 @@ export function Select({ label, value, options, onChange, error, compact = false
     {!tile && <Text style={ui.label}>{label}</Text>}
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${chosen}`} accessibilityState={{ expanded: open }}
       style={[ui.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }, compact && { borderRadius: 28, paddingVertical: 10, paddingHorizontal: 18 }, tile && { borderWidth: 0, borderRadius: 22, backgroundColor: '#F2F3FA', minHeight: 96, paddingHorizontal: 20 }]} onPress={() => { setSearch(''); setOpen(true); }}>
-      {tile && <View style={{ width: 50 }}><CompareIcon name="bag" /></View>}
+      {tile && <View style={{ width: 50 }}><CompareIcon name={tileIcon} /></View>}
       <View style={{ flex: 1, minWidth: 0, gap: 4 }}>{tile && <Text style={[ui.label, { fontWeight: '500' }]}>{label}</Text>}<OptionLabel label={chosen} flag={selectedOption?.flag} /></View>
       {tile ? <CompareIcon name="chevron" size={22} /> : <Text style={ui.text}>⌄</Text>}
     </Pressable>

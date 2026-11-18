@@ -477,3 +477,17 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Verify TypeScript, all 168 unit/integration tests, and web export.
 - [x] Inspect 320 × 720 Chromium screenshots of Calculate and Your savings after adjusting the cloud crop; the spire stays out of the header. The trial action and small-screen flows pass.
 - [ ] Verify the result layout and actions on Android and iOS devices. A separate equal-cost browser test still expects a historical fixed amount; current FX data produced a small extra cost.
+
+### Match Settings styling with Calculate (2026-11-17)
+
+- [x] Use Calculate's navy title, pale home-country tile with home icon, rounded navy primary action, and pale navigation rows inside the shared white panel. Preserve the existing country, account, Premium, and return actions.
+- [x] Update the spec and add a 320-pixel Settings screenshot and overflow check to the browser layout flow.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, three focused Chromium Settings flows, and the final phone-width screenshot check.
+- [ ] Verify Settings on Android and iOS devices, including enlarged text, country selection, and Premium management.
+
+### Settings primary action follows Premium access (2026-11-17)
+
+- [x] Make Back to calculator the navy primary button for signed-in members with active Savly Premium; show Manage Savly Premium as a pale secondary row.
+- [x] Keep Get Savly Premium primary and Back to calculator secondary for guests and signed-in nonmembers. Update the Settings specification.
+- [x] Verify TypeScript, all 168 unit/integration tests, web export, three focused Chromium Settings flows, and a focused signed-in nonmember browser check.
+- [ ] Verify the active-Premium button state and navigation in an Android or iOS development build. Browser billing previews cannot activate an entitlement.

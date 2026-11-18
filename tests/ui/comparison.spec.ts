@@ -181,6 +181,13 @@ test('Small screen layout and demo landing page', async ({ page }) => {
   await page.screenshot({ path: 'test-results/savly-result-320.png' });
   await page.getByRole('button', { name: 'Save this comparison', exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/savly-result-actions-320.png' });
+  await back(page);
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('heading', { name: 'Settings', exact: true }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await expect(page.getByRole('button', { name: 'Get Savly Premium', exact: true })).toHaveCSS('background-color', 'rgb(11, 33, 86)');
+  await expect(page.getByRole('button', { name: 'Back to calculator', exact: true })).toHaveCSS('background-color', 'rgb(240, 241, 250)');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/savly-settings-320.png' });
   await page.goto('/app/');
   await expect(page.getByRole('heading', { name: 'Coming to Android and iOS', exact: true })).toBeVisible();
   await expect(page.getByText('Store downloads are not available yet.', { exact: true })).toBeVisible();
