@@ -461,5 +461,5 @@ The allowance regression was split into independent calculator scenarios; all th
 
 - [x] Disable Calculate savings until valid shopping and home prices are present and validation is settled; keep older saved snapshots readable.
 - [x] Update calculator requirements, design guidance, and browser coverage for empty and invalid prices.
-- [ ] Verify TypeScript, unit/integration tests, web export, and relevant browser flows.
+- [x] Verify TypeScript, all 167 unit/integration tests, web export, and the focused Chromium button-state flow. A broader browser run reached live FX data and older exact sample-amount assertions failed; those failures are unrelated to button enablement.
 - [ ] Verify the enabled and disabled button states on Android and iOS devices.

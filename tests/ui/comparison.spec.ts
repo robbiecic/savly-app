@@ -147,7 +147,8 @@ test('Calculate requires shopping and home prices; price edits update the result
   await page.getByRole('textbox', { name: 'Shopping price (EUR)', exact: true }).fill('100');
   await calculate(page);
   await page.getByRole('button', { name: 'Expand details', exact: true }).click();
-  await expect(page.getByText('USD 110.00', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('EUR 100.00', { exact: true })).toBeVisible();
+  await expect(page.getByText('USD 150.00', { exact: true })).toBeVisible();
 });
 
 test('Small screen layout and demo landing page', async ({ page }) => {
