@@ -69,7 +69,8 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
       <HomeSettingsButton country={form.residence} locale={state.locale} disabled={!state.ready} expanded={page === 'settings'} onPress={toggleSettings} pill />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}>
-      <KeyboardFormScrollView style={styles.scroll} contentContainerStyle={[styles.content, wide && responsive.wideContent, wide && styles.wideContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
+      <KeyboardFormScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, wide && styles.wideScrollContent]} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
+        <View style={[styles.content, wide && responsive.wideContent]}>
         {!state.ready ? state.startupError ? <Card>
           <Text accessibilityRole="alert" style={ui.error}>Your settings couldn’t load. Please try again.</Text>
           <Action label="Retry loading settings" onPress={state.retryStartup} />
@@ -115,6 +116,7 @@ export function CompareScreen({ onSignOut }: { onSignOut: () => void }) {
           </>}
           </>}
         </>}
+        </View>
       </KeyboardFormScrollView>
     </KeyboardAvoidingView>
   </SafeAreaView>;
@@ -123,8 +125,11 @@ const styles = StyleSheet.create({
   fixedHeader: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 10, width: '100%', maxWidth: 1080, alignSelf: 'center' },
   screen: { flex: 1, backgroundColor: '#3C90D1' },
   scroll: { flex: 1 },
-  content: { marginTop: 54, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36, minHeight: '100%' },
-  wideContent: { marginTop: 24 },
+  // Include the sky gap in the native scroll height; a margin on the scroll
+  // content container leaves Android's scroll range shorter than the content.
+  scrollContent: { flexGrow: 1, paddingTop: 54 },
+  wideScrollContent: { paddingTop: 24 },
+  content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 620, alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopLeftRadius: 36, borderTopRightRadius: 36 },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
   tabs: { flexDirection: 'row', backgroundColor: '#F0F1FA', borderRadius: 28, padding: 3 },
   tab: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 10, borderRadius: 26 },

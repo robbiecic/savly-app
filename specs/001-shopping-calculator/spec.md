@@ -119,6 +119,8 @@ Keep the existing fxService backend and canonical country/VAT contract. Frankfur
 
 The calculator, savings-name field, and country search remain usable with the soft keyboard open. Android uses native resizing plus explicit height avoidance and scrolls the focused input into the visible viewport after keyboard/layout changes. iOS uses padding avoidance. Forms and country options scroll within the remaining space. Native form scrolling dismisses the keyboard; browser scrolling preserves input focus so typing into lower fields is not interrupted, and action/selection taps remain available while it is open. Verify on native devices with small screens and enlarged text before release.
 
+Calculate must remain scrollable whenever its content exceeds the viewport, including after entering either price, dismissing the keyboard, or selecting a country. Include the sky gap above the white panel and its bottom padding in the measured scroll content so the final controls and validation messages can be reached.
+
 Card-fee inputs and zero-fee rows are removed from new calculator results and shares. Previously saved comparisons retain their original totals and show any nonzero card fee as a saved-estimate detail. VAT refund provider fees remain separate and unchanged.
 
 ## Responsive layout and rotation
