@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { AppState, Modal, Platform, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { AndroidNavigationBar } from '../components/AndroidNavigationBar';
 import { Action, ui } from '../components/controls';
 import { SavlyLogo } from '../components/SavlyLogo';
 import { refreshSession, resolveCognitoConfig, type CognitoConfig, type Session } from './cognito';
@@ -134,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {visible && <StatusBar style="light" />}
       <SafeAreaProvider>
         <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#3C90D1' }}>
+          {visible && <AndroidNavigationBar style="dark" />}
           <CloudHeaderBackground />
           <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 10, width: '100%', maxWidth: 1080, alignSelf: 'center' }}><SavlyLogo light /></View>
           {visible && <AccountForm initialStep={initialStep} configuration={() => { checkSessionStorage(); return configuration(); }} onSession={accept} onClose={close} />}

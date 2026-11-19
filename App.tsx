@@ -3,6 +3,7 @@ import { BillingProvider, useBilling } from './src/billing/BillingProvider';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { AndroidNavigationBar } from './src/components/AndroidNavigationBar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { WelcomeScreen } from './src/app/WelcomeScreen';
@@ -22,6 +23,7 @@ function AppContent() {
   return (
     <>
       <StatusBar style={started ? "dark" : "light"} />
+      <AndroidNavigationBar style={started ? 'dark' : 'light'} />
       {user && billing.prompt && <SignInCheckout />}
       <View style={{ flex: 1, display: user && billing.prompt ? 'none' : 'flex' }}>
       {started ? <CompareScreen onSignOut={() => { void signOut().then(success => { if (success) setStarted(false); }); }} /> : <WelcomeScreen onGetStarted={() => setStarted(true)} />}

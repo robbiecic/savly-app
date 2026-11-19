@@ -497,3 +497,18 @@ The allowance regression was split into independent calculator scenarios; all th
 - [x] Match Calculate's cloud header, white Savly logo, rounded white panel, navy title, pale plan tile, navy store action, and pale cancellation row. Keep Close available in the fixed header and preserve all plan-state wording and billing actions.
 - [x] Update the Premium management specification. Verify TypeScript, all 168 unit/integration tests, Android and iOS JavaScript exports, and diff whitespace checks.
 - [ ] Visually verify Monthly, Annual, Lifetime, Test Store, and missing-details states in a native development build. The browser preview cannot activate Premium; local CoreSimulator services were unavailable during this change.
+
+### Sign-in visual refresh (2026-11-18)
+
+- [x] Match Calculate's cloud header, white Savly logo, rounded panel, navy title and primary action, and pale icon-led fields and secondary rows across account form steps.
+- [x] Update the account specification and capture a settled 320-pixel sign-in screenshot with an overflow and action-style check.
+- [x] Verify TypeScript, all 168 unit/integration tests, Android and iOS JavaScript exports, and four focused browser account flows.
+- [x] Assemble a fresh local Android debug APK for Pixel testing after the sign-in change; the APK requires the development server for JavaScript.
+- [ ] Verify the sign-in form on Android and iOS devices with the keyboard, enlarged text, and camera cutouts.
+
+### Android system navigation contrast (2026-11-18)
+
+- [x] Add the Expo navigation bar module and tracked Android theme configuration so the gesture handle stays visible over Welcome and the light app screens.
+- [x] Guard the optional native module before loading its JavaScript to avoid the `ExpoNavigationBar` startup error in older development APKs.
+- [x] Verify TypeScript, all 168 unit/integration tests, and a fresh Android debug build. Inspect Welcome and Calculate navigation areas on the Android emulator.
+- [ ] Install the rebuilt APK on a physical Pixel and verify the gesture handle and account form there.
